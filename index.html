@@ -266,7 +266,7 @@ textarea.input{min-height:110px;resize:vertical;font-size:.95rem}
    ============================================================ */
 const APP_URL=/github\.io$/.test(location.hostname)?location.origin+location.pathname:"https://claude.ai/artifact/DpNcqm6Bx3hXWG96hd3n1u";
 const EXAM_UNLOCK=100;
-const PRACTICE_FULL=80; // a practice score of 80+ counts as a fully done practice
+const ROUND_MAX=8; // practice rounds hold at most this many questions
 const AVATARS=["🦊","🐼","🦁","🐸","🐙","🦄","🐯","🐨","🐵","🦉","🐬","🐲","🦖","🐝","🐧","🦈"];
 
 /* ---------- original illustrations (SVG) ---------- */
@@ -509,14 +509,20 @@ const LS="sci1:";
 const ls={get(k,d){try{const v=localStorage.getItem(LS+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(LS+k,JSON.stringify(v))}catch(e){}}};
 let profiles=ls.get("profiles",[]);      // [{id,name,cls,av}]
 let me=profiles.find(p=>p.id===ls.get("active",""))||null;
-const blank=()=>({lessons:{},cards:{},practice:{},exam:{best:null,attempts:0,last:null,history:[]},sent:null});
+const blank=()=>({lessons:{},cards:{},mastered:{},exam:{best:null,attempts:0,last:null,history:[]},sent:null});
 let P=me?ls.get("p:"+me.id,blank()):blank();
 const save=()=>{if(me)ls.set("p:"+me.id,P)};
 
+/* practice: a question is mastered once it is answered right on the first try; a topic is done only when all are */
+const M=()=>P.mastered||(P.mastered={});
+const worldQs=wid=>QB.filter(q=>q.w===wid);
+const roundsOf=wid=>Math.ceil(worldQs(wid).length/ROUND_MAX);
+const roundSize=wid=>Math.ceil(worldQs(wid).length/roundsOf(wid));
+const masteredIn=wid=>worldQs(wid).filter(q=>M()[q.id]).length;
 function worldMeter(wid){
   const w=W[wid];const L=w.lessons.filter(l=>P.lessons[l.id]).length/w.lessons.length;
   const C=CARDS[wid].filter((_,i)=>P.cards[wid+i]).length/CARDS[wid].length;
-  const Pr=Math.min(1,(P.practice[wid]||0)/PRACTICE_FULL);
+  const Pr=masteredIn(wid)/worldQs(wid).length;
   return Math.floor(100*(.5*L+.3*C+.2*Pr)+1e-9);
 }
 const meter=()=>Math.floor(WORLDS.reduce((s,w)=>s+worldMeter(w.id),0)/WORLDS.length);
@@ -650,7 +656,7 @@ function home(){
       <div class="row"><span class="status ${stc}">${st}</span>${best!=null?`<span class="pill good">ציון מבחן: ${best}</span>`:""}</div>
       <h2>${open?"למדת את כל החומר! המבחן פתוח 🎉":`עוד ${EXAM_UNLOCK-m}% והמבחן נפתח`}</h2>
       <div><div class="bar" style="--c:var(--xp)"><i style="width:${m}%"></i></div>
-      <div class="milestones"><span>כל השיעורים 50%</span><span>כל הכרטיסיות 30%</span><span>תרגול ${PRACTICE_FULL}+ 20%</span></div></div>
+      <div class="milestones"><span>כל השיעורים 50%</span><span>כל הכרטיסיות 30%</span><span>כל שאלות התרגול 20%</span></div></div>
       <div class="row"><button class="btn ghost" data-nav="profile">✎ פרופיל</button><button class="btn ghost" id="share">${WA_SVG} שליחת התקדמות להורה</button></div>
     </div>
   </section>
@@ -769,9 +775,18 @@ function cards(wid,body){
 /* ---------- quiz engine (practice + exam) ---------- */
 function buildQ(q){return {...q,opts:q.tf?q.o.map((t,k)=>({t,ok:k===q.a})):shuffle(q.o.map((t,k)=>({t,ok:k===q.a})))}}
 function practiceIntro(wid,body){
-  const b=P.practice[wid];
-  body.innerHTML=`<div class="panel stack"><h2>תרגול: ${W[wid].name}</h2><p class="muted">10 שאלות עם הסבר אחרי כל תשובה. ציון ${PRACTICE_FULL} ומעלה משלים את חלק התרגול במד הלמידה.</p>${b!=null?`<span class="pill good" style="align-self:flex-start">השיא שלך: ${b}</span>`:""}<button class="btn primary" id="go">להתחיל תרגול ←</button></div>`;
-  document.getElementById("go").onclick=()=>runQuiz({mode:"practice",wid,qs:shuffle(QB.filter(q=>q.w===wid)).slice(0,10).map(buildQ)});
+  const all=worldQs(wid),n=all.length,m=masteredIn(wid),R=roundsOf(wid),size=roundSize(wid);
+  const left=all.filter(q=>!M()[q.id]),pct=Math.floor(m/n*100);
+  body.innerHTML=`<div class="panel stack">
+    <h2>תרגול: ${W[wid].name}</h2>
+    <div class="row between"><span class="small" style="font-weight:800">שלטתם ב-${m} מתוך ${n} שאלות</span><b class="num">${pct}%</b></div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    <p class="muted">כדי לסיים את הנושא צריך לענות נכון על <b>כל ${n} השאלות</b>. התרגול מחולק ל-${R} סבבים של כ-${size} שאלות, וכל סבב מלא בלי טעויות שווה ${Math.round(100/R)}%. שאלה נספרת רק כשעונים עליה נכון בניסיון הראשון. שאלות שטעיתם בהן יחזרו בסבב הבא.</p>
+    ${left.length?`<button class="btn primary" id="go">${m?"לסבב הבא":"להתחיל את הסבב הראשון"} ← (${Math.min(size,left.length)} שאלות)</button>`
+      :`<div class="fb good">🎉 שלטתם בכל השאלות של ${W[wid].name}!</div><button class="btn ghost" id="rev">סבב חזרה (לא משנה את המד)</button>`}
+  </div>`;
+  if(document.getElementById("go"))document.getElementById("go").onclick=()=>runQuiz({mode:"practice",wid,qs:shuffle(left).slice(0,size).map(buildQ)});
+  if(document.getElementById("rev"))document.getElementById("rev").onclick=()=>runQuiz({mode:"practice",wid,review:true,qs:shuffle(all).slice(0,size).map(buildQ)});
 }
 function examIntro(){
   if(meter()<EXAM_UNLOCK)return home();
@@ -831,28 +846,29 @@ function finish(st,ans){
   const {mode,qs}=st;const isOk=(q,a)=>a>=0&&q.opts[a].ok;
   const right=qs.filter((q,k)=>isOk(q,ans[k])).length;const score=Math.round(right/qs.length*100);
   const wrong=qs.map((q,k)=>({q,a:ans[k]})).filter(x=>!isOk(x.q,x.a));
-  let isBest=false;
-  if(mode==="practice"){isBest=P.practice[st.wid]==null||score>P.practice[st.wid];if(isBest)P.practice[st.wid]=score}
+  let isBest=false,gained=0;
+  if(mode==="practice"){qs.forEach((q,k)=>{if(isOk(q,ans[k])&&!M()[q.id]){M()[q.id]=1;gained++}})}
   else{isBest=P.exam.best==null||score>P.exam.best;if(isBest)P.exam.best=score;P.exam.attempts++;P.exam.last=score;P.exam.history.push(score)}
   save();
   const msg=score>=90?"מצוין! 🌟":score>=75?"יפה מאוד!":score>=55?"בכיוון הנכון – עוד קצת תרגול":"כדאי לחזור לשיעורים ולנסות שוב";
   root.innerHTML=`${topbar(mode==="exam"?"home":"world:"+st.wid)}
   <section class="panel stack" style="text-align:center;align-items:center">
     <span class="pill ${mode==="exam"?"xp":"primary"}">${mode==="exam"?`מבחן מסכם · ניסיון ${P.exam.attempts}`:"תרגול · "+W[st.wid].name}</span>
-    <div class="score num">${score}</div><p class="muted">${right} תשובות נכונות מתוך ${qs.length}</p>
+    <div class="score num">${score}</div><p class="muted">${mode==="practice"?"ציון הסבב: ":""}${right} תשובות נכונות מתוך ${qs.length}</p>
     <h2>${msg}</h2>
-    ${isBest&&(mode==="practice"||P.exam.attempts>1)?`<span class="pill good">שיא חדש!</span>`:""}
+    ${isBest&&P.exam.attempts>1?`<span class="pill good">שיא חדש!</span>`:""}
+    ${mode==="practice"?(()=>{const n=worldQs(st.wid).length,m=masteredIn(st.wid);return `<div style="width:100%;max-width:420px" class="stack"><div class="row between"><span class="small" style="font-weight:800">${W[st.wid].name}: שלטתם ב-${m} מתוך ${n} שאלות${gained?` (+${gained})`:""}</span><b class="num">${Math.floor(m/n*100)}%</b></div><div class="bar"><i style="width:${m/n*100}%"></i></div>${m<n?`<p class="small muted">נשארו ${n-m} שאלות. הנושא נגמר רק כשעונים נכון על כולן.</p>`:`<p class="small" style="color:var(--good);font-weight:800">🎉 סיימתם את כל שאלות הנושא!</p>`}</div>`})():""}
     ${mode==="exam"?`<p class="muted">הציון הכי טוב שלך: <b>${P.exam.best}</b>. אפשר לנסות שוב ולשפר לפני שולחים.</p>`:""}
     <div class="row" style="justify-content:center">
       ${mode==="exam"?`<button class="btn ghost" id="retry">↺ מבחן חוזר</button><button class="btn wa" id="send">${WA_SVG} שליחת הציון להורה</button>`
-      :`<button class="btn ghost" id="retry">↺ עוד תרגול</button><button class="btn primary" data-nav="home">לדף הבית</button>`}
+      :`${masteredIn(st.wid)<worldQs(st.wid).length?`<button class="btn primary" id="retry">לסבב הבא ←</button>`:`<button class="btn primary" id="retry">חזרה לנושא</button>`}<button class="btn ghost" data-nav="home">לדף הבית</button>`}
     </div>
   </section>
   ${wrong.length?(mode==="exam"?`<section class="panel stack"><h2>שאלות לתיקון</h2><div class="review">${wrong.map(x=>`<div><b>${x.q.q}</b><small class="muted">ענית: ${x.q.opts[x.a].t}</small><br><span>✓ ${x.q.o[x.q.a]}</span> <small>${x.q.e}</small></div>`).join("")}</div></section>`
     :`<section class="panel stack"><h2>כדאי לחזור על השיעורים האלה</h2><p class="muted small">בשאלות האלה לא הצלחתם בניסיון הראשון.</p><div class="lessons">${[...new Set(wrong.map(x=>x.q.les))].map(id=>{const r=lessonRef(id);return r?`<button class="lesson" data-rl="${id}"><div class="thumb">${ILL[r.l.img]()}</div><div><div class="n">${W[r.wid].name}</div><h3>${r.l.title}</h3></div><span class="ok">📖</span></button>`:""}).join("")}</div></section>`):""}`;
   bindNav();
-  if(score>=75)confetti();
-  document.getElementById("retry").onclick=()=>mode==="exam"?examIntro():runQuiz({...st,qs:shuffle(QB.filter(q=>q.w===st.wid)).slice(0,10).map(buildQ)});
+  if(mode==="exam"?score>=75:(gained&&masteredIn(st.wid)===worldQs(st.wid).length)||score===100)confetti();
+  document.getElementById("retry").onclick=()=>{if(mode==="exam")examIntro();else{world(st.wid,"practice");scrollTo(0,0)}};
   if(document.getElementById("send"))document.getElementById("send").onclick=()=>shareSheet();
   root.querySelectorAll("[data-rl]").forEach(b=>b.onclick=()=>{const r=lessonRef(b.dataset.rl);lesson(r.wid,r.i);scrollTo(0,0)});
 }
