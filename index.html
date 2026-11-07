@@ -266,6 +266,8 @@ textarea.input{min-height:110px;resize:vertical;font-size:.95rem}
    ============================================================ */
 const APP_URL=/github\.io$/.test(location.hostname)?location.origin+location.pathname:"https://claude.ai/artifact/DpNcqm6Bx3hXWG96hd3n1u";
 const EXAM_UNLOCK=100;
+/* Google Sheet that stores every child's progress for the shared table (google-apps-script.gs). Empty = off. */
+const SCRIPT_URL="";
 const ROUND_MAX=8; // practice rounds hold at most this many questions
 const AVATARS=["🦊","🐼","🦁","🐸","🐙","🦄","🐯","🐨","🐵","🦉","🐬","🐲","🦖","🐝","🐧","🦈"];
 
@@ -511,7 +513,7 @@ let profiles=ls.get("profiles",[]);      // [{id,name,cls,av}]
 let me=profiles.find(p=>p.id===ls.get("active",""))||null;
 const blank=()=>({lessons:{},cards:{},mastered:{},exam:{best:null,attempts:0,last:null,history:[]},sent:null});
 let P=me?ls.get("p:"+me.id,blank()):blank();
-const save=()=>{if(me)ls.set("p:"+me.id,P)};
+const save=()=>{if(me){ls.set("p:"+me.id,P);queueSync()}};
 
 /* practice: a question is mastered once it is answered right on the first try; a topic is done only when all are */
 const M=()=>P.mastered||(P.mastered={});
@@ -565,7 +567,23 @@ function parseToken(t){
 let BOARD={rows:[],updated:0};
 try{BOARD=JSON.parse(document.getElementById("board").textContent)}catch(e){}
 const byRank=(a,b)=>(b.best??-1)-(a.best??-1)||b.meter-a.meter;
+/* ---------- automatic sync to the results sheet ---------- */
+let LIVE=null,liveLoading=false,syncT,lastSent="";
+function payload(){return {id:me.id,name:me.name,cls:me.cls,av:me.av,meter:meter(),lessons:lessonsDone(),best:P.exam.best,attempts:P.exam.attempts}}
+function queueSync(){if(!SCRIPT_URL||!me)return;clearTimeout(syncT);syncT=setTimeout(sendSync,2000)}
+function sendSync(){
+  if(!SCRIPT_URL||!me)return;const body=JSON.stringify(payload());if(body===lastSent)return;lastSent=body;
+  try{fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body,keepalive:true}).then(()=>{LIVE=null}).catch(()=>{lastSent=""})}catch(e){lastSent=""}
+}
+addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){clearTimeout(syncT);sendSync()}});
+const liveRow=r=>{const name=String(r.name||"").slice(0,40),cls=String(r.cls||"").slice(0,10);
+  return {name,cls,av:AVATARS.includes(r.av)?r.av:"🙂",meter:Math.max(0,Math.min(100,+r.meter||0)),best:r.best==null||r.best===""?null:Math.max(0,Math.min(100,+r.best)),attempts:+r.attempts||0,date:new Date(+r.updated||0),key:(name.trim()+"|"+cls).toLowerCase()}};
+function loadLive(){
+  if(!SCRIPT_URL||LIVE||liveLoading)return;liveLoading=true;
+  fetch(SCRIPT_URL).then(r=>r.json()).then(d=>{if(d&&d.ok){LIVE=d.rows.map(liveRow);if(SCREEN==="home"&&document.getElementById("share"))home();else if(SCREEN==="board"&&document.getElementById("bt"))board()}}).catch(()=>{}).finally(()=>{liveLoading=false});
+}
 function boardRows(tokens){
+  if(!tokens&&LIVE)return LIVE.filter(r=>r.name).sort((a,b)=>(b.best??-1)-(a.best??-1)||b.meter-a.meter);
   const best={};
   (tokens||BOARD.rows).map(parseToken).filter(r=>r&&r.ok).forEach(r=>{const b=best[r.key];
     if(!b||r.day>b.day||(r.day===b.day&&(r.attempts>b.attempts||(r.attempts===b.attempts&&r.meter>=b.meter))))best[r.key]=r});
@@ -628,7 +646,7 @@ function onboarding(){
       <div id="perr"></div>
       <button class="btn primary block">${me?"שמירה":"יוצאים לדרך ←"}</button>
       ${profiles.length>(me?1:0)?`<div class="stack"><span class="small muted">או המשיכו כ:</span><div class="profiles">${profiles.filter(p=>!me||p.id!==me.id).map(p=>`<button type="button" data-pid="${p.id}"><span class="av">${p.av}</span>${esc(p.name)}</button>`).join("")}</div></div>`:""}
-      <p class="small muted">ההתקדמות נשמרת במכשיר הזה. השם והכיתה יופיעו בטבלת התוצאות אחרי שתשתפו תוצאה עם ההורה.</p>
+      <p class="small muted">ההתקדמות נשמרת במכשיר הזה. ${SCRIPT_URL?"השם, הכיתה וההתקדמות יופיעו אוטומטית בטבלת התוצאות שכולם רואים.":"השם והכיתה יופיעו בטבלת התוצאות אחרי שתשתפו תוצאה עם ההורה."}</p>
     </form>
   </div>`;
   bindNav();
@@ -646,7 +664,7 @@ function switchTo(id){me=profiles.find(p=>p.id===id);ls.set("active",id);P=ls.ge
 let SCREEN="";
 function home(){
   if(!me)return onboarding();
-  SCREEN="home";
+  SCREEN="home";loadLive();queueSync();
   const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK;
   const rows=boardRows().slice(0,8);
   root.innerHTML=`${topbar()}
@@ -671,7 +689,7 @@ function home(){
   </section>
   <section class="panel stack">
     <div class="row between"><h2>🏆 טבלת התוצאות</h2><button class="btn ghost" data-nav="board">לכל הטבלה</button></div>
-    ${rows.length?boardTable(rows,true)+(boardRows().length>8?`<p class="small muted">מוצגים 8 הראשונים מתוך ${boardRows().length}.</p>`:""):`<p class="muted">הטבלה עוד ריקה. שלחו להורה את ההתקדמות, והיא תתווסף לטבלה שכולם רואים.</p>`}
+    ${rows.length?boardTable(rows,true)+(boardRows().length>8?`<p class="small muted">מוצגים 8 הראשונים מתוך ${boardRows().length}.</p>`:""):`<p class="muted">${SCRIPT_URL?"הטבלה עוד ריקה. ברגע שמישהו יתחיל ללמוד, הוא יופיע כאן.":"הטבלה עוד ריקה. שלחו להורה את ההתקדמות, והיא תתווסף לטבלה שכולם רואים."}</p>`}
   </section>
   ${IS_OWNER?`<button class="btn primary block" data-nav="admin">🔑 ניהול טבלת התוצאות${pending().length?` · ${pending().length} חדשים`:""}</button>`:""}
   ${profiles.length>1?`<div class="profiles">${profiles.filter(p=>p.id!==me.id).map(p=>`<button data-pid="${p.id}"><span class="av">${p.av}</span>להחליף ל${esc(p.name)}</button>`).join("")}</div>`:""}
@@ -898,7 +916,7 @@ function shareSheet(){
 
 /* ---------- full class table ---------- */
 function board(){
-  SCREEN="board";
+  SCREEN="board";loadLive();
   const rows=boardRows();const classes=[...new Set(rows.map(r=>r.cls))].sort();
   let cur="all";
   const draw=()=>{const shown=cur==="all"?rows:rows.filter(r=>r.cls===cur);
@@ -906,7 +924,7 @@ function board(){
   root.innerHTML=`${topbar(me?"home":null)}
   <section class="panel stack">
     <div class="row between"><h1>🏆 טבלת התוצאות</h1>${classes.length>1?`<select class="input" id="cf" style="width:auto"><option value="all">כל הכיתות</option>${classes.map(c=>`<option ${c===cur?"selected":""}>${esc(c)}</option>`).join("")}</select>`:""}</div>
-    <p class="muted small">מסודר לפי ציון המבחן ואז לפי מד הלמידה. ${BOARD.updated?`עודכן: ${new Date(BOARD.updated).toLocaleString("he-IL",{dateStyle:"short",timeStyle:"short"})}`:""}</p>
+    <p class="muted small">מסודר לפי ציון המבחן ואז לפי מד הלמידה. ${LIVE?"מתעדכן אוטומטית.":BOARD.updated?`עודכן: ${new Date(BOARD.updated).toLocaleString("he-IL",{dateStyle:"short",timeStyle:"short"})}`:""}</p>
     <div id="bt"></div>
     <div class="row small" style="gap:6px"><span class="status st-learn">בלמידה</span><span class="status st-ready">מוכן/ה למבחן</span><span class="status st-done">עשה/תה מבחן</span><span class="status st-star">מצטיין/ת – 90+</span></div>
   </section>`;
