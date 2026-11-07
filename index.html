@@ -198,7 +198,7 @@ th{background:var(--cs,var(--bg2));font-weight:800}
 .board tr.r td:first-child{border-radius:0 14px 14px 0;border-right:1px solid var(--line)}
 .board tr.r td:last-child{border-radius:14px 0 0 14px;border-left:1px solid var(--line)}
 .board tr.me td{background:var(--primary-soft)}
-.board .nm{display:flex;align-items:center;gap:10px;font-weight:800}
+.board .nm{display:flex;align-items:center;gap:10px;font-weight:800;white-space:nowrap}
 .board .mini{width:110px}
 .rank{font-family:var(--display);font-weight:700;font-size:1.2rem;width:30px;text-align:center}
 .status{font-size:.8rem;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap}
@@ -233,6 +233,17 @@ th{background:var(--cs,var(--bg2));font-weight:800}
 .toast{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:700;z-index:30;max-width:calc(100% - 32px);text-align:center}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:40}
 #fx canvas{width:100%;height:100%}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:600px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--bg);border-radius:16px;padding:14px 10px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.tile b{font-family:var(--display);font-size:2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile span{color:var(--muted);font-size:.85rem;font-weight:700}
+.adm-tools{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:8px}
+@media (max-width:600px){.adm-tools{grid-template-columns:1fr 1fr}.adm-tools input{grid-column:1/-1}}
+.board.adm{min-width:820px}
+.wpct{display:inline-block;min-width:34px;text-align:center;border-radius:8px;padding:1px 6px;font-weight:800;font-size:.85rem;background:var(--bg2)}
+.wpct.full{background:var(--good-soft);color:var(--good)}
+.linkbtn{background:none;border:none;color:var(--muted);text-decoration:underline;font-weight:700;padding:6px;align-self:center}
 .verified{border:2px solid var(--good);background:var(--good-soft);color:var(--good);border-radius:14px;padding:10px 14px;font-weight:800}
 textarea.input{min-height:110px;resize:vertical;font-size:.95rem}
 .list-admin{display:flex;flex-direction:column;gap:6px}
@@ -249,6 +260,8 @@ textarea.input{min-height:110px;resize:vertical;font-size:.95rem}
    ============================================================ */
 const APP_URL=/github\.io$/.test(location.hostname)?location.origin+location.pathname:"https://claude.ai/artifact/DpNcqm6Bx3hXWG96hd3n1u";
 const EXAM_UNLOCK=100;
+/* Google Sheet that collects every child's progress (see google-apps-script.gs). Empty = off. */
+const SCRIPT_URL="";
 const PRACTICE_FULL=80; // a practice score of 80+ counts as a fully done practice
 const AVATARS=["🦊","🐼","🦁","🐸","🐙","🦄","🐯","🐨","🐵","🦉","🐬","🐲","🦖","🐝","🐧","🦈"];
 
@@ -491,7 +504,7 @@ let profiles=ls.get("profiles",[]);      // [{id,name,cls,av}]
 let me=profiles.find(p=>p.id===ls.get("active",""))||null;
 const blank=()=>({lessons:{},cards:{},practice:{},exam:{best:null,attempts:0,last:null,history:[]},sent:null});
 let P=me?ls.get("p:"+me.id,blank()):blank();
-const save=()=>{if(me)ls.set("p:"+me.id,P)};
+const save=()=>{if(me){ls.set("p:"+me.id,P);queueSync()}};
 
 function worldMeter(wid){
   const w=W[wid];const L=w.lessons.filter(l=>P.lessons[l.id]).length/w.lessons.length;
@@ -538,7 +551,25 @@ function parseToken(t){
 /* the shared class table is embedded in the page and republished by the owner */
 let BOARD={rows:[],updated:0};
 try{BOARD=JSON.parse(document.getElementById("board").textContent)}catch(e){}
+/* ---------- automatic sync to the Google Sheet ---------- */
+let LIVE=null,liveLoading=false,syncT,lastSent="";
+function payload(){return {id:me.id,name:me.name,cls:me.cls,av:me.av,meter:meter(),lessons:lessonsDone(),best:P.exam.best,attempts:P.exam.attempts,history:P.exam.history,worlds:Object.fromEntries(WORLDS.map(w=>[w.id,worldMeter(w.id)]))}}
+function queueSync(){if(!SCRIPT_URL||!me)return;clearTimeout(syncT);syncT=setTimeout(sendSync,2500)}
+function sendSync(){
+  if(!SCRIPT_URL||!me)return;const body=JSON.stringify(payload());if(body===lastSent)return;lastSent=body;
+  try{fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",body,keepalive:true}).then(()=>{LIVE=null}).catch(()=>{lastSent=""})}catch(e){lastSent=""}
+}
+addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){clearTimeout(syncT);sendSync()}});
+async function apiGet(key){const r=await fetch(SCRIPT_URL+(key?"?key="+encodeURIComponent(key):""));return r.json()}
+const liveRow=r=>{const name=String(r.name||"").slice(0,40),cls=String(r.cls||"").slice(0,10);
+  return {id:String(r.id||""),name,cls,av:AVATARS.includes(r.av)?r.av:"🙂",meter:Math.max(0,Math.min(100,+r.meter||0)),best:r.best==null||r.best===""?null:Math.max(0,Math.min(100,+r.best)),attempts:+r.attempts||0,lessons:+r.lessons||0,worlds:r.worlds&&typeof r.worlds==="object"?r.worlds:{},history:String(r.history||""),date:new Date(+r.updated||0),key:(name.trim()+"|"+cls).toLowerCase()}};
+function loadLive(){
+  if(!SCRIPT_URL||LIVE||liveLoading)return;liveLoading=true;
+  apiGet().then(d=>{if(d&&d.ok){LIVE=d.rows.map(liveRow);if(SCREEN==="home"&&document.getElementById("share"))home();else if(SCREEN==="board"&&document.getElementById("bt"))board()}}).catch(()=>{}).finally(()=>{liveLoading=false});
+}
+const byRank=(a,b)=>(b.best??-1)-(a.best??-1)||b.meter-a.meter;
 function boardRows(tokens){
+  if(!tokens&&LIVE)return LIVE.slice().sort(byRank);
   const best={};
   (tokens||BOARD.rows).map(parseToken).filter(r=>r&&r.ok).forEach(r=>{const b=best[r.key];
     if(!b||r.day>b.day||(r.day===b.day&&(r.attempts>b.attempts||(r.attempts===b.attempts&&r.meter>=b.meter))))best[r.key]=r});
@@ -563,7 +594,7 @@ function topbar(back){
 function bindNav(){root.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>nav(b.dataset.nav))}
 function nav(to){
   const [s,a]=to.split(":");
-  ({home,world:()=>world(a),board,admin,exam:examIntro,profile:onboarding})[s]();
+  ({home,world:()=>world(a),board,admin,exam:examIntro,profile:onboarding,login:adminLogin})[s]();
   window.scrollTo(0,0);
 }
 
@@ -600,6 +631,7 @@ function onboarding(){
       <div class="field"><label>הדמות שלי</label><div class="avs" id="avs">${AVATARS.map(a=>`<button type="button" aria-pressed="${a===av}" data-av="${a}">${a}</button>`).join("")}</div></div>
       <div id="perr"></div>
       <button class="btn primary block">${me?"שמירה":"יוצאים לדרך ←"}</button>
+      ${SCRIPT_URL?`<button type="button" class="linkbtn" data-nav="login">🔐 כניסת מנהל</button>`:""}
       ${profiles.length>(me?1:0)?`<div class="stack"><span class="small muted">או המשיכו כ:</span><div class="profiles">${profiles.filter(p=>!me||p.id!==me.id).map(p=>`<button type="button" data-pid="${p.id}"><span class="av">${p.av}</span>${esc(p.name)}</button>`).join("")}</div></div>`:""}
       <p class="small muted">ההתקדמות נשמרת במכשיר הזה. השם והכיתה יופיעו בטבלת הכיתה אחרי שתשתפו תוצאה עם ההורה.</p>
     </form>
@@ -619,7 +651,7 @@ function switchTo(id){me=profiles.find(p=>p.id===id);ls.set("active",id);P=ls.ge
 let SCREEN="";
 function home(){
   if(!me)return onboarding();
-  SCREEN="home";
+  SCREEN="home";loadLive();queueSync();
   const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK;
   const rows=boardRows().filter(r=>r.cls===me.cls).slice(0,5);
   root.innerHTML=`${topbar()}
@@ -648,7 +680,8 @@ function home(){
   </section>
   ${IS_OWNER?`<button class="btn primary block" data-nav="admin">🔑 ניהול טבלת הכיתה${pending().length?` · ${pending().length} חדשים`:""}</button>`:""}
   ${profiles.length>1?`<div class="profiles">${profiles.filter(p=>p.id!==me.id).map(p=>`<button data-pid="${p.id}"><span class="av">${p.av}</span>להחליף ל${esc(p.name)}</button>`).join("")}</div>`:""}
-  <button class="btn ghost" id="addp" style="align-self:flex-start">+ ילד/ה נוסף/ת במכשיר הזה</button>`;
+  <button class="btn ghost" id="addp" style="align-self:flex-start">+ ילד/ה נוסף/ת במכשיר הזה</button>
+  ${SCRIPT_URL?`<button class="linkbtn" data-nav="login">🔐 כניסת מנהל</button>`:""}`;
   bindNav();
   document.getElementById("share").onclick=()=>shareSheet();
   root.querySelectorAll("[data-pid]").forEach(b=>b.onclick=()=>switchTo(b.dataset.pid));
@@ -831,6 +864,7 @@ function shareSheet(){
 
 /* ---------- full class table ---------- */
 function board(){
+  SCREEN="board";loadLive();
   const rows=boardRows();const classes=[...new Set(rows.map(r=>r.cls))].sort();
   let cur=me&&classes.includes(me.cls)?me.cls:"all";
   const draw=()=>{const shown=cur==="all"?rows:rows.filter(r=>r.cls===cur);
@@ -838,7 +872,7 @@ function board(){
   root.innerHTML=`${topbar(me?"home":null)}
   <section class="panel stack">
     <div class="row between"><h1>🏆 טבלת הכיתה</h1>${classes.length>1?`<select class="input" id="cf" style="width:auto"><option value="all">כל הכיתות</option>${classes.map(c=>`<option ${c===cur?"selected":""}>${esc(c)}</option>`).join("")}</select>`:""}</div>
-    <p class="muted small">מסודר לפי ציון המבחן ואז לפי מד הלמידה. ${BOARD.updated?`עודכן: ${new Date(BOARD.updated).toLocaleString("he-IL",{dateStyle:"short",timeStyle:"short"})}`:""}</p>
+    <p class="muted small">מסודר לפי ציון המבחן ואז לפי מד הלמידה. ${LIVE?"מתעדכן אוטומטית.":BOARD.updated?`עודכן: ${new Date(BOARD.updated).toLocaleString("he-IL",{dateStyle:"short",timeStyle:"short"})}`:""}</p>
     <div id="bt"></div>
     <div class="row small" style="gap:6px"><span class="status st-learn">בלמידה</span><span class="status st-ready">מוכן/ה למבחן</span><span class="status st-done">עשה/תה מבחן</span><span class="status st-star">מצטיין/ת – 90+</span></div>
   </section>`;
@@ -920,12 +954,75 @@ function admin(){
   });
 }
 
+/* ---------- admin login (password checked by the Google Sheet script) ---------- */
+let ADMIN_KEY="";try{ADMIN_KEY=sessionStorage.getItem(LS+"ak")||""}catch(e){}
+const fmtTime=d=>d.getTime()?d.toLocaleString("he-IL",{dateStyle:"short",timeStyle:"short"}):"—";
+function adminLogin(msg){
+  SCREEN="login";
+  if(!SCRIPT_URL){root.innerHTML=`${topbar(me?"home":"profile")}<section class="panel stack"><h1>כניסת מנהל</h1><p class="muted">החיבור לגיליון התוצאות עוד לא הוגדר.</p></section>`;bindNav();return}
+  if(ADMIN_KEY&&!msg)return adminDash();
+  root.innerHTML=`${topbar(me?"home":"profile")}
+  <form class="panel stack" id="lf" style="max-width:440px;width:100%;align-self:center">
+    <h1>🔐 כניסת מנהל</h1>
+    <p class="muted">כאן רואים את ההתקדמות של כל התלמידים, בלי שהם צריכים לשלוח.</p>
+    <div class="field"><label for="ak">סיסמת מנהל</label><input class="input" id="ak" type="password" autocomplete="current-password"></div>
+    ${msg?`<div class="fb bad">${msg}</div>`:""}
+    <button class="btn primary block">כניסה</button>
+  </form>`;
+  bindNav();
+  document.getElementById("ak").focus();
+  document.getElementById("lf").onsubmit=e=>{e.preventDefault();const k=document.getElementById("ak").value.trim();if(!k)return;ADMIN_KEY=k;adminDash()};
+}
+async function adminDash(){
+  SCREEN="dash";
+  root.innerHTML=`${topbar(me?"home":"profile")}<section class="panel"><p class="muted">טוען את התוצאות…</p></section>`;bindNav();
+  let d;try{d=await apiGet(ADMIN_KEY)}catch(e){return adminLogin("אין חיבור לגיליון התוצאות. בדקו את האינטרנט ונסו שוב.")}
+  if(SCREEN!=="dash")return;
+  if(!d||!d.ok||!d.admin){ADMIN_KEY="";try{sessionStorage.removeItem(LS+"ak")}catch(e){}return adminLogin("הסיסמה לא נכונה.")}
+  try{sessionStorage.setItem(LS+"ak",ADMIN_KEY)}catch(e){}
+  const rows=d.rows.map(liveRow);
+  const classes=[...new Set(rows.map(r=>r.cls))].sort();
+  const done=rows.filter(r=>r.meter>=100).length,tested=rows.filter(r=>r.best!=null),avg=tested.length?Math.round(tested.reduce((a,r)=>a+r.best,0)/tested.length):null;
+  let cls="all",sort="updated",q="";
+  root.innerHTML=`${topbar(me?"home":"profile")}
+  <section class="panel stack">
+    <div class="row between"><h1>📊 תוצאות התלמידים</h1><div class="row"><button class="btn ghost" id="ref">↻ רענון</button><button class="btn ghost" id="out">יציאה</button></div></div>
+    <div class="tiles"><div class="tile"><b>${rows.length}</b><span>תלמידים</span></div><div class="tile"><b>${done}</b><span>סיימו 100%</span></div><div class="tile"><b>${tested.length}</b><span>נבחנו</span></div><div class="tile"><b>${avg??"—"}</b><span>ממוצע ציונים</span></div></div>
+    <div class="adm-tools">
+      <select class="input" id="fc" aria-label="סינון לפי כיתה"><option value="all">כל הכיתות</option>${classes.map(c=>`<option>${esc(c)}</option>`).join("")}</select>
+      <select class="input" id="fs" aria-label="מיון"><option value="updated">פעילות אחרונה</option><option value="best">ציון מבחן</option><option value="meter">מד למידה</option><option value="name">שם</option></select>
+      <input class="input" id="fq" placeholder="חיפוש לפי שם" aria-label="חיפוש לפי שם">
+    </div>
+    <div class="tablewrap" id="at"></div>
+    <p class="small muted">כל תלמיד מתעדכן אוטומטית כמה שניות אחרי כל התקדמות, כשיש לו אינטרנט.</p>
+  </section>`;
+  bindNav();
+  const draw=()=>{
+    let v=rows.filter(r=>(cls==="all"||r.cls===cls)&&(!q||r.name.includes(q)));
+    v.sort(sort==="name"?(a,b)=>a.name.localeCompare(b.name,"he"):sort==="best"?byRank:sort==="meter"?(a,b)=>b.meter-a.meter:(a,b)=>b.date-a.date);
+    const wp=n=>`<span class="wpct${n>=100?" full":""}">${n??0}%</span>`;
+    document.getElementById("at").innerHTML=v.length?`<table class="board adm"><thead><tr><th>תלמיד/ה</th><th>כיתה</th><th>מד למידה</th><th>שיעורים</th><th>מתכות</th><th>סלעים</th><th>מלחים</th><th>מבחן</th><th>כל הניסיונות</th><th>סטטוס</th><th>פעילות אחרונה</th></tr></thead><tbody>
+    ${v.map(r=>{const [st,stc]=statusOf(r.meter,r.best);return `<tr class="r"><td><span class="nm"><span class="av">${r.av}</span>${esc(r.name)}</span></td><td>${esc(r.cls)}</td>
+    <td><div class="row" style="flex-wrap:nowrap"><div class="bar mini" style="--c:var(--xp);width:70px"><i style="width:${r.meter}%"></i></div><b class="num small">${r.meter}%</b></div></td>
+    <td class="num">${r.lessons}/${lessonsTotal}</td><td>${wp(r.worlds.metals)}</td><td>${wp(r.worlds.rocks)}</td><td>${wp(r.worlds.salts)}</td>
+    <td class="num"><b>${r.best??"—"}</b></td><td class="num small">${esc(r.history)||"—"}</td><td><span class="status ${stc}">${st}</span></td><td class="small muted num">${fmtTime(r.date)}</td></tr>`}).join("")}
+    </tbody></table>`:`<p class="muted">${rows.length?"אין תלמידים שמתאימים לסינון.":"עוד לא הגיעו תוצאות. ברגע שתלמיד יתחיל ללמוד הוא יופיע כאן."}</p>`;
+  };
+  draw();
+  document.getElementById("fc").onchange=e=>{cls=e.target.value;draw()};
+  document.getElementById("fs").onchange=e=>{sort=e.target.value;draw()};
+  document.getElementById("fq").oninput=e=>{q=e.target.value.trim();draw()};
+  document.getElementById("ref").onclick=()=>adminDash();
+  document.getElementById("out").onclick=()=>{ADMIN_KEY="";try{sessionStorage.removeItem(LS+"ak")}catch(e){}me?home():onboarding()};
+}
+
 /* ============================================================
    BOOT
    ============================================================ */
 function route(){
   const h=location.hash.slice(1);
   if(/^s1-/.test(h)){const r=parseToken(h);if(r)return resultLink(r)}
+  if(h==="admin")return adminLogin();
   me?home():onboarding();
 }
 route();
