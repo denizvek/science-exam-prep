@@ -582,6 +582,25 @@ function sendSync(){
   try{fetch(SUPA_URL+"/rest/v1/rpc/save_result",{method:"POST",headers:SUPA_H,body:JSON.stringify(args),keepalive:true}).then(r=>{if(!r.ok)lastSent="";LIVE=null}).catch(()=>{lastSent=""})}catch(e){lastSent=""}
 }
 addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){clearTimeout(syncT);sendSync()}});
+/* ---------- self-update: a tab left open picks up a new version of the site ---------- */
+let pageSig=null,newVersion=false,lastCheck=0;
+const sigOf=t=>{let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return t.length+":"+h};
+function reloadOnce(){   // never loop: at most one automatic reload every 5 minutes
+  let t=0;try{t=+sessionStorage.getItem("reloadedAt")||0}catch(e){}
+  if(Date.now()-t<300000){newVersion=false;return}
+  try{sessionStorage.setItem("reloadedAt",Date.now())}catch(e){}
+  location.reload();
+}
+function checkVersion(){
+  if(!/^https?:$/.test(location.protocol)||newVersion||Date.now()-lastCheck<60000)return;lastCheck=Date.now();
+  if(pageSig==null)pageSig=sigOf(document.getElementById("app").textContent);   // this tab's own code
+  fetch(location.pathname,{cache:"no-store"}).then(r=>r.ok?r.text():null).then(t=>{
+    const m=t&&t.match(/<script id="app">([\s\S]*?)<\/script>/);if(!m)return;
+    if(sigOf(m[1])!==pageSig){newVersion=true;if(SCREEN==="home")reloadOnce()}}).catch(()=>{});
+}
+checkVersion();
+addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){lastCheck=0;checkVersion()}});
+setInterval(checkVersion,10*60000);
 const liveRow=r=>{const name=String(r.name||"").slice(0,40),cls=String(r.cls||"").slice(0,10);
   return {name,cls,av:AVATARS.includes(r.av)?r.av:"🙂",meter:Math.max(0,Math.min(100,+r.meter||0)),best:r.best==null||r.best===""?null:Math.max(0,Math.min(100,+r.best)),attempts:+r.attempts||0,covered:Math.max(0,Math.min(QB.length,+r.covered||0)),date:new Date(r.updated||0),key:(name.trim()+"|"+cls).toLowerCase()}};
 function loadLive(){
@@ -670,6 +689,7 @@ function switchTo(id){me=profiles.find(p=>p.id===id);ls.set("active",id);P=ls.ge
 let SCREEN="";
 function home(){
   if(!me)return onboarding();
+  if(newVersion)reloadOnce();
   SCREEN="home";loadLive();queueSync();
   const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK;
   const rows=boardRows().slice(0,8);
