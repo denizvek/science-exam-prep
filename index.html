@@ -670,7 +670,7 @@ function parseToken(t){
 /* the shared class table is embedded in the page and republished by the owner */
 let BOARD={rows:[],updated:0};
 try{BOARD=JSON.parse(document.getElementById("board").textContent)}catch(e){}
-const byRank=(a,b)=>(b.best??-1)-(a.best??-1)||(b.correct||0)-(a.correct||0)||b.meter-a.meter;
+const byRank=(a,b)=>(b.best??-1)-(a.best??-1)||(b.correct||0)-(a.correct||0)||(b.covered||0)-(a.covered||0)||b.meter-a.meter;
 /* ---------- automatic sync to the results sheet ---------- */
 let LIVE=null,liveLoading=false,syncT,lastSent="";
 const EXAM_Q=24;
@@ -847,7 +847,7 @@ function home(){
 }
 
 /* places: same exam score and learning % share a place; the next group takes the next place (1, 1, 2 …) */
-const rankKey=r=>(r.best??-1)+"|"+(r.correct||0)+"|"+r.meter;
+const rankKey=r=>(r.best??-1)+"|"+(r.correct||0)+"|"+(r.covered||0)+"|"+r.meter;
 function placeOf(rows,i){const seen=new Set();for(let k=0;k<=i;k++)seen.add(rankKey(rows[k]));return seen.size}
 /* after gold, silver and bronze: metals from the lessons by value, then rocks and stones */
 const LADDER=[["זהב"],["כסף"],["ארד"],
@@ -868,8 +868,8 @@ function boardTable(rows,compact){
     const rk=placeOf(rows,i);
     return `<tr class="r${mine(r)?" me":""}"><td class="rank">${medalCell(rk)}</td><td><span class="nm"><span class="av">${r.av}</span>${esc(r.name)}${mine(r)?" (אני)":""}</span></td><td>${esc(r.cls)}</td>
   <td><div class="row" style="flex-wrap:nowrap"><div class="bar mini" style="--c:var(--xp)"><i style="width:${r.meter}%"></i></div><b class="num small">${r.meter}%</b></div>${r.minutes?`<div class="small muted" style="white-space:nowrap">⏱ ${fmtTime(r.minutes)}</div>`:""}</td>
-  <td class="num"><b>${r.best??"—"}</b>${r.attempts&&!compact?` <span class="small muted att">(${r.attempts})</span>`:""}${r.best!=null&&r.correct?`<div class="small muted cov" style="white-space:nowrap">✓ ${r.correct}/${EXAM_BANK.length}</div>`:""}</td>${compact?"":`<td class="wide"><span class="status ${stc}">${st}</span></td><td class="wide small muted">${r.date.toLocaleDateString("he-IL")}</td>`}</tr>`}).join("")}
-  </tbody></table></div>${rows.some(r=>r.correct)?`<p class="small muted">מבחן = הציון הכי טוב. "✓ 40/${EXAM_BANK.length}" = ענה/תה נכון על 40 שאלות שונות מתוך ${EXAM_BANK.length} השאלות במאגר (בכל המבחנים יחד). המיקום נקבע לפי הציון, אחר כך לפי מספר השאלות הנכונות, ואחר כך לפי מד הלמידה.</p>`:""}${rows.some(r=>r.minutes)?`<p class="small muted">⏱ = זמן למידה פעיל באתר (שעות:דקות), נמדד מ-7.11.2026.</p>`:""}`;
+  <td class="num"><b>${r.best??"—"}</b>${r.attempts&&!compact?` <span class="small muted att">(${r.attempts})</span>`:""}${r.best!=null&&r.correct?`<div class="small muted cov" style="white-space:nowrap">✓ ${r.correct} נכונות</div>`:""}${r.best!=null&&r.covered?`<div class="small muted cov" style="white-space:nowrap">מתוך ${r.covered}</div>`:""}</td>${compact?"":`<td class="wide"><span class="status ${stc}">${st}</span></td><td class="wide small muted">${r.date.toLocaleDateString("he-IL")}</td>`}</tr>`}).join("")}
+  </tbody></table></div>${rows.some(r=>r.correct)?`<p class="small muted">מבחן = הציון הכי טוב. "✓ 40 נכונות מתוך 60 שאלות" = בכל המבחנים יחד הילד/ה נבחן/ה על 60 שאלות שונות (מתוך ${EXAM_BANK.length} במאגר) וענה/תה נכון על 40 מהן. המיקום נקבע לפי הציון, אחר כך לפי מספר התשובות הנכונות, אחר כך לפי מספר השאלות שנבחן/ה עליהן, ואחר כך לפי מד הלמידה.</p>`:""}${rows.some(r=>r.minutes)?`<p class="small muted">⏱ = זמן למידה פעיל באתר (שעות:דקות), נמדד מ-7.11.2026.</p>`:""}`;
 }
 
 /* ---------- world ---------- */
@@ -1088,9 +1088,9 @@ function board(){
   root.innerHTML=`${topbar(me?"home":null)}
   <section class="panel stack">
     <div class="row between"><h1>🏆 טבלת התוצאות</h1>${classes.length>1?`<select class="input" id="cf" style="width:auto"><option value="all">כל הכיתות</option>${classes.map(c=>`<option ${c===cur?"selected":""}>${esc(c)}</option>`).join("")}</select>`:""}</div>
-    <p class="muted small">מסודר לפי ציון המבחן ואז לפי מד הלמידה. ${LIVE?"מתעדכן אוטומטית.":BOARD.updated?`עודכן: ${new Date(BOARD.updated).toLocaleString("he-IL",{dateStyle:"short",timeStyle:"short"})}`:""}</p>
+    <p class="muted small">מסודר לפי ציון המבחן, מספר התשובות הנכונות, מספר השאלות ואז מד הלמידה. ${LIVE?"מתעדכן אוטומטית.":BOARD.updated?`עודכן: ${new Date(BOARD.updated).toLocaleString("he-IL",{dateStyle:"short",timeStyle:"short"})}`:""}</p>
     <div id="bt"></div>
-    <p class="small muted">🥇 זהב · 🥈 כסף · 🥉 ארד, ואחריהם מדליות לפי ערך החומרים שלמדנו: פלטינה, בדיל, נחושת, אלומיניום, עופרת, פלדה, ברזל – ואז סלעים ואבנים: גרניט, בזלת, גיר, אבן, חצץ, חול וחרסית. ילדים עם אותו ציון, אותו מספר תשובות נכונות ואותו אחוז למידה – באותו מקום.</p>
+    <p class="small muted">🥇 זהב · 🥈 כסף · 🥉 ארד, ואחריהם מדליות לפי ערך החומרים שלמדנו: פלטינה, בדיל, נחושת, אלומיניום, עופרת, פלדה, ברזל – ואז סלעים ואבנים: גרניט, בזלת, גיר, אבן, חצץ, חול וחרסית. ילדים עם אותו ציון, אותו מספר תשובות נכונות, אותו מספר שאלות ואותו אחוז למידה – באותו מקום.</p>
     <div class="row small" style="gap:6px"><span class="status st-learn">בלמידה</span><span class="status st-ready">מוכן/ה למבחן</span><span class="status st-done">עשה/תה מבחן</span><span class="status st-star">מצטיין/ת – 90+</span></div>
   </section>`;
   bindNav();draw();
