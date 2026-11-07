@@ -672,6 +672,10 @@ function home(){
   const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK;
   const rows=boardRows().slice(0,8);
   root.innerHTML=`${topbar()}
+  <section class="panel stack">
+    <div class="row between"><h2>🏆 טבלת התוצאות</h2><button class="btn ghost" data-nav="board">לכל הטבלה</button></div>
+    ${rows.length?boardTable(rows,true)+(boardRows().length>8?`<p class="small muted">מוצגים 8 הראשונים מתוך ${boardRows().length}.</p>`:""):`<p class="muted">${LIVE_ON?"הטבלה עוד ריקה. ברגע שמישהו יתחיל ללמוד, הוא יופיע כאן.":"הטבלה עוד ריקה. שלחו להורה את ההתקדמות, והיא תתווסף לטבלה שכולם רואים."}</p>`}
+  </section>
   <section class="panel hero">
     <div class="ring" style="--p:${m}"><div><div><b class="num">${m}%</b><small>מד הלמידה</small></div></div></div>
     <div class="stack">
@@ -690,10 +694,6 @@ function home(){
     <div class="stack"><span class="pill ${open?"xp":""}" style="align-self:flex-start">${open?"פתוח":"נעול"}</span><h2>המבחן המסכם</h2>
       <p class="muted">24 שאלות מכל העולמות, עם תמונות. ציון בסוף ותיקון טעויות. ${P.exam.attempts?`ניסיונות: ${P.exam.attempts} · הציון הכי טוב: ${best}`:"אפשר לגשת שוב ולשפר."}</p></div>
     ${open?`<button class="btn xp" data-nav="exam">${P.exam.attempts?"מבחן חוזר ←":"להתחיל ←"}</button>`:`<div class="lock" aria-hidden="true">🔒</div>`}
-  </section>
-  <section class="panel stack">
-    <div class="row between"><h2>🏆 טבלת התוצאות</h2><button class="btn ghost" data-nav="board">לכל הטבלה</button></div>
-    ${rows.length?boardTable(rows,true)+(boardRows().length>8?`<p class="small muted">מוצגים 8 הראשונים מתוך ${boardRows().length}.</p>`:""):`<p class="muted">${LIVE_ON?"הטבלה עוד ריקה. ברגע שמישהו יתחיל ללמוד, הוא יופיע כאן.":"הטבלה עוד ריקה. שלחו להורה את ההתקדמות, והיא תתווסף לטבלה שכולם רואים."}</p>`}
   </section>
   ${IS_OWNER?`<button class="btn primary block" data-nav="admin">🔑 ניהול טבלת התוצאות${pending().length?` · ${pending().length} חדשים`:""}</button>`:""}
   ${profiles.length>1?`<div class="profiles">${profiles.filter(p=>p.id!==me.id).map(p=>`<button data-pid="${p.id}"><span class="av">${p.av}</span>להחליף ל${esc(p.name)}</button>`).join("")}</div>`:""}
