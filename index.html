@@ -846,7 +846,10 @@ function home(){
 function boardTable(rows,compact){
   const mine=r=>me&&r.key===(me.name.trim()+"|"+me.cls).toLowerCase();
   return `<div class="tablewrap"><table class="board${compact?" compact":""}"><thead><tr><th></th><th>תלמיד/ה</th><th>כיתה</th><th>למידה</th><th>מבחן</th>${compact?"":`<th class="wide">סטטוס</th><th class="wide">עודכן</th>`}</tr></thead><tbody>
-  ${rows.map((r,i)=>{const [st,stc]=statusOf(r.meter,r.best);return `<tr class="r${mine(r)?" me":""}"><td class="rank">${["🥇","🥈","🥉"][i]||i+1}</td><td><span class="nm"><span class="av">${r.av}</span>${esc(r.name)}${mine(r)?" (אני)":""}</span></td><td>${esc(r.cls)}</td>
+  ${rows.map((r,i)=>{const [st,stc]=statusOf(r.meter,r.best);
+    // same exam score and same learning % = same place (1, 1, 3 …)
+    const rk=rows.findIndex(x=>(x.best??-1)===(r.best??-1)&&x.meter===r.meter)+1;
+    return `<tr class="r${mine(r)?" me":""}"><td class="rank">${["🥇","🥈","🥉"][rk-1]||rk}</td><td><span class="nm"><span class="av">${r.av}</span>${esc(r.name)}${mine(r)?" (אני)":""}</span></td><td>${esc(r.cls)}</td>
   <td><div class="row" style="flex-wrap:nowrap"><div class="bar mini" style="--c:var(--xp)"><i style="width:${r.meter}%"></i></div><b class="num small">${r.meter}%</b></div>${r.minutes?`<div class="small muted" style="white-space:nowrap">⏱ ${fmtTime(r.minutes)}</div>`:""}</td>
   <td class="num"><b>${r.best??"—"}</b>${r.attempts&&!compact?` <span class="small muted att">(${r.attempts})</span>`:""}${r.best!=null&&r.covered?`<div class="small muted cov" style="white-space:nowrap">על ${r.covered}/${EXAM_BANK.length}</div>`:""}</td>${compact?"":`<td class="wide"><span class="status ${stc}">${st}</span></td><td class="wide small muted">${r.date.toLocaleDateString("he-IL")}</td>`}</tr>`}).join("")}
   </tbody></table></div>${rows.some(r=>r.covered)?`<p class="small muted">מבחן = הציון הכי טוב. כל מבחן בודק ${EXAM_Q} מתוך ${EXAM_BANK.length} השאלות במאגר; "על 40/${EXAM_BANK.length}" = נבחן עד היום על 40 שאלות שונות.</p>`:""}${rows.some(r=>r.minutes)?`<p class="small muted">⏱ = זמן למידה פעיל באתר (שעות:דקות), נמדד מ-7.11.2026.</p>`:""}`;
