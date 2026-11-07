@@ -248,7 +248,8 @@ textarea.input{min-height:110px;resize:vertical;font-size:.95rem}
    CONTENT — fifth-grade science, up to page 53
    ============================================================ */
 const APP_URL=/github\.io$/.test(location.hostname)?location.origin+location.pathname:"https://claude.ai/artifact/DpNcqm6Bx3hXWG96hd3n1u";
-const EXAM_UNLOCK=75;
+const EXAM_UNLOCK=100;
+const PRACTICE_FULL=80; // a practice score of 80+ counts as a fully done practice
 const AVATARS=["🦊","🐼","🦁","🐸","🐙","🦄","🐯","🐨","🐵","🦉","🐬","🐲","🦖","🐝","🐧","🦈"];
 
 /* ---------- original illustrations (SVG) ---------- */
@@ -495,10 +496,10 @@ const save=()=>{if(me)ls.set("p:"+me.id,P)};
 function worldMeter(wid){
   const w=W[wid];const L=w.lessons.filter(l=>P.lessons[l.id]).length/w.lessons.length;
   const C=CARDS[wid].filter((_,i)=>P.cards[wid+i]).length/CARDS[wid].length;
-  const Pr=(P.practice[wid]||0)/100;
-  return Math.round(100*(.5*L+.3*C+.2*Pr));
+  const Pr=Math.min(1,(P.practice[wid]||0)/PRACTICE_FULL);
+  return Math.floor(100*(.5*L+.3*C+.2*Pr)+1e-9);
 }
-const meter=()=>Math.round(WORLDS.reduce((s,w)=>s+worldMeter(w.id),0)/WORLDS.length);
+const meter=()=>Math.floor(WORLDS.reduce((s,w)=>s+worldMeter(w.id),0)/WORLDS.length);
 const lessonsDone=()=>WORLDS.reduce((s,w)=>s+w.lessons.filter(l=>P.lessons[l.id]).length,0);
 const lessonsTotal=WORLDS.reduce((s,w)=>s+w.lessons.length,0);
 function statusOf(m,best){
@@ -587,7 +588,7 @@ function onboarding(){
     <div class="showcase">
       <span class="pill xp">המבחן בעוד שבועיים</span>
       <h1>שלושה עולמות. מבחן אחד. בואו נתכונן.</h1>
-      <p>לומדים שיעור אחרי שיעור, משננים בכרטיסיות, מתרגלים, ומד הלמידה מתמלא. ב-${EXAM_UNLOCK}% נפתח המבחן המסכם, ואפשר לנסות שוב עד שמגיעים לציון שרוצים.</p>
+      <p>לומדים שיעור אחרי שיעור, משננים בכרטיסיות, מתרגלים, ומד הלמידה מתמלא. רק כשמגיעים ל-100% נפתח המבחן המסכם, ואפשר לנסות שוב עד שמגיעים לציון שרוצים.</p>
       <div class="mini3">${ILL.worldMetals()}${ILL.worldRocks()}${ILL.worldSalts()}</div>
     </div>
     <form class="panel stack" id="pf">
@@ -626,9 +627,9 @@ function home(){
     <div class="ring" style="--p:${m}"><div><div><b class="num">${m}%</b><small>מד הלמידה</small></div></div></div>
     <div class="stack">
       <div class="row"><span class="status ${stc}">${st}</span>${best!=null?`<span class="pill good">ציון מבחן: ${best}</span>`:""}</div>
-      <h2>${m>=100?"למדת את כל החומר! 🎉":open?"המבחן המסכם פתוח – בהצלחה!":`עוד ${EXAM_UNLOCK-m}% והמבחן נפתח`}</h2>
+      <h2>${open?"למדת את כל החומר! המבחן פתוח 🎉":`עוד ${EXAM_UNLOCK-m}% והמבחן נפתח`}</h2>
       <div><div class="bar" style="--c:var(--xp)"><i style="width:${m}%"></i></div>
-      <div class="milestones"><span>שיעורים 50%</span><span>כרטיסיות 30%</span><span>תרגול 20%</span></div></div>
+      <div class="milestones"><span>כל השיעורים 50%</span><span>כל הכרטיסיות 30%</span><span>תרגול ${PRACTICE_FULL}+ 20%</span></div></div>
       <div class="row"><button class="btn ghost" data-nav="profile">✎ פרופיל</button><button class="btn ghost" id="share">${WA_SVG} שליחת התקדמות להורה</button></div>
     </div>
   </section>
@@ -731,7 +732,7 @@ function cards(wid,body){
 function buildQ(q){return {...q,opts:q.tf?q.o.map((t,k)=>({t,ok:k===q.a})):shuffle(q.o.map((t,k)=>({t,ok:k===q.a})))}}
 function practiceIntro(wid,body){
   const b=P.practice[wid];
-  body.innerHTML=`<div class="panel stack"><h2>תרגול: ${W[wid].name}</h2><p class="muted">10 שאלות עם הסבר אחרי כל תשובה. הציון הכי טוב נספר במד הלמידה.</p>${b!=null?`<span class="pill good" style="align-self:flex-start">השיא שלך: ${b}</span>`:""}<button class="btn primary" id="go">להתחיל תרגול ←</button></div>`;
+  body.innerHTML=`<div class="panel stack"><h2>תרגול: ${W[wid].name}</h2><p class="muted">10 שאלות עם הסבר אחרי כל תשובה. ציון ${PRACTICE_FULL} ומעלה משלים את חלק התרגול במד הלמידה.</p>${b!=null?`<span class="pill good" style="align-self:flex-start">השיא שלך: ${b}</span>`:""}<button class="btn primary" id="go">להתחיל תרגול ←</button></div>`;
   document.getElementById("go").onclick=()=>runQuiz({mode:"practice",wid,qs:shuffle(QB.filter(q=>q.w===wid)).slice(0,10).map(buildQ)});
 }
 function examIntro(){
