@@ -264,7 +264,7 @@ textarea.input{min-height:110px;resize:vertical;font-size:.95rem}
 /* ============================================================
    CONTENT — fifth-grade science, up to page 53
    ============================================================ */
-const APP_URL=/github\.io$/.test(location.hostname)?location.origin+location.pathname:"https://claude.ai/artifact/DpNcqm6Bx3hXWG96hd3n1u";
+const APP_URL="https://denizvek.github.io/science-exam-prep/";   // shares always point to the GitHub site
 const EXAM_UNLOCK=100;
 /* Supabase project that stores every child's progress for the shared table (supabase.sql). Empty = off. */
 const SUPA_URL="https://feoomirbcgyypvueaonc.supabase.co";
@@ -674,7 +674,7 @@ function reloadOnce(){   // never loop: at most one automatic reload every 5 min
   location.reload();
 }
 function checkVersion(){
-  if(!/^https?:$/.test(location.protocol)||newVersion||Date.now()-lastCheck<60000)return;lastCheck=Date.now();
+  if(!/github\.io$/.test(location.hostname)||newVersion||Date.now()-lastCheck<60000)return;lastCheck=Date.now();
   if(pageSig==null)pageSig=sigOf(document.getElementById("app").textContent);   // this tab's own code
   fetch(location.pathname,{cache:"no-store"}).then(r=>r.ok?r.text():null).then(t=>{
     const m=t&&t.match(/<script id="app">([\s\S]*?)<\/script>/);if(!m)return;
@@ -776,6 +776,12 @@ function home(){
   const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK;
   const rows=boardRows().slice(0,8);
   root.innerHTML=`${topbar()}
+  ${ON_SITE?"":`<section class="panel stack" style="border:2px solid var(--primary)">
+    <h2>📢 האפליקציה עברה לכתובת חדשה</h2>
+    <p>כדי שתופיעו בטבלת התוצאות של כל הכיתות, לחצו על הכפתור. כל ההתקדמות שלכם תעבור איתכם${profiles.length>1?` – של כל ${profiles.length} הילדים במכשיר הזה`:""}.</p>
+    <a class="btn primary block" style="text-align:center;text-decoration:none" href="${moveLink()}" target="_blank" rel="noopener">מעבר לאתר החדש עם ההתקדמות שלי ←</a>
+    <p class="small muted">מעכשיו כדאי להיכנס רק מהכתובת: denizvek.github.io/science-exam-prep</p>
+  </section>`}
   <section class="panel stack">
     <div class="row between"><h2>🏆 טבלת התוצאות</h2><button class="btn ghost" data-nav="board">לכל הטבלה</button></div>
     ${rows.length?boardTable(rows,true)+(boardRows().length>8?`<p class="small muted">מוצגים 8 הראשונים מתוך ${boardRows().length}.</p>`:""):`<p class="muted">${LIVE_ON?"הטבלה עוד ריקה. ברגע שמישהו יתחיל ללמוד, הוא יופיע כאן.":"הטבלה עוד ריקה. שלחו להורה את ההתקדמות, והיא תתווסף לטבלה שכולם רואים."}</p>`}
@@ -1117,7 +1123,45 @@ function admin(){
 /* ============================================================
    BOOT
    ============================================================ */
+/* ---------- moving from the old Claude link: progress arrives in the URL hash ---------- */
+const SITE_URL="https://denizvek.github.io/science-exam-prep/";
+const ON_SITE=/github\.io$/.test(location.hostname);
+const b64e=t=>btoa(unescape(encodeURIComponent(t))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const b64d=t=>decodeURIComponent(escape(atob(t.replace(/-/g,"+").replace(/_/g,"/"))));
+function moveLink(){   // old link -> new site, carrying every child on this device
+  const data={};profiles.forEach(pr=>{data[pr.id]=ls.get("p:"+pr.id,null)});
+  return SITE_URL+"#import="+b64e(JSON.stringify({v:1,profiles,data,active:me?me.id:null}));
+}
+function syncOne(pr,data){   // send one child's row (not only the active one)
+  if(!LIVE_ON)return;const sm=me,sp=P;me=pr;P=data;let d;try{d=payload()}finally{me=sm;P=sp}
+  fetch(SUPA_URL+"/rest/v1/rpc/save_result",{method:"POST",headers:SUPA_H,keepalive:true,
+    body:JSON.stringify({p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes})}).catch(()=>{});
+}
+function importFromHash(){
+  const m=location.hash.match(/^#import=([A-Za-z0-9_-]+)$/);if(!m)return false;
+  history.replaceState(null,"",location.pathname+location.search);
+  let d;try{d=JSON.parse(b64d(m[1]))}catch(e){return false}
+  if(!d||!Array.isArray(d.profiles)||!d.data||typeof d.data!=="object")return false;
+  const amount=x=>x&&typeof x==="object"?Object.keys(x.lessons||{}).length+Object.keys(x.cards||{}).length+Object.keys(x.mastered||{}).length+((x.exam&&+x.exam.attempts)||0):-1;
+  let n=0;
+  d.profiles.forEach(pr=>{
+    if(!pr||typeof pr.id!=="string"||pr.id.length<8||pr.id.length>40||!pr.name)return;
+    const inc=d.data[pr.id];if(!inc||typeof inc!=="object")return;
+    if(!inc.exam)inc.exam={best:null,attempts:0,last:null,history:[]};
+    let ex=profiles.find(x=>x.id===pr.id);
+    if(!ex){ex={id:pr.id,name:String(pr.name).slice(0,40),cls:String(pr.cls||"").slice(0,10),av:AVATARS.includes(pr.av)?pr.av:"🙂"};profiles.push(ex)}
+    if(amount(inc)>=amount(ls.get("p:"+pr.id,null)))ls.set("p:"+pr.id,inc);
+    syncOne(ex,ls.get("p:"+pr.id,blank()));n++;
+  });
+  if(!n)return false;
+  ls.set("profiles",profiles);
+  const act=profiles.find(x=>x.id===d.active)||profiles.find(x=>d.data[x.id]);
+  if(act){me=act;ls.set("active",act.id);P=ls.get("p:"+act.id,blank())}
+  setTimeout(()=>toast(n>1?`ההתקדמות של ${n} ילדים הועברה לאתר החדש ✓`:"ההתקדמות שלך הועברה לאתר החדש ✓"),300);
+  return true;
+}
 function route(){
+  if(importFromHash())LIVE=null;
   const h=location.hash.slice(1);
   if(/^s1-/.test(h)){const r=parseToken(h);if(r)return resultLink(r)}
   me?home():onboarding();
