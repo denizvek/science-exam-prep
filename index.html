@@ -267,8 +267,8 @@ textarea.input{min-height:110px;resize:vertical;font-size:.95rem}
 const APP_URL=/github\.io$/.test(location.hostname)?location.origin+location.pathname:"https://claude.ai/artifact/DpNcqm6Bx3hXWG96hd3n1u";
 const EXAM_UNLOCK=100;
 /* Supabase project that stores every child's progress for the shared table (supabase.sql). Empty = off. */
-const SUPA_URL="";
-const SUPA_KEY="";   // the public "anon" key – safe in the page; the database only allows save_result() and reading results_public
+const SUPA_URL="https://feoomirbcgyypvueaonc.supabase.co";
+const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlb29taXJiY2d5eXB2dWVhb25jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQwNDEwMzQsImV4cCI6MjEwOTYxNzAzNH0.unCbvDnsCbwTBUzSbw2lAOiWQHGrTC49cdtiS1SDzVY";   // the public "anon" key – safe in the page; the database only allows save_result() and reading results_public
 const LIVE_ON=!!(SUPA_URL&&SUPA_KEY);
 const SUPA_H={apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"};
 const ROUND_MAX=8; // practice rounds hold at most this many questions

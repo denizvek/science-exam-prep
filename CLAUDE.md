@@ -5,7 +5,7 @@ A copy is also published as a Claude artifact: https://claude.ai/artifact/DpNcqm
 
 ## Shared results table (Supabase)
 - Database setup is in `supabase.sql` (table `results`, view `results_public`, function `save_result`). The anon key may only call the function and read the view.
-- `index.html` constants `SUPA_URL` / `SUPA_KEY` turn the live table on; empty means off.
+- `index.html` constants `SUPA_URL` / `SUPA_KEY` turn the live table on; empty means off. Project: `science-exam-prep` (ref `feoomirbcgyypvueaonc`, eu-central-1), set up and connected.
 - Build: the source of truth is the artifact file; `index.html` is the same page wrapped as a full document.
 
 ## Rules the owner set
