@@ -107,3 +107,16 @@ language sql security definer set search_path = public as $$
 $$;
 revoke all on function public.save_result(text, text, text, text, int, int, int, int, int, int) from public;
 grant execute on function public.save_result(text, text, text, text, int, int, int, int, int, int) to anon;
+
+-- Added later: hide a row from the class table without deleting it (the child's device keeps saving, but the row stays hidden).
+-- Hide:   update public.results set hidden = true  where id = '<id>';
+-- Unhide: update public.results set hidden = false where id = '<id>';
+alter table public.results add column if not exists hidden boolean not null default false;
+
+create or replace view public.results_public as
+  select name, cls, av, meter, lessons, best, attempts, updated,
+         case when attempts > 0 then greatest(covered, 24) else 0 end as covered,
+         minutes
+  from public.results
+  where not hidden;
+grant select on public.results_public to anon;
