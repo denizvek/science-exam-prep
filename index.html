@@ -427,6 +427,29 @@ const WORLDS=[
  ]}
 ];
 const W=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
+/* lessons that got new material from the info pages: a child who finished the old version must read them again
+   and answer a new check question about the new material (P.lessons[id] stores the version that was finished) */
+const LESSON_VER={m1:2,m3:2,m4:2,m5:2,m7:2,r1:2,r2:2,r3:2,r4:2,r6:2,s1:2,s2:2,s3:2,s4:2,s5:2};
+const NEW_CHECK={
+m1:{q:"כמה טון ברזל חצבו בעולם בשנת 2023?",o:["יותר מ-2,000 מיליון טון","כ-15 טון","כ-90 טון","כ-218 טון"],a:0},
+m3:{q:"איזו מבין אלה היא מתכת?",o:["עופרת","גרניט","חרסית","קוורץ"],a:0},
+m4:{q:"מה קורה בחוט ממתכת שמוליכה חשמל טוב מאוד?",o:["הזרם זורם בקלות ונוצר פחות חום","נוצר יותר חום","הזרם נעצר","החוט נמשך למגנט"],a:0},
+m5:{q:"איך נקראים חומרי הטפל שנשארים אחרי חימום העפרה בתנור?",o:["סיגים","שבבים","מסגים","גבישים"],a:0},
+m7:{q:"למה בתעשייה משתמשים בערגול ולא בריקוע בפטיש?",o:["כדי לקבל לוחות רחבים וארוכים מאוד","כדי להמיס את המתכת","כדי ליצור זיזים מדויקים","כדי להפריד מלח"],a:0},
+r1:{q:"מה הקשר בין אבנים לסלעים?",o:["אבנים הן חתיכות של סלעים","אבנים נוצרות ממתכת","אין שום קשר","סלעים הם חתיכות של אבנים"],a:0},
+r2:{q:"במה גאולוג משתמש כדי לקחת דגימה של סלע?",o:["פטיש","מסמר","חומצה מהולה","מגנט"],a:0},
+r3:{q:"איזה מהבאים עשוי מגבס?",o:["תחבושת לשבר","חוט חשמל","פח לפחיות","מטבע"],a:0},
+r4:{q:"איזה בעל חיים חי בקרקע?",o:["שלשול","כריש","יעל","דולפין"],a:0},
+r6:{q:"מהם חומרי הדברה?",o:["רעלים נגד מזיקים – חרקים, מכרסמים וגם צמחים","חומרי הזנה לצמחים","סוג של קרקע","מים מותפלים"],a:0},
+s1:{q:"מה ים המלח בשביל ישראל?",o:["משאב טבע חשוב","מקור למים מתוקים","מכרה נחושת","יער"],a:0},
+s2:{q:"אילו מהבאים הם גם מלחים?",o:["גיר וגבס","ברזל ונחושת","זכוכית ופלסטיק","מים ואוויר"],a:0},
+s3:{q:"מה מפיקים ממי הים?",o:["גם מים מותפלים וגם מלחים","רק נחושת","רק פוספט","רק חול"],a:0},
+s4:{q:"למה בריכות האידוי הן פתרון לבעיה הנדסית-טכנולוגית?",o:["אידוי ישר מהים התיכון היה לוקח 3,000 שנה","הן מייצרות חשמל","הן מנקות את הים","הן מגדלות דגים"],a:0},
+s5:{q:"לאילו תפקידים נוספים זרחן חשוב בגוף?",o:["פעולת העצבים והשרירים והפקת אנרגיה","ראייה ושמיעה","עיכול בלבד","צמיחת שיער"],a:0}
+};
+WORLDS.forEach(w=>w.lessons.forEach(l=>{if(NEW_CHECK[l.id])l.check=NEW_CHECK[l.id]}));
+const lessonDone=id=>(+P.lessons[id]||0)>=(LESSON_VER[id]||1);
+const lessonStale=id=>!!P.lessons[id]&&!lessonDone(id);   // finished before the new material was added
 const lessonRef=id=>{for(const w of WORLDS){const i=w.lessons.findIndex(l=>l.id===id);if(i>=0)return {wid:w.id,i,l:w.lessons[i]}}return null};
 
 /* ---------- flashcards ---------- */
@@ -601,13 +624,13 @@ const roundsOf=wid=>Math.ceil(worldQs(wid).length/ROUND_MAX);
 const roundSize=wid=>Math.ceil(worldQs(wid).length/roundsOf(wid));
 const masteredIn=wid=>worldQs(wid).filter(q=>M()[q.id]).length;
 function worldMeter(wid){
-  const w=W[wid];const L=w.lessons.filter(l=>P.lessons[l.id]).length/w.lessons.length;
+  const w=W[wid];const L=w.lessons.filter(l=>lessonDone(l.id)).length/w.lessons.length;
   const C=CARDS[wid].filter((_,i)=>P.cards[wid+i]).length/CARDS[wid].length;
   const Pr=masteredIn(wid)/worldQs(wid).length;
   return Math.floor(100*(.5*L+.3*C+.2*Pr)+1e-9);
 }
 const meter=()=>Math.floor(WORLDS.reduce((s,w)=>s+worldMeter(w.id),0)/WORLDS.length);
-const lessonsDone=()=>WORLDS.reduce((s,w)=>s+w.lessons.filter(l=>P.lessons[l.id]).length,0);
+const lessonsDone=()=>WORLDS.reduce((s,w)=>s+w.lessons.filter(l=>lessonDone(l.id)).length,0);
 const lessonsTotal=WORLDS.reduce((s,w)=>s+w.lessons.length,0);
 function statusOf(m,best){
   if(best!=null&&best>=90)return["מצטיין/ת 🏅","st-star"];
@@ -786,6 +809,11 @@ function home(){
     <div class="row between"><h2>🏆 טבלת התוצאות</h2><button class="btn ghost" data-nav="board">לכל הטבלה</button></div>
     ${rows.length?boardTable(rows,true)+(boardRows().length>8?`<p class="small muted">מוצגים 8 הראשונים מתוך ${boardRows().length}.</p>`:""):`<p class="muted">${LIVE_ON?"הטבלה עוד ריקה. ברגע שמישהו יתחיל ללמוד, הוא יופיע כאן.":"הטבלה עוד ריקה. שלחו להורה את ההתקדמות, והיא תתווסף לטבלה שכולם רואים."}</p>`}
   </section>
+  ${(()=>{const st=[];WORLDS.forEach(w=>w.lessons.forEach((l,i)=>{if(lessonStale(l.id))st.push({w,l,i})}));
+    return st.length?`<section class="panel stack" style="border:2px solid var(--bad)">
+    <h2>🆕 נוסף חומר חדש ב-${st.length} שיעורים</h2>
+    <p class="muted">הוספנו לשיעורים חומר מדפי המידע, והוא חלק מהמבחן. קראו כל שיעור שוב וענו על שאלת הבדיקה – ומד הלמידה יחזור לעלות.</p>
+    <div class="profiles">${st.map(x=>`<button data-redo="${x.w.id}:${x.i}">📖 ${x.l.title}</button>`).join("")}</div></section>`:""})()}
   <section class="panel hero">
     <div class="ring" style="--p:${m}"><div><div><b class="num">${m}%</b><small>מד הלמידה</small></div></div></div>
     <div class="stack">
@@ -796,7 +824,7 @@ function home(){
       <div class="row"><button class="btn ghost" data-nav="profile">✎ פרופיל</button><button class="btn ghost" id="share">${WA_SVG} שליחת התקדמות להורה</button></div>
     </div>
   </section>
-  <div class="worlds">${WORLDS.map(w=>{const wm=worldMeter(w.id),d=w.lessons.filter(l=>P.lessons[l.id]).length;return `<button class="world w-${w.id}" data-nav="world:${w.id}">
+  <div class="worlds">${WORLDS.map(w=>{const wm=worldMeter(w.id),d=w.lessons.filter(l=>lessonDone(l.id)).length;return `<button class="world w-${w.id}" data-nav="world:${w.id}">
     <div class="art">${ILL[w.art]()}</div>
     <div class="body"><span class="tag">${w.tag} · ${d}/${w.lessons.length} שיעורים</span><h3>${w.name}</h3><span class="small muted">${w.blurb}</span>
     <div class="row between"><div class="bar" style="flex:1"><i style="width:${wm}%"></i></div><b class="num small">${wm}%</b></div></div></button>`}).join("")}</div>
@@ -810,6 +838,7 @@ function home(){
   <button class="btn ghost" id="addp" style="align-self:flex-start">+ ילד/ה נוסף/ת במכשיר הזה</button>`;
   bindNav();
   document.getElementById("share").onclick=()=>shareSheet();
+  root.querySelectorAll("[data-redo]").forEach(b=>b.onclick=()=>{const [w,i]=b.dataset.redo.split(":");lesson(w,+i);scrollTo(0,0)});
   root.querySelectorAll("[data-pid]").forEach(b=>b.onclick=()=>switchTo(b.dataset.pid));
   document.getElementById("addp").onclick=()=>{me=null;P=blank();onboarding()};
 }
@@ -835,7 +864,7 @@ function world(wid,tab){
   root.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>world(wid,b.dataset.tab));
   const body=document.getElementById("wbody");
   if(tab==="lessons"){
-    body.innerHTML=`<div class="lessons">${w.lessons.map((l,i)=>`<button class="lesson${P.lessons[l.id]?" done":""}" data-l="${i}"><div class="thumb">${ILL[l.img]()}</div><div><div class="n">שיעור ${i+1}</div><h3>${l.title}</h3></div><span class="ok">${P.lessons[l.id]?"✓":i+1}</span></button>`).join("")}</div>`;
+    body.innerHTML=`<div class="lessons">${w.lessons.map((l,i)=>`<button class="lesson${lessonDone(l.id)?" done":""}" data-l="${i}"><div class="thumb">${ILL[l.img]()}</div><div><div class="n">שיעור ${i+1}</div><h3>${l.title}</h3>${lessonStale(l.id)?`<div class="small" style="color:var(--bad);font-weight:800">🆕 נוסף חומר חדש – לקרוא שוב</div>`:""}</div><span class="ok">${lessonDone(l.id)?"✓":i+1}</span></button>`).join("")}</div>`;
     body.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>lesson(wid,+b.dataset.l));
   } else if(tab==="cards") cards(wid,body);
   else practiceIntro(wid,body);
@@ -863,6 +892,7 @@ function lesson(wid,i,back){
   <article class="panel stack w-${wid}" id="lessonTop">
     <span class="small" style="color:var(--c);font-weight:800">${w.name} · שיעור ${i+1} מתוך ${w.lessons.length}</span>
     <h1>${l.title}</h1>
+    ${lessonStale(l.id)?`<div class="fb bad">🆕 לשיעור הזה נוסף חומר חדש מדפי המידע. קראו אותו שוב וענו על שאלת הבדיקה למטה כדי לסיים אותו מחדש.</div>`:""}
     <div class="figure">${ILL[l.img]()}</div>
     <ul class="points">${l.pts.map(p=>`<li><span>${p}</span></li>`).join("")}</ul>
     ${l.table?SOIL_TABLE:""}
@@ -875,7 +905,7 @@ function lesson(wid,i,back){
   root.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
     const o=opts[+b.dataset.k];
     if(o.ok){root.querySelectorAll(".opt").forEach(x=>x.disabled=true);b.classList.add("right");
-      const first=!P.lessons[l.id];P.lessons[l.id]=1;save();
+      const first=!lessonDone(l.id);P.lessons[l.id]=LESSON_VER[l.id]||1;save();
       document.getElementById("cfb").innerHTML=`<div class="fb good">נכון! השיעור הושלם ✓ ${first?"· מד הלמידה עלה":""}</div>`;if(first)confetti();}
     else{b.classList.add("wrong");b.disabled=true;document.getElementById("cfb").innerHTML=`<div class="fb bad">לא בדיוק. התשובה נמצאת בשיעור – קראו אותו שוב ונסו תשובה אחרת.<div class="actions"><button class="btn ghost" id="reread">📖 לקרוא שוב את השיעור</button></div></div>`;
       document.getElementById("reread").onclick=()=>document.getElementById("lessonTop").scrollIntoView({behavior:"smooth"})}
