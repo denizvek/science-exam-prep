@@ -159,3 +159,24 @@ language sql security definer set search_path = public as $$
 $$;
 revoke all on function public.save_result(text, text, text, text, int, int, int, int, int, int, int) from public;
 grant execute on function public.save_result(text, text, text, text, int, int, int, int, int, int, int) to anon;
+
+-- Added later: "learning now". The page calls ping() once a minute while the child is active;
+-- the view shows online = active in the last 2 minutes (the exact time is not exposed).
+alter table public.results add column if not exists last_seen timestamptz;
+
+create or replace view public.results_public as
+  select name, cls, av, meter, lessons, best, attempts, updated,
+         case when attempts > 0 then greatest(covered, 24) else 0 end as covered,
+         minutes,
+         case when attempts > 0 then greatest(correct, round(coalesce(best, 0) * 0.24)::int) else 0 end as correct,
+         coalesce(last_seen > now() - interval '2 minutes', false) as online
+  from public.results
+  where not hidden;
+grant select on public.results_public to anon;
+
+create or replace function public.ping(p_id text) returns void
+language sql security definer set search_path = public as $$
+  update results set last_seen = now() where id = left(p_id, 40);
+$$;
+revoke all on function public.ping(text) from public;
+grant execute on function public.ping(text) to anon;
