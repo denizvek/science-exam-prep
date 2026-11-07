@@ -881,7 +881,7 @@ function podium(rows){
   const H=[96,76,60],BG=["linear-gradient(#f9dc6b,#dcae1f)","linear-gradient(#e6eaf0,#aab4c0)","linear-gradient(#eab084,#b8763e)"];
   const step=i=>{const r=rows[i];if(!r)return `<div class="step"></div>`;const rk=placeOf(rows,i),k=Math.min(rk,3)-1;
     return `<div class="step${isMine(r)?" me":""}"><span class="av">${r.av}</span><span class="pn">${esc(r.name)}</span>
-      <span class="ps">${esc(r.cls)} · ${r.meter}% למידה${r.covered?`<br>על ${r.covered}/${EXAM_BANK.length}`:""}</span>
+      <span class="ps">${esc(r.cls)} · ${r.meter}% למידה${r.covered?`<br>על ${r.covered}/${EXAM_BANK.length}`:""}${r.minutes?`<br>⏱ ${fmtTime(r.minutes)}`:""}</span>
       <div class="blk" style="height:${H[k]}px;background:${BG[k]}"><span>${["🥇","🥈","🥉"][k]}</span><b>${r.best??"—"}</b></div></div>`};
   return `<div class="podium">${[1,0,2].map(step).join("")}</div>`;
 }
