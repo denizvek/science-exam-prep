@@ -41,3 +41,35 @@ language sql security definer set search_path = public as $$
 $$;
 revoke all on function public.save_result(text, text, text, text, int, int, int, int) from public;
 grant execute on function public.save_result(text, text, text, text, int, int, int, int) to anon;
+
+-- Added later: how many different bank questions a child has been tested on (exam = 24 of 64).
+-- Additive: the 8-argument save_result above stays for pages that have not refreshed.
+alter table public.results add column if not exists covered int not null default 0;
+
+create or replace view public.results_public as
+  select name, cls, av, meter, lessons, best, attempts, updated,
+         case when attempts > 0 then greatest(covered, 24) else 0 end as covered
+  from public.results;
+grant select on public.results_public to anon;
+
+create or replace function public.save_result(
+  p_id text, p_name text, p_cls text, p_av text,
+  p_meter int, p_lessons int, p_best int, p_attempts int, p_covered int
+) returns void
+language sql security definer set search_path = public as $$
+  insert into results (id, name, cls, av, meter, lessons, best, attempts, covered, updated)
+  select left(p_id, 40), left(trim(p_name), 40), left(p_cls, 10), left(p_av, 8),
+         least(greatest(coalesce(p_meter, 0), 0), 100),
+         least(greatest(coalesce(p_lessons, 0), 0), 50),
+         case when p_best is null then null else least(greatest(p_best, 0), 100) end,
+         least(greatest(coalesce(p_attempts, 0), 0), 999),
+         least(greatest(coalesce(p_covered, 0), 0), 200),
+         now()
+  where length(coalesce(p_id, '')) >= 8 and length(trim(coalesce(p_name, ''))) >= 2
+  on conflict (id) do update set
+    name = excluded.name, cls = excluded.cls, av = excluded.av, meter = excluded.meter,
+    lessons = excluded.lessons, best = excluded.best, attempts = excluded.attempts,
+    covered = greatest(excluded.covered, results.covered), updated = now();
+$$;
+revoke all on function public.save_result(text, text, text, text, int, int, int, int, int) from public;
+grant execute on function public.save_result(text, text, text, text, int, int, int, int, int) to anon;
