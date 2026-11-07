@@ -244,6 +244,11 @@ th{background:var(--cs,var(--bg2));font-weight:800}
 .wpct{display:inline-block;min-width:34px;text-align:center;border-radius:8px;padding:1px 6px;font-weight:800;font-size:.85rem;background:var(--bg2)}
 .wpct.full{background:var(--good-soft);color:var(--good)}
 .linkbtn{background:none;border:none;color:var(--muted);text-decoration:underline;font-weight:700;padding:6px;align-self:center}
+.reviewbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--xp);color:var(--xp-ink);border-radius:16px;padding:10px 14px;font-weight:800}
+.reviewbar .btn{background:var(--ink);color:var(--bg)}
+.fb .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.fb .actions .btn{font-size:.95rem;padding:9px 14px}
+.idk{align-self:flex-start;background:none;border:1.5px dashed var(--line);border-radius:12px;padding:8px 14px;font-weight:700;color:var(--muted)}
 .verified{border:2px solid var(--good);background:var(--good-soft);color:var(--good);border-radius:14px;padding:10px 14px;font-weight:800}
 textarea.input{min-height:110px;resize:vertical;font-size:.95rem}
 .list-admin{display:flex;flex-direction:column;gap:6px}
@@ -418,6 +423,7 @@ const WORLDS=[
  ]}
 ];
 const W=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
+const lessonRef=id=>{for(const w of WORLDS){const i=w.lessons.findIndex(l=>l.id===id);if(i>=0)return {wid:w.id,i,l:w.lessons[i]}}return null};
 
 /* ---------- flashcards ---------- */
 const CARDS={
@@ -428,6 +434,8 @@ salts:[["למה ים המלח פלא טבע?","המקום הנמוך בעולם 
 
 /* ---------- question bank: [world, question, options (first is correct), explanation, image?, true/false?] ---------- */
 const TF=["נכון","לא נכון"];
+/* which lesson teaches each question below, in order */
+const Q_LESSON="m1 m1 m2 m2 m3 m4 m3 m3 m4 m4 m4 m4 m5 m5 m5 m5 m5 m6 m6 m7 m7 m6 m3 m2 r1 r1 r2 r2 r3 r3 r3 r3 r3 r4 r4 r4 r4 r5 r5 r5 r5 r5 r6 r6 r3 s1 s1 s1 s2 s2 s2 s2 s3 s3 s4 s4 s4 s4 s5 s5 s5 s5 s5 s1".split(" ");
 const QB=[
 ["metals","איזו מתכת נמצאת במצב נוזל בטמפרטורת החדר?",["כספית","ברזל","אלומיניום","בדיל"],"כספית היא המתכת היחידה שאינה מוצקה בטמפרטורת החדר."],
 ["metals","איזו תכונה מבדילה מתכות מכל החומרים האחרים?",["מוליכות חשמלית","צבע אפור","מגנטיות","כבדות"],"רק מתכות מוליכות חשמל היטב. מגנטיות יש רק לחלק מהמתכות."],
@@ -493,7 +501,7 @@ const QB=[
 ["salts","לזרחן תפקיד חשוב בגוף. מהו?",["בניית עצמות ושיניים","עיכול","ראייה","שמיעה"],"זרחן חיוני לעצמות ולשיניים."],
 ["salts","מפעלי ים המלח והפוספטים תורמים לכלכלה ולהתיישבות בנגב.",TF,"נכון – אבל יש להם גם מחיר סביבתי.",null,0],
 ["salts","ים המלח הולך ומתמלא במים.",TF,"לא נכון – ים המלח מתייבש.",null,1]
-].map(([w,q,o,e,img,tf],i)=>({id:i,w,q,o,e,img:img||null,tf:tf!=null,a:tf!=null?tf:0}));
+].map(([w,q,o,e,img,tf],i)=>({id:i,w,q,o,e,img:img||null,tf:tf!=null,a:tf!=null?tf:0,les:Q_LESSON[i]}));
 
 /* ============================================================
    STATE — progress lives on this device, per child profile
@@ -715,15 +723,31 @@ function world(wid,tab){
   else practiceIntro(wid,body);
 }
 
-function lesson(wid,i){
+const SOIL_TABLE=`<div class="tbl"><table><tr><th></th><th>קרקע חולית</th><th>קרקע חרסיתית</th></tr><tr><td>מקור</td><td>קוורץ מגרניט</td><td>החומר חרסית</td></tr><tr><td>גודל גרגיר</td><td>גדול</td><td>זעיר (מיקרוסקופ)</td></tr><tr><td>חלחול מים</td><td>מהיר</td><td>איטי מאוד</td></tr><tr><td>עם מים</td><td>לא נהיית עיסה</td><td>נהיית עיסה (בוץ)</td></tr></table></div>`;
+function lesson(wid,i,back){
   const w=W[wid],l=w.lessons[i];const opts=shuffle(l.check.o.map((t,k)=>({t,ok:k===l.check.a})));
+  if(back){
+    root.innerHTML=`<div class="reviewbar"><span>📖 קוראים שוב, ואז חוזרים לשאלה</span><button class="btn" id="rb1">חזרה לשאלה ←</button></div>
+    <article class="panel stack w-${wid}" id="lessonTop">
+      <span class="small" style="color:var(--c);font-weight:800">${w.name} · שיעור ${i+1}</span>
+      <h1>${l.title}</h1>
+      <div class="figure">${ILL[l.img]()}</div>
+      <ul class="points">${l.pts.map(p=>`<li><span>${p}</span></li>`).join("")}</ul>
+      ${l.table?SOIL_TABLE:""}
+      ${l.img2?`<div class="figure">${ILL[l.img2]()}</div>`:""}
+      <button class="btn primary block" id="rb2">קראתי – חזרה לשאלה ←</button>
+    </article>`;
+    window.scrollTo(0,0);
+    document.getElementById("rb1").onclick=document.getElementById("rb2").onclick=()=>{back();window.scrollTo(0,0)};
+    return;
+  }
   root.innerHTML=`${topbar("world:"+wid)}
-  <article class="panel stack w-${wid}">
+  <article class="panel stack w-${wid}" id="lessonTop">
     <span class="small" style="color:var(--c);font-weight:800">${w.name} · שיעור ${i+1} מתוך ${w.lessons.length}</span>
     <h1>${l.title}</h1>
     <div class="figure">${ILL[l.img]()}</div>
     <ul class="points">${l.pts.map(p=>`<li><span>${p}</span></li>`).join("")}</ul>
-    ${l.table?`<div class="tbl"><table><tr><th></th><th>קרקע חולית</th><th>קרקע חרסיתית</th></tr><tr><td>מקור</td><td>קוורץ מגרניט</td><td>החומר חרסית</td></tr><tr><td>גודל גרגיר</td><td>גדול</td><td>זעיר (מיקרוסקופ)</td></tr><tr><td>חלחול מים</td><td>מהיר</td><td>איטי מאוד</td></tr><tr><td>עם מים</td><td>לא נהיית עיסה</td><td>נהיית עיסה (בוץ)</td></tr></table></div>`:""}
+    ${l.table?SOIL_TABLE:""}
     ${l.img2?`<div class="figure">${ILL[l.img2]()}</div>`:""}
     <div class="check"><span class="lbl">✔ בדקו את עצמכם כדי לסיים את השיעור</span><b>${l.check.q}</b>
       <div class="opts">${opts.map((o,k)=>`<button class="opt" data-k="${k}"><span class="k">${"אבגד"[k]}</span>${o.t}</button>`).join("")}</div><div id="cfb"></div></div>
@@ -735,7 +759,8 @@ function lesson(wid,i){
     if(o.ok){root.querySelectorAll(".opt").forEach(x=>x.disabled=true);b.classList.add("right");
       const first=!P.lessons[l.id];P.lessons[l.id]=1;save();
       document.getElementById("cfb").innerHTML=`<div class="fb good">נכון! השיעור הושלם ✓ ${first?"· מד הלמידה עלה":""}</div>`;if(first)confetti();}
-    else{b.classList.add("wrong");b.disabled=true;document.getElementById("cfb").innerHTML=`<div class="fb bad">לא בדיוק. קראו שוב את השיעור ונסו תשובה אחרת.</div>`}
+    else{b.classList.add("wrong");b.disabled=true;document.getElementById("cfb").innerHTML=`<div class="fb bad">לא בדיוק. התשובה נמצאת בשיעור – קראו אותו שוב ונסו תשובה אחרת.<div class="actions"><button class="btn ghost" id="reread">📖 לקרוא שוב את השיעור</button></div></div>`;
+      document.getElementById("reread").onclick=()=>document.getElementById("lessonTop").scrollIntoView({behavior:"smooth"})}
   });
   document.getElementById("prev").onclick=()=>lesson(wid,i-1);
   document.getElementById("next").onclick=()=>i<w.lessons.length-1?(lesson(wid,i+1),scrollTo(0,0)):world(wid,"cards");
@@ -781,6 +806,12 @@ function examIntro(){
 }
 function runQuiz(st){
   const {mode,qs}=st;const ans=qs.map(()=>null);let i=0;const exam=mode==="exam";
+  const solved=qs.map(()=>false),tried=qs.map(()=>new Set());   // practice: first answer is scored, retries until right
+  const pfb=()=>{const q=qs[i],ref=lessonRef(q.les);
+    if(solved[i])return `<div class="fb good">${ans[i]>=0&&q.opts[ans[i]].ok?"נכון!":"עכשיו זה נכון! 👏"}<span class="ex">${q.e}</span></div>`;
+    if(tried[i].size)return `<div class="fb bad">לא בדיוק – נסו תשובה אחרת. לא בטוחים? התשובה נמצאת בשיעור, קראו וחזרו לענות.<div class="actions"><button class="btn ghost" id="toLes">📖 לשיעור: ${ref?ref.l.title:""}</button></div></div>`;
+    if(ans[i]===-1)return `<div class="fb good">קראתם את השיעור – עכשיו בחרו תשובה.</div>`;
+    return ""};
   const draw=()=>{
     const q=qs[i];
     root.innerHTML=`${topbar(exam?"home":"world:"+st.wid)}
@@ -789,21 +820,25 @@ function runQuiz(st){
       ${exam?`<div class="dots">${qs.map((_,k)=>`<i class="${k===i?"cur":ans[k]!=null?"ans":""}"></i>`).join("")}</div>`:`<div class="bar"><i style="width:${i/qs.length*100}%"></i></div>`}
       <p class="qtext">${q.q}</p>
       ${q.img?`<div class="qimg">${ill(q.img)}</div>`:""}
-      <div class="opts${q.tf?" two":""}">${q.opts.map((o,k)=>`<button class="opt${exam&&ans[i]===k?" sel":""}" data-k="${k}"><span class="k">${q.tf?(k?"✗":"✓"):"אבגד"[k]}</span>${o.t}</button>`).join("")}</div>
-      <div id="qfb"></div>
+      <div class="opts${q.tf?" two":""}">${q.opts.map((o,k)=>{const cls=exam?(ans[i]===k?" sel":""):solved[i]&&o.ok?" right":tried[i].has(k)?" wrong":"";
+        return `<button class="opt${cls}" data-k="${k}" ${!exam&&(solved[i]||tried[i].has(k))?"disabled":""}><span class="k">${q.tf?(k?"✗":"✓"):"אבגד"[k]}</span>${o.t}</button>`}).join("")}</div>
+      ${!exam&&!solved[i]&&!tried[i].size?`<button class="idk" id="idk">🤔 לא יודע/ת – לקרוא בשיעור</button>`:""}
+      <div id="qfb">${!exam?pfb():""}</div>
       <div class="row between">${exam?`<button class="btn ghost" id="qp" ${i===0?"disabled":""}>→ הקודמת</button>`:"<span></span>"}
-        <button class="btn primary" id="qn" ${ans[i]==null?"disabled":""}>${i<qs.length-1?"הבאה ←":exam?"הגשת המבחן ✓":"לסיום ←"}</button></div>
+        <button class="btn primary" id="qn" ${(exam?ans[i]==null:!solved[i])?"disabled":""}>${i<qs.length-1?"הבאה ←":exam?"הגשת המבחן ✓":"לסיום ←"}</button></div>
     </section>`;
     bindNav();
     root.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
       const k=+b.dataset.k;
       if(exam){ans[i]=k;draw();return}
-      if(ans[i]!=null)return;ans[i]=k;
-      root.querySelectorAll(".opt").forEach((x,j)=>{x.disabled=true;if(q.opts[j].ok)x.classList.add("right")});
-      const ok=q.opts[k].ok;if(!ok)b.classList.add("wrong");
-      document.getElementById("qfb").innerHTML=`<div class="fb ${ok?"good":"bad"}">${ok?"נכון! ":"לא בדיוק. "}<span class="ex">${q.e}</span></div>`;
-      document.getElementById("qn").disabled=false;
+      if(solved[i]||tried[i].has(k))return;
+      if(ans[i]==null)ans[i]=k;                 // the first answer is the one that counts
+      if(q.opts[k].ok)solved[i]=true;else tried[i].add(k);
+      draw();
     });
+    const goLesson=()=>{const ref=lessonRef(q.les);if(!ref)return;if(ans[i]==null)ans[i]=-1;lesson(ref.wid,ref.i,draw)};
+    if(document.getElementById("idk"))document.getElementById("idk").onclick=goLesson;
+    if(document.getElementById("toLes"))document.getElementById("toLes").onclick=goLesson;
     if(document.getElementById("qp"))document.getElementById("qp").onclick=()=>{i--;draw()};
     document.getElementById("qn").onclick=()=>{
       if(i<qs.length-1){i++;draw();window.scrollTo(0,0);return}
@@ -813,8 +848,9 @@ function runQuiz(st){
   };draw();
 }
 function finish(st,ans){
-  const {mode,qs}=st;const right=qs.filter((q,k)=>q.opts[ans[k]].ok).length;const score=Math.round(right/qs.length*100);
-  const wrong=qs.map((q,k)=>({q,a:ans[k]})).filter(x=>!x.q.opts[x.a].ok);
+  const {mode,qs}=st;const isOk=(q,a)=>a>=0&&q.opts[a].ok;
+  const right=qs.filter((q,k)=>isOk(q,ans[k])).length;const score=Math.round(right/qs.length*100);
+  const wrong=qs.map((q,k)=>({q,a:ans[k]})).filter(x=>!isOk(x.q,x.a));
   let isBest=false;
   if(mode==="practice"){isBest=P.practice[st.wid]==null||score>P.practice[st.wid];if(isBest)P.practice[st.wid]=score}
   else{isBest=P.exam.best==null||score>P.exam.best;if(isBest)P.exam.best=score;P.exam.attempts++;P.exam.last=score;P.exam.history.push(score)}
@@ -832,11 +868,13 @@ function finish(st,ans){
       :`<button class="btn ghost" id="retry">↺ עוד תרגול</button><button class="btn primary" data-nav="home">לדף הבית</button>`}
     </div>
   </section>
-  ${wrong.length?`<section class="panel stack"><h2>שאלות לתיקון</h2><div class="review">${wrong.map(x=>`<div><b>${x.q.q}</b><small class="muted">ענית: ${x.q.opts[x.a].t}</small><br><span>✓ ${x.q.o[x.q.a]}</span> <small>${x.q.e}</small></div>`).join("")}</div></section>`:""}`;
+  ${wrong.length?(mode==="exam"?`<section class="panel stack"><h2>שאלות לתיקון</h2><div class="review">${wrong.map(x=>`<div><b>${x.q.q}</b><small class="muted">ענית: ${x.q.opts[x.a].t}</small><br><span>✓ ${x.q.o[x.q.a]}</span> <small>${x.q.e}</small></div>`).join("")}</div></section>`
+    :`<section class="panel stack"><h2>כדאי לחזור על השיעורים האלה</h2><p class="muted small">בשאלות האלה לא הצלחתם בניסיון הראשון.</p><div class="lessons">${[...new Set(wrong.map(x=>x.q.les))].map(id=>{const r=lessonRef(id);return r?`<button class="lesson" data-rl="${id}"><div class="thumb">${ILL[r.l.img]()}</div><div><div class="n">${W[r.wid].name}</div><h3>${r.l.title}</h3></div><span class="ok">📖</span></button>`:""}).join("")}</div></section>`):""}`;
   bindNav();
   if(score>=75)confetti();
   document.getElementById("retry").onclick=()=>mode==="exam"?examIntro():runQuiz({...st,qs:shuffle(QB.filter(q=>q.w===st.wid)).slice(0,10).map(buildQ)});
   if(document.getElementById("send"))document.getElementById("send").onclick=()=>shareSheet();
+  root.querySelectorAll("[data-rl]").forEach(b=>b.onclick=()=>{const r=lessonRef(b.dataset.rl);lesson(r.wid,r.i);scrollTo(0,0)});
 }
 
 /* ---------- sharing to the parent ---------- */
