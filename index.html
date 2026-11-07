@@ -1,0 +1,940 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>מתכות, סלעים ומלחים</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Assistant:wght@400;600;700;800&display=swap">
+</head>
+<body>
+<style id="css">
+/* Layout: an expedition map — a mission dashboard (learning meter + three "worlds"), each world opens into lessons, cards and practice; the final exam unlocks at 75% */
+:root{
+  --bg:#eef2f9; --bg2:#e3e9f5; --surface:#ffffff; --ink:#131a33; --muted:#5a6483; --line:#d5dcec;
+  --primary:#3150f5; --primary-ink:#ffffff; --primary-soft:#e2e7ff;
+  --xp:#ffbe1a; --xp-ink:#3a2700;
+  --copper:#e2692c; --copper-soft:#fde9de;
+  --rock:#8b6a4e; --rock-soft:#f1e7dd;
+  --salt:#0aa3a0; --salt-soft:#d9f4f2;
+  --good:#17a35a; --good-soft:#ddf5e7; --bad:#e0443b; --bad-soft:#fde3e1;
+  --shadow:0 1px 0 rgba(19,26,51,.06),0 8px 24px -12px rgba(19,26,51,.18);
+  --display:"Fredoka","Assistant",system-ui,sans-serif;
+  --body:"Assistant","Fredoka",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1224; --bg2:#121a33; --surface:#17213d; --ink:#eaf0ff; --muted:#9aa6c8; --line:#26325a;
+  --primary:#7f94ff; --primary-ink:#0c1224; --primary-soft:#1f2a55;
+  --xp:#ffc93d; --xp-ink:#2b1d00;
+  --copper:#ff925a; --copper-soft:#3a2418; --rock:#d0a582; --rock-soft:#33271e; --salt:#3fd6d2; --salt-soft:#123534;
+  --good:#45d488; --good-soft:#143524; --bad:#ff7a70; --bad-soft:#3d1c1b;
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 10px 28px -14px rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1224; --bg2:#121a33; --surface:#17213d; --ink:#eaf0ff; --muted:#9aa6c8; --line:#26325a;
+  --primary:#7f94ff; --primary-ink:#0c1224; --primary-soft:#1f2a55;
+  --xp:#ffc93d; --xp-ink:#2b1d00;
+  --copper:#ff925a; --copper-soft:#3a2418; --rock:#d0a582; --rock-soft:#33271e; --salt:#3fd6d2; --salt-soft:#123534;
+  --good:#45d488; --good-soft:#143524; --bad:#ff7a70; --bad-soft:#3d1c1b;
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 10px 28px -14px rgba(0,0,0,.6); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;direction:rtl}
+[hidden]{display:none!important}
+img{max-width:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+#root{max-width:880px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 60px;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.7rem,6vw,2.4rem)}
+h2{font-size:1.45rem}
+h3{font-size:1.15rem}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+.num{font-variant-numeric:tabular-nums}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-block:8px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:600;font-size:1.15rem}
+.brand .logo{width:38px;height:38px;border-radius:12px;background:var(--ink);display:grid;place-items:center}
+.who{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 12px}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:1.25rem;background:var(--primary-soft);flex:none}
+.av.lg{width:64px;height:64px;font-size:2.2rem}
+.back{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-weight:700}
+
+/* generic blocks */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.between{justify-content:space-between}
+.stack{display:flex;flex-direction:column;gap:12px}
+.btn{border:none;border-radius:14px;padding:12px 20px;font-weight:800;font-size:1rem;background:var(--bg2);color:var(--ink);transition:transform .12s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--primary);color:var(--primary-ink)}
+.btn.xp{background:var(--xp);color:var(--xp-ink)}
+.btn.ghost{background:transparent;border:1.5px solid var(--line)}
+.btn.good{background:var(--good);color:#fff}
+.btn.wa{background:#25d366;color:#05301a;display:inline-flex;align-items:center;gap:8px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.block{width:100%}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 11px;font-size:.85rem;font-weight:700;background:var(--bg2)}
+.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.xp{background:var(--xp);color:var(--xp-ink)}
+.pill.primary{background:var(--primary-soft);color:var(--primary)}
+.bar{height:10px;border-radius:999px;background:var(--bg2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:var(--c,var(--primary));transition:width .5s}
+
+/* hero meter */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
+.ring{--p:0;width:150px;height:150px;border-radius:50%;background:conic-gradient(var(--xp) calc(var(--p)*1%),var(--bg2) 0);display:grid;place-items:center;flex:none}
+.ring>div{width:118px;height:118px;border-radius:50%;background:var(--surface);display:grid;place-items:center;text-align:center}
+.ring b{font-family:var(--display);font-size:2.6rem;line-height:1}
+.ring small{display:block;color:var(--muted);font-size:.8rem;font-weight:700;letter-spacing:.02em}
+.milestones{display:flex;gap:6px;margin-top:6px}
+.milestones span{flex:1;font-size:.78rem;color:var(--muted);text-align:center}
+@media (max-width:520px){.hero{grid-template-columns:1fr;justify-items:center;text-align:center}.hero .row{justify-content:center}}
+
+/* worlds */
+.worlds{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:760px){.worlds{grid-template-columns:1fr}}
+.world{--c:var(--primary);--cs:var(--primary-soft);text-align:start;border:1px solid var(--line);background:var(--surface);border-radius:22px;padding:0;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;transition:transform .15s}
+.world:hover{transform:translateY(-3px)}
+.world .art{background:var(--cs);padding:8px 8px 0}
+.world .art svg{display:block;width:100%;height:auto;border-radius:14px 14px 0 0}
+.world .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px}
+.world .tag{color:var(--c);font-weight:800;font-size:.85rem}
+.w-metals{--c:var(--copper);--cs:var(--copper-soft)}
+.w-rocks{--c:var(--rock);--cs:var(--rock-soft)}
+.w-salts{--c:var(--salt);--cs:var(--salt-soft)}
+
+/* exam card */
+.exam{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;border-radius:22px;padding:20px;background:var(--ink);color:var(--bg)}
+.exam .muted{color:color-mix(in srgb,var(--bg) 70%,transparent)}
+.exam h2{color:var(--bg)}
+.exam .lock{font-size:2.4rem}
+.exam .pill{background:color-mix(in srgb,var(--bg) 20%,transparent);color:var(--bg)}
+.exam .pill.xp{background:var(--xp);color:var(--xp-ink)}
+@media (max-width:520px){.exam{grid-template-columns:1fr}}
+
+/* world screen */
+.whead{border-radius:22px;overflow:hidden;background:var(--cs);border:1px solid var(--line);display:grid;grid-template-columns:1fr 1.1fr;align-items:center}
+.whead .txt{padding:20px;display:flex;flex-direction:column;gap:8px}
+.whead .txt .tag{color:var(--c);font-weight:800}
+.whead svg{display:block;width:100%;height:auto}
+@media (max-width:600px){.whead{grid-template-columns:1fr}}
+.tabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:5px}
+.tabs button{flex:1;border:none;background:transparent;border-radius:12px;padding:10px 6px;font-weight:800}
+.tabs button[aria-selected="true"]{background:var(--c,var(--primary));color:#fff}
+.lessons{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media (max-width:600px){.lessons{grid-template-columns:1fr}}
+.lesson{display:grid;grid-template-columns:96px 1fr auto;gap:12px;align-items:center;text-align:start;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:10px;box-shadow:var(--shadow)}
+.lesson .thumb{border-radius:12px;overflow:hidden;background:var(--cs)}
+.lesson .thumb svg{display:block;width:100%;height:auto}
+.lesson .n{font-size:.8rem;color:var(--c);font-weight:800}
+.lesson .ok{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--bg2);color:var(--muted)}
+.lesson.done .ok{background:var(--good);color:#fff}
+
+/* lesson view */
+.figure{border-radius:20px;overflow:hidden;border:1px solid var(--line);background:var(--cs);width:100%;max-width:560px;align-self:center}
+.figure svg{display:block;width:100%;height:auto}
+.points{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.points li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+.points li::before{content:"";width:12px;height:12px;border-radius:4px;background:var(--c);margin-top:8px;justify-self:center}
+.points b{color:var(--c)}
+.check{border:2px dashed var(--c);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.check .lbl{font-weight:800;color:var(--c);font-size:.9rem}
+.tbl{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.95rem;min-width:440px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--cs,var(--bg2));font-weight:800}
+
+/* options */
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts.two{display:grid;grid-template-columns:1fr 1fr}
+.opt{text-align:start;font-weight:700;padding:13px 16px;border-radius:14px;border:2px solid var(--line);background:var(--surface);display:flex;gap:10px;align-items:center}
+.opt .k{width:26px;height:26px;flex:none;border-radius:8px;background:var(--bg2);display:grid;place-items:center;font-size:.85rem;font-family:var(--display)}
+.opt:hover:not(:disabled){border-color:var(--primary)}
+.opt.sel{border-color:var(--primary);background:var(--primary-soft)}
+.opt.right{border-color:var(--good);background:var(--good-soft);color:var(--good)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.opt:disabled{cursor:default}
+.fb{border-radius:14px;padding:12px 14px;font-weight:600}
+.fb.good{background:var(--good-soft);color:var(--good)}
+.fb.bad{background:var(--bad-soft);color:var(--bad)}
+.fb .ex{display:block;color:var(--ink);font-weight:400;margin-top:4px}
+
+/* quiz */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:800;color:var(--muted);font-size:.9rem}
+.qtext{font-family:var(--display);font-weight:600;font-size:1.35rem;line-height:1.3}
+.qimg{border-radius:16px;overflow:hidden;border:1px solid var(--line);max-width:420px;width:100%;align-self:center}
+.qimg svg{display:block;width:100%;height:auto}
+.dots{display:flex;gap:4px;flex-wrap:wrap}
+.dots i{width:10px;height:10px;border-radius:3px;background:var(--bg2)}
+.dots i.cur{background:var(--primary)}
+.dots i.ans{background:var(--muted)}
+
+/* flashcard */
+.flash{perspective:1200px;border:none;background:none;padding:0;width:100%}
+.flash-in{position:relative;min-height:250px;transition:transform .5s;transform-style:preserve-3d}
+.flash.flip .flash-in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+.face.back{transform:rotateY(180deg);background:var(--cs);border-color:var(--c)}
+.face .big{font-family:var(--display);font-size:1.5rem;font-weight:600;text-wrap:balance}
+.face .hint{color:var(--muted);font-size:.85rem}
+
+/* results */
+.score{font-family:var(--display);font-size:4rem;line-height:1;font-weight:700}
+.review{display:flex;flex-direction:column;gap:8px}
+.review div{border-radius:14px;padding:10px 14px;background:var(--bad-soft)}
+.review b{display:block}
+.review span{color:var(--good);font-weight:700}
+
+/* class table */
+.board{width:100%;border-collapse:separate;border-spacing:0 8px;min-width:560px}
+.board td,.board th{border:none;padding:8px 10px;background:transparent}
+.board th{font-size:.8rem;color:var(--muted);font-weight:800}
+.board tr.r td{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.board tr.r td:first-child{border-radius:0 14px 14px 0;border-right:1px solid var(--line)}
+.board tr.r td:last-child{border-radius:14px 0 0 14px;border-left:1px solid var(--line)}
+.board tr.me td{background:var(--primary-soft)}
+.board .nm{display:flex;align-items:center;gap:10px;font-weight:800}
+.board .mini{width:110px}
+.rank{font-family:var(--display);font-weight:700;font-size:1.2rem;width:30px;text-align:center}
+.status{font-size:.8rem;font-weight:800;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.st-learn{background:var(--bg2);color:var(--muted)}
+.st-ready{background:var(--xp);color:var(--xp-ink)}
+.st-done{background:var(--good-soft);color:var(--good)}
+.st-star{background:var(--primary);color:var(--primary-ink)}
+.tablewrap{overflow-x:auto}
+.board.compact{min-width:0}
+.board.compact .mini{width:56px}
+.board.compact td,.board.compact th{padding:8px 6px}
+
+/* onboarding */
+.onb{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:stretch}
+@media (max-width:760px){.onb{grid-template-columns:1fr}}
+.onb .showcase{border-radius:24px;background:var(--ink);color:var(--bg);padding:22px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.onb .showcase h1{color:var(--bg)}
+.onb .showcase p{color:color-mix(in srgb,var(--bg) 75%,transparent)}
+.mini3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mini3 svg{display:block;width:100%;height:auto;border-radius:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:800;font-size:.9rem}
+.input{width:100%;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--bg);font-size:1.05rem}
+.input:focus{border-color:var(--primary);outline:none}
+.avs{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+@media (max-width:420px){.avs{grid-template-columns:repeat(4,1fr)}}
+.avs button{aspect-ratio:1;max-width:100%;border-radius:14px;border:2px solid var(--line);background:var(--bg);font-size:1.5rem;display:grid;place-items:center}
+.avs button[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft)}
+.profiles{display:flex;gap:8px;flex-wrap:wrap}
+.profiles button{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 14px 4px 6px;font-weight:700}
+
+.toast{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:700;z-index:30;max-width:calc(100% - 32px);text-align:center}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:40}
+#fx canvas{width:100%;height:100%}
+.verified{border:2px solid var(--good);background:var(--good-soft);color:var(--good);border-radius:14px;padding:10px 14px;font-weight:800}
+textarea.input{min-height:110px;resize:vertical;font-size:.95rem}
+.list-admin{display:flex;flex-direction:column;gap:6px}
+.list-admin div{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:8px 12px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<div id="root"></div>
+<div id="fx"></div>
+<script type="application/json" id="board">{"rows":[],"updated":0}</script>
+<script id="app">
+"use strict";
+/* ============================================================
+   CONTENT — fifth-grade science, up to page 53
+   ============================================================ */
+const APP_URL=/github\.io$/.test(location.hostname)?location.origin+location.pathname:"https://claude.ai/artifact/DpNcqm6Bx3hXWG96hd3n1u";
+const EXAM_UNLOCK=75;
+const AVATARS=["🦊","🐼","🦁","🐸","🐙","🦄","🐯","🐨","🐵","🦉","🐬","🐲","🦖","🐝","🐧","🦈"];
+
+/* ---------- original illustrations (SVG) ---------- */
+const T=(x,y,s,txt,o={})=>`<text x="${x}" y="${y}" font-size="${s}" font-family="Assistant,Arial,sans-serif" font-weight="${o.w||700}" fill="${o.f||'#1b2540'}" text-anchor="${o.a||'middle'}" direction="rtl">${txt}</text>`;
+const S=(id,inner,bg)=>`<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true"><rect width="320" height="200" fill="${bg||'#eef3fb'}"/>${inner}</svg>`;
+const ILL={
+metal:()=>S("metal",`<defs><linearGradient id="mt-g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f4f7fb"/><stop offset=".45" stop-color="#a9b4c4"/><stop offset=".55" stop-color="#8592a6"/><stop offset="1" stop-color="#d9e0ea"/></linearGradient><radialGradient id="mt-d" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".4" stop-color="#b8c2d0"/><stop offset="1" stop-color="#5d6a80"/></radialGradient></defs>
+<rect x="30" y="58" width="150" height="46" rx="8" fill="url(#mt-g)" stroke="#6c788c"/><rect x="40" y="112" width="130" height="40" rx="8" fill="#d98a4b" stroke="#a65a24"/><rect x="46" y="118" width="60" height="6" rx="3" fill="#f4c49b"/>
+<path d="M60 70 l8 -8 M120 66 l14 -4" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+<ellipse cx="245" cy="132" rx="46" ry="22" fill="url(#mt-d)"/><ellipse cx="226" cy="122" rx="12" ry="5" fill="#fff" opacity=".8"/><circle cx="292" cy="150" r="7" fill="url(#mt-d)"/><circle cx="204" cy="158" r="5" fill="url(#mt-d)"/>
+<path d="M248 52 l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z" fill="#ffbe1a"/><path d="M190 34 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z" fill="#ffbe1a"/>
+${T(105,40,15,"מוצקות ומבריקות")}${T(245,184,15,"כספית – נוזל")}`),
+magnet:()=>S("magnet",`<path d="M70 40 v70 a50 50 0 0 0 100 0 v-70 h-30 v70 a20 20 0 0 1 -40 0 v-70z" fill="#e8413a" stroke="#a5221d" stroke-width="2"/><rect x="70" y="40" width="30" height="22" fill="#cfd6e0" stroke="#7d889a"/><rect x="140" y="40" width="30" height="22" fill="#cfd6e0" stroke="#7d889a"/>
+${T(85,56,14,"N",{f:"#3a4558"})}${T(155,56,14,"S",{f:"#3a4558"})}
+<g stroke="#4d5566" stroke-width="5" stroke-linecap="round"><path d="M78 32 l-14 -24"/><path d="M92 32 l4 -26"/><path d="M152 32 l-6 -26"/><path d="M164 32 l16 -22"/></g>
+<g stroke="#9aa3b2" stroke-width="2" fill="none" stroke-dasharray="3 4"><path d="M85 30 q0 -10 0 -18"/><path d="M155 30 q0 -10 0 -18"/></g>
+<circle cx="255" cy="70" r="26" fill="#e6a15c" stroke="#a8652a" stroke-width="3"/><circle cx="255" cy="70" r="17" fill="none" stroke="#c9813f" stroke-width="2"/>
+<path d="M240 120 l30 30 M270 120 l-30 30" stroke="#e0443b" stroke-width="6" stroke-linecap="round"/>
+${T(120,186,15,"ברזל – נמשך ✓")}${T(255,186,15,"נחושת – לא נמשכת")}`),
+uses:()=>S("uses",`<rect x="8" y="8" width="148" height="88" rx="12" fill="#dfeafa"/><rect x="164" y="8" width="148" height="88" rx="12" fill="#fde9de"/><rect x="8" y="104" width="148" height="88" rx="12" fill="#e7e9ee"/><rect x="164" y="104" width="148" height="88" rx="12" fill="#fff4cf"/>
+<path d="M30 52 l80 -6 18 -10 6 4 -10 12 10 2 -2 6 -110 4z" fill="#c4ccd8" stroke="#6c7686"/><path d="M70 50 l-16 22 10 0 24 -22z" fill="#a9b3c2"/><path d="M70 46 l-10 -16 8 0 20 16z" fill="#a9b3c2"/>
+${T(82,88,13,"אלומיניום – מטוס")}
+<g fill="none" stroke="#d2692c" stroke-width="5"><path d="M190 40 q10 -14 20 0 t20 0 t20 0 t20 0"/><path d="M190 56 q10 -14 20 0 t20 0 t20 0 t20 0"/></g><path d="M178 48 h12 M290 48 h14" stroke="#555" stroke-width="5"/>
+${T(238,88,13,"נחושת – חוטי חשמל")}
+<path d="M18 160 h128" stroke="#5b6476" stroke-width="6"/><path d="M28 160 q54 -60 108 0" fill="none" stroke="#5b6476" stroke-width="5"/><g stroke="#5b6476" stroke-width="3"><path d="M50 160 v-30 M70 160 v-44 M90 160 v-44 M112 160 v-30"/></g><rect x="18" y="164" width="128" height="8" fill="#6aa9de"/>
+${T(82,186,13,"ברזל – גשרים")}
+<circle cx="238" cy="148" r="24" fill="none" stroke="#e9b21c" stroke-width="9"/><path d="M228 118 l10 -12 10 12 -10 8z" fill="#7fd3f0" stroke="#3b9fc6"/>
+${T(238,186,13,"זהב – תכשיטים")}`),
+podium:()=>S("podium",`<rect x="125" y="70" width="70" height="110" rx="6" fill="#c9d1dd"/><rect x="55" y="100" width="70" height="80" rx="6" fill="#e39a5e"/><rect x="195" y="120" width="70" height="60" rx="6" fill="#f0c43c"/><rect x="265" y="145" width="45" height="35" rx="6" fill="#b8c0cc"/>
+${T(160,110,30,"1",{f:"#fff"})}${T(90,140,26,"2",{f:"#fff"})}${T(230,158,24,"3",{f:"#fff"})}${T(287,170,18,"4",{f:"#fff"})}
+${T(160,60,15,"כסף")}${T(90,92,15,"נחושת")}${T(230,112,15,"זהב")}${T(287,138,12,"אלומיניום")}
+${T(160,24,15,"מי מוליך חשמל הכי טוב?",{f:"#3150f5"})}`),
+circuit:(on=true)=>S("circuit",`<path d="M60 150 V60 H150" fill="none" stroke="#d2692c" stroke-width="6" stroke-linejoin="round"/><path d="M190 60 H260 V108" fill="none" stroke="#d2692c" stroke-width="6" stroke-linejoin="round"/><path d="M260 140 V150 H190" fill="none" stroke="#d2692c" stroke-width="6"/><path d="M130 150 H60" stroke="#d2692c" stroke-width="6"/>
+<rect x="130" y="136" width="60" height="28" rx="5" fill="#2b2f3a"/><rect x="130" y="136" width="20" height="28" rx="5" fill="#f2b81c"/><rect x="190" y="144" width="5" height="12" fill="#888"/>${T(160,184,14,"סוללה")}
+${on?`<circle cx="170" cy="48" r="34" fill="#ffe266" opacity=".45"/>`:""}<circle cx="170" cy="48" r="20" fill="${on?'#fff3a6':'#e7ebf2'}" stroke="#8a93a3" stroke-width="2"/><path d="M164 52 l3 -8 3 8 3 -8 3 8" fill="none" stroke="${on?'#e0a400':'#9aa3b2'}" stroke-width="2"/><rect x="160" y="64" width="20" height="10" fill="#9aa3b2"/>${T(170,18,14,on?"הנורה דולקת":"הנורה כבויה")}
+<circle cx="260" cy="108" r="5" fill="#333"/><circle cx="260" cy="140" r="5" fill="#333"/>${on?`<path d="M260 108 V140" stroke="#333" stroke-width="5"/>`:`<path d="M260 108 L284 132" stroke="#333" stroke-width="5" stroke-linecap="round"/>`}${T(292,100,12,on?"סגור":"פתוח")}
+${T(40,100,13,"חוט מתכת",{a:"middle"})}`,on?'#eef3fb':'#e9edf3'),
+mine:()=>S("mine",`<rect width="320" height="200" fill="#dcecff"/><path d="M0 70 H320 V200 H0z" fill="#c99a6b"/><path d="M20 70 L60 100 H100 L120 125 H200 L220 100 H260 L300 70z" fill="#a8774d"/><path d="M60 100 H100 L120 125 H200 L220 100 H260" fill="none" stroke="#8a5d38" stroke-width="2"/><path d="M120 125 L135 150 H185 L200 125z" fill="#8f6240"/>
+<rect x="140" y="135" width="26" height="12" rx="3" fill="#f2b81c"/><circle cx="145" cy="148" r="4" fill="#333"/><circle cx="161" cy="148" r="4" fill="#333"/>
+<g fill="#5e8fd6"><circle cx="80" cy="150" r="5"/><circle cx="230" cy="160" r="6"/><circle cx="110" cy="175" r="4"/></g>
+${T(160,40,16,"מכרה פתוח: כורים עפרת מתכת")}${T(160,192,13,"העפרה עוברת צריפה בכבשן ← מתכת",{f:"#fff"})}`),
+bronze:()=>S("bronze",`<circle cx="60" cy="100" r="32" fill="#e39a5e" stroke="#a65a24" stroke-width="3"/>${T(60,106,14,"נחושת",{f:"#fff"})}${T(118,110,34,"+",{f:"#3150f5"})}<circle cx="160" cy="100" r="22" fill="#c9d1dd" stroke="#7d889a" stroke-width="3"/>${T(160,106,13,"בדיל",{f:"#3a4558"})}${T(205,110,34,"=",{f:"#3150f5"})}
+<path d="M240 30 l14 36 M290 30 l-14 36" stroke="#3150f5" stroke-width="10"/><circle cx="265" cy="104" r="40" fill="#b8763e" stroke="#7a4a20" stroke-width="4"/><circle cx="265" cy="104" r="28" fill="none" stroke="#e0a56b" stroke-width="3"/>${T(265,114,28,"3",{f:"#fff"})}
+${T(160,176,16,"ארד = מסג חזק יותר מנחושת")}`),
+key:()=>S("key",`<g fill="#7b5b2e"><rect x="20" y="40" width="60" height="44" rx="12"/><rect x="74" y="54" width="150" height="16"/></g><rect x="34" y="52" width="20" height="20" rx="4" fill="#eef3fb"/>
+<g fill="#7b5b2e"><rect x="20" y="120" width="60" height="44" rx="12"/><path d="M74 134 H224 V150 H210 l-8 8 -8 -8 -10 8 -10 -8 -10 8 -10 -8 -10 8 -10 -8 H74z"/></g><rect x="34" y="132" width="20" height="20" rx="4" fill="#eef3fb"/>
+<path d="M250 70 q30 30 0 60" fill="none" stroke="#3150f5" stroke-width="4"/><path d="M240 124 l10 8 6 -12" fill="none" stroke="#3150f5" stroke-width="4"/>
+<g fill="#c9a26a"><path d="M282 96 l8 3 -4 6z"/><path d="M296 110 l7 -2 -1 7z"/><path d="M280 116 l5 5 -6 2z"/></g>
+${T(150,30,14,"אחרי יציקה")}${T(150,186,14,"אחרי עיבוד שבבי")}${T(290,140,12,"שבבים")}`),
+rolling:()=>S("rolling",`<defs><linearGradient id="rl-g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f1cf8f"/><stop offset=".5" stop-color="#c4913f"/><stop offset="1" stop-color="#8d6224"/></linearGradient></defs>
+<rect x="10" y="88" width="120" height="36" rx="4" fill="#9aa3b2"/><path d="M190 100 H310 V108 H190z" fill="#c4ccd8"/>
+<rect x="120" y="30" width="80" height="62" rx="31" fill="url(#rl-g)"/><rect x="120" y="112" width="80" height="62" rx="31" fill="url(#rl-g)"/>
+<path d="M140 22 a28 28 0 0 1 40 0" fill="none" stroke="#e0443b" stroke-width="4"/><path d="M178 14 l4 9 -10 1" fill="none" stroke="#e0443b" stroke-width="4"/><path d="M180 182 a28 28 0 0 1 -40 0" fill="none" stroke="#e0443b" stroke-width="4"/><path d="M142 190 l-4 -9 10 -1" fill="none" stroke="#e0443b" stroke-width="4"/>
+${T(70,80,14,"גוש מתכת")}${T(250,92,14,"פח דק וארוך")}${T(250,140,12,"פחיות, כנפי מטוס, גגות")}`),
+rocks:()=>{const r=[["#e9e2cf","גיר"],["#3a3d45","בזלת"],["#c9a6a0","גרניט"],["#7a5a3a","צור"],["#d9c08a","כורכר"],["#f4f1ea","קרטון"],["#b07b5a","חרסית"],["#e2b57c","אבן חול"]];
+ return S("rocks",r.map(([c,n],i)=>{const x=40+(i%4)*80,y=i<4?62:146;const d=["M-26 6 q-4 -22 14 -28 q20 -6 34 6 q12 14 0 26 q-20 10 -48 -4z","M-28 4 q4 -26 26 -26 q24 2 28 20 q2 16 -22 18 q-26 2 -32 -12z"][i%2];
+ return `<g transform="translate(${x} ${y})"><path d="${d}" fill="${c}" stroke="#5b4a3a" stroke-width="2"/><path d="M-10 -12 q6 -4 12 0" stroke="#fff" stroke-width="2" opacity=".6" fill="none"/></g>${T(x,y+30,13,n)}`}).join(""))},
+tests:()=>S("tests",`<path d="M30 150 q-6 -40 30 -56 q40 -14 70 6 q24 22 4 50 q-50 20 -104 0z" fill="#d9cdb4" stroke="#7d6b55" stroke-width="2"/><path d="M60 128 l50 -12" stroke="#7d6b55" stroke-width="3"/><path d="M84 66 l40 52" stroke="#6c7686" stroke-width="7" stroke-linecap="round"/><path d="M80 60 l10 -2 -2 10z" fill="#6c7686"/>${T(85,186,14,"קשיות: שורטים במסמר")}
+<path d="M190 150 q-6 -40 30 -56 q40 -14 70 6 q24 22 4 50 q-50 20 -104 0z" fill="#ece5d2" stroke="#7d6b55" stroke-width="2"/><ellipse cx="250" cy="44" rx="26" ry="18" fill="#f6dd3c" stroke="#c9a816" stroke-width="2"/><path d="M250 62 q-2 10 0 18" stroke="#f6dd3c" stroke-width="4"/><g fill="#ffffff" stroke="#9aa3b2"><circle cx="240" cy="100" r="5"/><circle cx="256" cy="94" r="4"/><circle cx="264" cy="106" r="6"/><circle cx="248" cy="110" r="3"/></g>${T(245,186,14,"חומצה: גיר מעלה בועות")}`),
+concrete:()=>S("concrete",`${[["#a7adb7","מלט"],["#e9c98b","חול"],["#8f949c","חצץ"],["#6aa9de","מים"]].map(([c,n],i)=>{const x=36+i*60;return `<path d="M${x-22} 96 q22 -40 44 0z" fill="${c}"/>${T(x,116,13,n)}${i<3?T(x+30,86,20,"+",{f:"#3150f5"}):""}`}).join("")}
+${T(268,86,24,"=",{f:"#3150f5"})}<rect x="20" y="130" width="280" height="56" rx="10" fill="#b4b9c2"/><g fill="#8f949c"><circle cx="60" cy="150" r="5"/><circle cx="130" cy="166" r="4"/><circle cx="200" cy="148" r="6"/><circle cx="260" cy="170" r="4"/></g><g stroke="#5b6476" stroke-width="3"><path d="M40 140 V178 M110 140 V178 M180 140 V178 M250 140 V178"/></g>${T(160,164,16,"בטון מזוין = בטון + ברזל",{f:"#1b2540"})}
+${T(160,30,15,"מכינים בטון")}`),
+soil:()=>S("soil",`<rect width="320" height="200" fill="#dff1ff"/><circle cx="280" cy="26" r="16" fill="#ffd23f"/><rect y="58" width="320" height="16" fill="#5fb85c"/><g stroke="#3f8f3c" stroke-width="3"><path d="M30 58 v-14 M40 58 v-10 M120 58 v-16 M210 58 v-12 M260 58 v-16"/></g>
+<rect y="74" width="320" height="56" fill="#6b4a33"/><rect y="130" width="320" height="38" fill="#a37a55"/><path d="M0 168 H320 V200 H0z" fill="#b8b1a4"/><g fill="#8f877a"><path d="M20 176 l30 -6 20 10 -20 14 -26 -4z"/><path d="M130 178 l40 -6 16 12 -30 10z"/><path d="M240 174 l34 4 6 14 -40 2z"/></g>
+<g stroke="#e9d3b8" stroke-width="2" fill="none"><path d="M40 74 q-6 20 4 36 M40 74 q8 18 0 30"/><path d="M120 74 q-8 26 6 44"/><path d="M260 74 q10 24 -2 40"/></g>
+<path d="M170 100 q10 -8 20 0 t20 0" stroke="#e08a8a" stroke-width="6" fill="none" stroke-linecap="round"/><g fill="#d9c08a"><circle cx="90" cy="96" r="3"/><circle cx="230" cy="112" r="3"/><circle cx="70" cy="146" r="3"/><circle cx="190" cy="150" r="4"/></g><g fill="#fff" opacity=".5"><circle cx="150" cy="90" r="2"/><circle cx="290" cy="100" r="2"/></g>
+${T(300,108,12,"קרקע",{f:"#fff",a:"end"})}${T(300,154,12,"גרגירים",{f:"#fff",a:"end"})}${T(300,190,12,"סלע מתפורר",{a:"end"})}`),
+jars:(q=false)=>S("jars",`${[0,1].map(i=>{const x=i?200:60;const sand=!i;return `<path d="M${x} 40 h70 v110 q0 10 -10 10 h-50 q-10 0 -10 -10z" fill="#ffffff" stroke="#7d889a" stroke-width="3" opacity=".9"/>
+<rect x="${x+3}" y="${sand?90:96}" width="64" height="${sand?58:52}" fill="${sand?'#e9c98b':'#9b6a4a'}"/>${sand?`<g fill="#c9a160">${Array.from({length:18},(_,k)=>`<circle cx="${x+8+(k%6)*11}" cy="${96+Math.floor(k/6)*16}" r="3"/>`).join("")}</g>`:""}
+${sand?`<rect x="${x+3}" y="150" width="64" height="8" fill="#6aa9de"/>`:`<rect x="${x+3}" y="74" width="64" height="22" fill="#6aa9de" opacity=".85"/>`}
+${T(x+35,184,15,q?(i?"צנצנת ב":"צנצנת א"):(sand?"קרקע חולית":"קרקע חרסיתית"))}`}).join("")}
+${T(160,24,14,"שפכנו לכל צנצנת אותה כמות מים")}`),
+erosion:()=>S("erosion",`<rect width="320" height="200" fill="#cfdbe8"/><g stroke="#6aa9de" stroke-width="3"><path d="M40 10 l-6 14 M90 6 l-6 14 M150 12 l-6 14 M210 6 l-6 14 M270 10 l-6 14"/></g>
+<path d="M0 70 q120 0 220 70 q50 30 100 30 V200 H0z" fill="#8a6142"/><g fill="#5e3f29"><rect x="40" y="58" width="12" height="14"/><rect x="100" y="64" width="12" height="14"/><rect x="160" y="88" width="12" height="14"/></g>
+<path d="M60 76 q60 20 120 50 q40 22 80 40" fill="none" stroke="#a9876a" stroke-width="10" stroke-linecap="round" opacity=".7"/><path d="M220 186 q50 -10 100 -6 V200 H210z" fill="#6aa9de"/><g fill="#8a6142"><circle cx="250" cy="186" r="4"/><circle cx="276" cy="190" r="3"/></g>
+${T(170,40,15,"כורתים עצים ← הקרקע נסחפת",{f:"#1b2540"})}`),
+deadsea:()=>S("deadsea",`<rect width="320" height="200" fill="#ffe9c8"/><path d="M0 60 H320" stroke="#3150f5" stroke-width="2" stroke-dasharray="6 5"/>${T(10,54,13,"פני הים 0 מ׳",{a:"start",f:"#3150f5"})}
+<path d="M0 60 L60 60 L110 150 H230 L270 60 L320 60 V200 H0z" fill="#d9a066"/><path d="M110 150 H230 L222 138 H118z" fill="#36b5c9"/>
+<path d="M290 64 V148" stroke="#e0443b" stroke-width="3"/><path d="M284 140 l6 10 6 -10" fill="none" stroke="#e0443b" stroke-width="3"/>${T(296,110,14,"430 מ׳",{a:"start",f:"#e0443b"})}
+<g fill="#ffffff" stroke="#c9b9a0"><path d="M140 140 q10 -14 22 0z"/><path d="M178 140 q8 -10 16 0z"/><rect x="149" y="139" width="4" height="6"/></g>
+${T(170,184,15,"ים המלח – המקום הנמוך בעולם")}`),
+salts3:()=>S("salts3",`<rect x="30" y="60" width="56" height="90" rx="14" fill="#f4f6fa" stroke="#7d889a" stroke-width="3"/><rect x="34" y="46" width="48" height="20" rx="8" fill="#9aa3b2"/><g fill="#5b6476"><circle cx="48" cy="56" r="2"/><circle cx="58" cy="56" r="2"/><circle cx="68" cy="56" r="2"/></g>${T(58,176,14,"מלח בישול")}
+<path d="M130 64 h66 l8 90 h-82z" fill="#c9b07a" stroke="#8a733f" stroke-width="3"/><path d="M130 64 q33 -18 66 0" fill="#b29a63"/>${T(164,120,14,"דשן",{f:"#4d3d17"})}<path d="M160 136 q4 -12 12 -14 q-2 10 -12 14z" fill="#5fb85c"/>${T(164,176,14,"אשלג")}
+<path d="M226 150 q-6 -40 30 -56 q40 -14 60 10 q6 30 -10 46z" fill="#d8cdb0" stroke="#8d7d5c" stroke-width="2"/><path d="M262 108 l10 26 10 -26z" fill="#fbf7ec" stroke="#8d7d5c" stroke-width="2"/>${T(270,176,14,"פוספט")}`),
+solution:()=>S("solution",`<path d="M110 50 h100 l-10 130 h-80z" fill="#d9eefc" stroke="#7d889a" stroke-width="3"/><path d="M113 80 h94 l-7 98 h-80z" fill="#6aa9de" opacity=".55"/>
+<g fill="#ffffff" stroke="#8a93a3"><rect x="150" y="100" width="7" height="7" transform="rotate(20 153 103)"/><rect x="170" y="130" width="6" height="6"/><rect x="140" y="150" width="5" height="5"/></g><g fill="#ffffff" opacity=".8"><circle cx="135" cy="120" r="2"/><circle cx="185" cy="110" r="2"/><circle cx="160" cy="165" r="2"/><circle cx="178" cy="150" r="2"/></g>
+<path d="M210 20 q-30 6 -46 40" stroke="#9aa3b2" stroke-width="8" stroke-linecap="round" fill="none"/><ellipse cx="160" cy="62" rx="14" ry="6" fill="#9aa3b2"/><g fill="#fff" stroke="#8a93a3"><rect x="154" y="66" width="5" height="5"/><rect x="162" y="72" width="5" height="5"/></g>
+${T(60,110,15,"המלח = מומס")}${T(265,140,15,"המים = ממס")}${T(160,196,14,"מים + מלח = תמיסה")}`),
+ponds:()=>S("ponds",`<rect width="320" height="200" fill="#dff1ff"/><circle cx="60" cy="40" r="22" fill="#ffd23f"/><g stroke="#ffd23f" stroke-width="4" stroke-linecap="round"><path d="M60 6 v6 M94 40 h-6 M26 40 h6 M84 16 l-5 5 M36 16 l5 5"/></g>
+<path d="M0 130 H320 V200 H0z" fill="#e2c49b"/><rect x="20" y="124" width="90" height="12" rx="3" fill="#36b5c9"/><rect x="120" y="124" width="90" height="12" rx="3" fill="#6fcfd8"/><rect x="220" y="124" width="80" height="12" rx="3" fill="#f4f6fa"/>
+<g fill="none" stroke="#7fb8e8" stroke-width="3"><path d="M50 116 q6 -8 0 -16 t0 -16"/><path d="M80 116 q6 -8 0 -16 t0 -16"/><path d="M150 116 q6 -8 0 -16 t0 -16"/><path d="M180 116 q6 -8 0 -16 t0 -16"/></g>
+<path d="M240 124 l30 -40 30 40z" fill="#ffffff" stroke="#c9b9a0" stroke-width="2"/>
+${T(65,160,13,"מזרימים מי ים")}${T(165,160,13,"המים מתאדים")}${T(260,160,13,"המלח שוקע")}${T(160,190,14,"בריכות אידוי – רדודות")}`),
+fossil:()=>S("fossil",`<rect width="320" height="200" fill="#e9dfc8"/><path d="M0 40 H320" stroke="#cdbd98" stroke-width="16"/><path d="M0 90 H320" stroke="#d8cba9" stroke-width="18"/><path d="M0 140 H320" stroke="#cdbd98" stroke-width="14"/><path d="M0 182 H320" stroke="#d8cba9" stroke-width="20"/>
+<path d="M70 70 l26 66 26 -66 q-26 12 -52 0z" fill="#fbf7ec" stroke="#8d7d5c" stroke-width="3"/><g stroke="#8d7d5c" stroke-width="2"><path d="M80 82 l4 -4 M92 96 l4 -4 M100 112 l3 -4"/></g>
+<g fill="none" stroke="#8d7d5c" stroke-width="3"><path d="M180 110 h90"/><path d="M270 110 l16 -14 v28z"/><path d="M196 110 l-6 -14 M212 110 l-6 -16 M228 110 l-6 -16 M244 110 l-6 -14 M196 110 l-6 14 M212 110 l-6 16 M228 110 l-6 16 M244 110 l-6 14"/><circle cx="174" cy="106" r="5"/></g>
+${T(96,166,14,"שן כריש")}${T(230,166,14,"שלד של דג")}${T(160,28,15,"מאובנים בסלעי הפוספט – ים תטיס",{f:"#5b4a2a"})}`),
+worldMetals:()=>S("w1",`<rect width="320" height="200" fill="#fde9de"/><circle cx="250" cy="70" r="46" fill="#f7c9ab"/><path d="M40 140 l80 -6 18 -10 6 4 -10 12 10 2 -2 6 -110 4z" fill="#c4ccd8" stroke="#6c7686"/><path d="M80 138 l-16 22 10 0 24 -22z" fill="#a9b3c2"/>
+<path d="M190 40 v50 a36 36 0 0 0 72 0 v-50 h-22 v50 a14 14 0 0 1 -28 0 v-50z" fill="#e8413a"/><rect x="190" y="40" width="22" height="14" fill="#cfd6e0"/><rect x="240" y="40" width="22" height="14" fill="#cfd6e0"/>
+<g fill="none" stroke="#d2692c" stroke-width="5"><path d="M150 180 q10 -14 20 0 t20 0 t20 0 t20 0 t20 0"/></g>`,"#fde9de"),
+worldRocks:()=>S("w2",`<rect width="320" height="200" fill="#f1e7dd"/><path d="M0 120 L70 50 L120 100 L180 30 L260 110 L320 70 V200 H0z" fill="#c9a37f"/><path d="M180 30 L210 60 L195 58 L180 72 L165 56z" fill="#efe3d4"/><rect y="150" width="320" height="50" fill="#8a6142"/><rect y="150" width="320" height="10" fill="#5fb85c"/>
+<g fill="#5e3f29"><circle cx="60" cy="176" r="5"/><circle cx="140" cy="186" r="4"/><circle cx="230" cy="178" r="6"/></g><path d="M100 176 q10 -8 20 0 t20 0" stroke="#e08a8a" stroke-width="5" fill="none" stroke-linecap="round"/>`,"#f1e7dd"),
+worldSalts:()=>S("w3",`<rect width="320" height="200" fill="#d9f4f2"/><circle cx="260" cy="44" r="22" fill="#ffd23f"/><path d="M0 110 q80 -20 160 0 t160 0 V200 H0z" fill="#36b5c9"/><path d="M0 140 q80 -16 160 0 t160 0 V200 H0z" fill="#2a9db0"/>
+<g fill="#ffffff" stroke="#b9c9c9"><path d="M60 140 q16 -22 34 0z"/><path d="M120 150 q12 -16 24 0z"/><path d="M210 146 q14 -20 30 0z"/></g><g fill="#fff"><rect x="74" y="139" width="6" height="10"/><rect x="129" y="149" width="5" height="8"/><rect x="222" y="145" width="6" height="9"/></g>`,"#d9f4f2")
+};
+
+/* ---------- worlds and lessons ---------- */
+const WORLDS=[
+{id:"metals",name:"עולם המתכות",tag:"עולם 1",art:"worldMetals",blurb:"תכונות, סוגים ושימושים, מעגל חשמלי, מסגים, עיבוד שבבי וריקוע",
+ lessons:[
+ {id:"m1",title:"תכונות משותפות למתכות",img:"metal",pts:["מתכות הן <b>מוצקות</b> בטמפרטורת החדר – חוץ מ<b>כספית</b>, שהיא נוזל.","הן <b>מוליכות חשמל</b> ו<b>מוליכות חום</b>.","רובן <b>מבריקות</b>, עם צבע וצליל מתכתי.","אפשר <b>לכופף</b> אותן ו<b>לרקע</b> אותן.","<b>מוליכות חשמלית</b> היא התכונה שמבדילה מתכות מכל שאר החומרים.","בעולם יש כ-90 סוגי מתכות, ובכ-15 מהן משתמשים הרבה."],
+  check:{q:"איזו מתכת היא נוזל בטמפרטורת החדר?",o:["כספית","ברזל","נחושת","זהב"],a:0}},
+ {id:"m2",title:"מגנטיות – לא כל מתכת היא ברזל",img:"magnet",pts:["מגנטיות = משיכה בין מגנט לחומר.","<b>ברזל</b> נמשך למגנט.","נחושת, אלומיניום, זהב וכסף <b>לא</b> נמשכים למגנט.","לכן מגנטיות היא תכונה <b>ייחודית</b> לחלק מהמתכות, ולא תכונה משותפת לכולן."],
+  check:{q:"האם כל המתכות נמשכות למגנט?",o:["לא – רק חלק, למשל ברזל","כן – כל המתכות","רק נחושת","רק זהב"],a:0}},
+ {id:"m3",title:"סוגי מתכות ושימושים",img:"uses",pts:["<b>נחושת</b> – חוטי חשמל: מוליכה טוב מאוד ולא יקרה.","<b>אלומיניום</b> – מטוסים וכבלי חשמל: <b>קל וחזק</b>, חוסך אנרגיה בהמראה.","<b>ברזל</b> – גשרים, מכוניות ושלד של בניינים: חזק.","<b>זהב</b> – תכשיטים ושבבי מחשב.","<b>בדיל</b> – מגן על מתכות אחרות מפני חלודה.","בוחרים מתכת לפי <b>התכונה הייחודית</b> שלה ולפי המטרה."],
+  check:{q:"למה כנפי מטוס עשויות מאלומיניום?",o:["כי הוא קל וחזק","כי הוא נמשך למגנט","כי הוא מבריק","כי הוא נוזל"],a:0}},
+ {id:"m4",title:"מוליכות ומעגל חשמלי",img:"circuit",pts:["סדר המוליכות: <b>כסף ← נחושת ← זהב ← אלומיניום</b>. כסף הכי טוב, אבל יקר מאוד.","חלקי מעגל: <b>סוללה</b>, <b>חוטי מתכת</b>, <b>נורה</b> ו<b>מפסק</b>.","<b>מעגל סגור</b> – הזרם עובר והנורה דולקת. <b>מעגל פתוח</b> – הנורה כבויה.","חומר שסוגר את המעגל ומדליק את הנורה הוא <b>מוליך</b> (מתכות). חומר שלא – <b>מבודד</b> (פלסטיק, עץ, גומי).","לכן חוטי חשמל עשויים מתכת ומצופים פלסטיק."],
+  check:{q:"מה צריך כדי שהנורה תידלק?",o:["מעגל סגור","מעגל פתוח","חוט מפלסטיק","מגנט"],a:0}},
+ {id:"m5",title:"עפרות, הפקה ומסגים",img:"mine",img2:"bronze",pts:["<b>עפרת מתכת</b> = סלע שמכיל מתכת. כורים אותה במכרות פתוחים וסגורים.","מפיקים את המתכת בתהליך <b>צריפה</b> – חימום בכבשן.","בתמנע, ליד אילת, כרו נחושת כבר לפני כ-6,000 שנה. המכרה המודרני פעל מ-1959 ונסגר ב-1983.","מתכת טהורה רכה. מוסיפים לה חומרים ומקבלים <b>מסג</b> חזק יותר.","<b>ארד</b> = נחושת + מעט בדיל. <b>פלדה</b> = ברזל + מעט פחמן. <b>מסג כסף</b> = כסף + מעט נחושת.","מסג מכינים ב<b>התכה</b> ואחר כך <b>יציקה וקירור</b> בתבנית."],
+  check:{q:"ממה עשוי ארד?",o:["נחושת ומעט בדיל","ברזל ופחמן","זהב וכסף","אלומיניום"],a:0}},
+ {id:"m6",title:"יציקה ועיבוד שבבי",img:"key",pts:["<b>יציקה</b> – יוצקים מתכת נוזלית לתבנית ומקבלים צורה בסיסית.","<b>עיבוד שבבי</b> – מכונה מסירה חתיכות קטנות (<b>שבבים</b>) ויוצרת צורה <b>מדויקת</b>.","דוגמאות: הזיזים של מפתח, ההברגה של בורג, מכשירים רפואיים ומכשירי מדידה.","מפתח נוצר ב<b>יציקה + עיבוד שבבי</b>. ראש פטיש – ביציקה."],
+  check:{q:"איך יוצרים את הזיזים המדויקים של מפתח?",o:["עיבוד שבבי","ריקוע","צריפה","אידוי"],a:0}},
+ {id:"m7",title:"ריקוע וערגול",img:"rolling",pts:["<b>ריקוע</b> – מרדדים מתכת בפטיש או במערוך ומקבלים לוח שטוח.","<b>ערגול</b> – הריקוע של התעשייה: מעבירים גוש מתכת בין <b>שני גלילים</b> שמסתובבים בכיוונים מנוגדים.","מקבלים <b>פח</b> – לוח ארוך ודק.","מפח עושים פחיות, כנפי מטוס, גגות ודלתות של מכוניות.","<b>ניטינול</b> – \"מתכת חכמה\" שחוזרת לצורתה: גשר ליישור שיניים ותומכן (סטנט) לעורקים."],
+  check:{q:"איך מייצרים פח דק לפחיות?",o:["בערגול – בין שני גלילים","בעיבוד שבבי","בצריפה","באידוי"],a:0}}
+ ]},
+{id:"rocks",name:"עולם הסלעים והקרקעות",tag:"עולם 2",art:"worldRocks",blurb:"סוגי סלעים ותכונותיהם, בנייה, איך נוצרת קרקע, חולית מול חרסיתית",
+ lessons:[
+ {id:"r1",title:"מהם סלעים?",img:"rocks",pts:["סלעים הם <b>השכבה המוצקה העליונה</b> של כדור הארץ. מעליהם שכבה דקה של קרקע.","אבנים הן חתיכות של סלעים.","סוגים: <b>גיר, בזלת, גרניט, צור, כורכר, קרטון, חוואר, חרסית, אבן חול, דולומיט</b>.","<b>גאולוגיה</b> = המדע שחוקר את כדור הארץ, סלעים וקרקעות."],
+  check:{q:"איך נקרא המדע שחוקר סלעים וקרקעות?",o:["גאולוגיה","ביולוגיה","אסטרונומיה","מתמטיקה"],a:0}},
+ {id:"r2",title:"איך בודקים סלע?",img:"tests",pts:["בודקים: <b>צבע</b>, <b>מבנה</b>, <b>קשיות</b>, <b>עיסתיות</b> ו<b>תגובה לחומצה</b>.","<b>קשיות</b> – מנסים לשרוט במסמר. אם נשרט – הסלע רך.","<b>עיסתיות</b> – מוסיפים מים: חרסית הופכת לעיסה.","<b>תגובה לחומצה</b> – מטפטפים מיץ לימון: <b>גיר</b> מעלה בועות.","גאולוגים משתמשים בפטיש, במסמר ובחומצה מהולה."],
+  check:{q:"מטפטפים לימון על סלע ורואים בועות. מה בודקים?",o:["תגובה לחומצה","קשיות","צבע","מגנטיות"],a:0}},
+ {id:"r3",title:"סלעים בבנייה",img:"concrete",pts:["השימוש <b>הנפוץ ביותר</b> בסלעים – <b>בנייה</b>.","למה? סלעים <b>זמינים</b>, <b>חזקים ועמידים</b> במזג אוויר, <b>מבודדים חום ורעש</b> ועמידים בפני מזיקים.","<b>בטון</b> = מלט + חול + חצץ + מים. <b>מלט</b> = אבקה מגיר וחרסית שנקלו בתנור.","<b>בטון מזוין</b> = בטון + ברזל – לבניינים גבוהים.","<b>גבס</b> – חומר רך ולבן בין שכבות גיר וקרטון; יש מחצבה במכתש רמון.","חציבה פוגעת בסביבה: <b>נוף, זיהום אוויר ורעש</b>."],
+  check:{q:"ממה מכינים בטון?",o:["מלט, חול, חצץ ומים","ברזל ופחמן","מלח ומים","זהב ונחושת"],a:0}},
+ {id:"r4",title:"איך נוצרת קרקע?",img:"soil",pts:["קרקע נוצרת מ<b>התפוררות סלעים</b> לגרגירים קטנים (תהליכי בלייה).","בקרקע יש: <b>גרגירים</b>, <b>מים</b>, <b>אוויר</b> (ברווחים בין הגרגירים), <b>שרידי צמחים</b> ו<b>שרידי בעלי חיים</b>.","מגיר → <b>טרה רוסה</b> (חום-אדמדם). מקרטון → <b>רנדזינה</b> (אפרפר). מבזלת → <b>קרקע בזלת</b> (חום כהה).","קרקע היא <b>אוצר חיים</b>: צמחים נאחזים בה ושואבים ממנה מים ומזון, ובעלי חיים חיים בה."],
+  check:{q:"איזו קרקע נוצרת מסלע גיר?",o:["טרה רוסה","רנדזינה","קרקע בזלת","חול"],a:0}},
+ {id:"r5",title:"חולית מול חרסיתית ⭐",img:"jars",table:true,pts:["<b>קרקע חולית</b> – מקוורץ שהתפורר מגרניט. גרגירים גדולים. המים <b>מחלחלים מהר</b>. לא נהיית עיסה – אפשר לדרוך על חול רטוב בלי לשקוע.","<b>קרקע חרסיתית</b> – גרגירים זעירים, רואים רק במיקרוסקופ. <b>סופחת מים</b> והופכת ל<b>עיסה</b> (בוץ). המים מחלחלים <b>לאט מאוד</b>.","חול – בחוף הים. חרסית – למשל באפיקי נחלים."],
+  check:{q:"באיזו קרקע המים מחלחלים מהר?",o:["חולית","חרסיתית","שתיהן אותו דבר","באף אחת"],a:0}},
+ {id:"r6",title:"שימושים בקרקע ופגיעה בה",img:"erosion",pts:["שימושים: <b>גידול צמחים</b> (חקלאות, גינות, מרעה), בסיס ל<b>בנייה</b>, חרסית ל<b>לבנים</b>, חול ל<b>בטון</b>.","פגיעה: <b>בנייה</b> מכסה את הקרקע; <b>דשנים וחומרי הדברה</b> בכמות לא נכונה; <b>עיבוד יתר</b>; <b>זיהום</b> בדלק ובמים מזוהמים.","<b>סחיפת קרקע</b> – אחרי כריתת יערות אין שורשים שמחזיקים את הקרקע, ומים ורוח סוחפים אותה.","<b>קרקע פורייה</b> – יש בה כל מה שצמח צריך."],
+  check:{q:"מה גורם לסחיפת קרקע?",o:["כריתת יערות","שתילת עצים","השקיה","גשם קל"],a:0}}
+ ]},
+{id:"salts",name:"עולם המלחים",tag:"עולם 3",art:"worldSalts",blurb:"ים המלח, מלח בישול, אשלג ופוספט, תמיסות ובריכות אידוי",
+ lessons:[
+ {id:"s1",title:"ים המלח – פלא טבע",img:"deadsea",pts:["<b>המקום הנמוך בעולם</b> – כ-430 מטר מתחת לפני הים.","מלוח מאוד – <b>כמעט פי 10</b> מהים התיכון. אפשר לצוף בו בלי לטבוע.","רואים בו <b>פטריות מלח</b> וגבישי מלח.","הוא <b>מתייבש</b>, ובאזור נפערים <b>בולענים</b> מסוכנים."],
+  check:{q:"למה ים המלח נחשב פלא טבע?",o:["הוא המקום הנמוך בעולם","הוא הים העמוק בעולם","יש בו הכי הרבה דגים","הוא קר מאוד"],a:0}},
+ {id:"s2",title:"שלושה מלחים",img:"salts3",pts:["<b>מלח בישול</b> – מהים התיכון (עתלית), מים סוף (אילת) ומים המלח. תבלין, <b>שימור מזון</b> (מונע חיידקים), הפשרת קרח ושלג, הכשרת בשר.","<b>אשלג</b> – <b>רק מים המלח</b>. משמש בעיקר ל<b>דשנים</b> כי יש בו <b>אשלגן</b> – חיוני לגדילת צמחים. גם בסבונים, קוסמטיקה, תרופות וזכוכית.","<b>פוספט</b> – מסלעים בנגב. בעיקר <b>דשנים</b>, וגם תרופות, צבעים, גפרורים."],
+  check:{q:"מאיפה מפיקים אשלג בישראל?",o:["רק מים המלח","מהים התיכון","מסלעים בגליל","מים סוף"],a:0}},
+ {id:"s3",title:"תמיסה: מומס וממס",img:"solution",pts:["<b>תמיסה</b> = חומר שהתמוסס בנוזל.","<b>מומס</b> = החומר שמתמוסס (המלח). <b>ממס</b> = הנוזל שממיס (המים).","מי הים הם תמיסת מלחים ענקית.","<b>התפלה</b> = מוציאים את המלחים ומקבלים מים לשתייה."],
+  check:{q:"בתמיסת מים ומלח – מהו הממס?",o:["המים","המלח","הכוס","האוויר"],a:0}},
+ {id:"s4",title:"בריכות אידוי",img:"ponds",pts:["מפרידים מלח מהתמיסה ב<b>אידוי</b>: המים מתאדים והמלח נשאר.","מזרימים מי ים ל<b>בריכות גדולות ורדודות</b>.","<b>אנרגיית השמש</b> מחממת את המים והם מתאדים.","המלח <b>שוקע</b> לקרקעית, אוספים אותו במכונה ומעבירים למפעל.","למה בריכות? להפיק מלח ישר מהים התיכון העמוק (1,500 מ׳) היה לוקח 3,000 שנה."],
+  check:{q:"איזו אנרגיה מאדה את המים בבריכות?",o:["אנרגיית השמש","חשמל","דלק","רוח בלבד"],a:0}},
+ {id:"s5",title:"פוספט וכרישים בנגב",img:"fossil",pts:["לפני מיליוני שנים כיסה את ישראל <b>ים תטיס</b>, וחיו בו דגים וכרישי <b>מגלודון</b>.","השלדים שקעו ויצרו סלעים. בסלעי <b>חוואר</b> מצאו <b>מאובנים</b> של שיני כרישים.","<b>מאובן</b> = שריד או עקבה של יצור קדום שהשתמר בסלע.","הסלעים עשירים ב<b>זרחן</b> (Phosphorus) – ומכאן השם פוספט. זרחן חיוני ל<b>עצמות ושיניים</b>.","מפעלי ים המלח והפוספטים תורמים ל<b>כלכלה, תעסוקה והתיישבות בנגב</b> – אבל פוגעים בסביבה."],
+  check:{q:"מאיפה בא השם פוספט?",o:["מזרחן – Phosphorus","מים תטיס","מכריש","מהמילה סלע"],a:0}}
+ ]}
+];
+const W=Object.fromEntries(WORLDS.map(w=>[w.id,w]));
+
+/* ---------- flashcards ---------- */
+const CARDS={
+metals:[["איזו מתכת נוזלית בטמפרטורת החדר?","כספית"],["מה התכונה שמבדילה מתכות מכל החומרים?","מוליכות חשמלית"],["4 תכונות משותפות למתכות","מוצקות, מוליכות חשמל וחום, מבריקות, ניתנות לכיפוף ולריקוע"],["איזו מתכת נמשכת למגנט?","ברזל"],["למה מטוסים מאלומיניום?","קל וחזק – חוסך אנרגיה בהמראה"],["למה חוטי חשמל מנחושת ולא מכסף?","כסף הכי מוליך אבל יקר מאוד"],["מעגל סגור","הזרם עובר – הנורה דולקת"],["מוליך מול מבודד","מוליך מעביר חשמל (מתכות); מבודד לא (פלסטיק, עץ, גומי)"],["עפרת מתכת","סלע שמכיל מתכת"],["צריפה","הפקת מתכת מהעפרה בכבשן"],["מסג","מתכת + חומרים אחרים – חזק יותר"],["ארד","נחושת + מעט בדיל"],["פלדה","ברזל + מעט פחמן"],["עיבוד שבבי","מכונה מסירה שבבים ויוצרת צורה מדויקת"],["ריקוע","רידוד מתכת בפטיש או מערוך ללוח שטוח"],["ערגול","מתכת בין שני גלילים ← פח"],["איך מייצרים מפתח?","יציקה + עיבוד שבבי"],["איפה כרו נחושת בישראל?","בתמנע, ליד אילת"]],
+rocks:[["גאולוגיה","המדע שחוקר את כדור הארץ, סלעים וקרקעות"],["תכונות שבודקים בסלע","צבע, מבנה, קשיות, עיסתיות, תגובה לחומצה"],["השימוש הנפוץ בסלעים","בנייה"],["למה סלעים טובים לבנייה?","זמינים, חזקים, עמידים, מבודדים חום ורעש"],["בטון","מלט + חול + חצץ + מים"],["מלט","אבקה מגיר וחרסית שנקלו בתנור"],["בטון מזוין","בטון + ברזל"],["איך נוצרת קרקע?","מהתפוררות סלעים לגרגירים"],["מה יש בקרקע?","גרגירים, מים, אוויר, שרידי צמחים ובעלי חיים"],["קרקע מגיר","טרה רוסה (חום-אדמדם)"],["קרקע מקרטון","רנדזינה (אפרפרה)"],["מקור הקרקע החולית","קוורץ מהתפוררות גרניט"],["איפה המים מחלחלים מהר?","בקרקע חולית"],["איזו קרקע נהיית בוץ?","חרסיתית – סופחת מים"],["סחיפת קרקע","מים ורוח סוחפים קרקע, למשל אחרי כריתת יערות"],["קרקע פורייה","יש בה כל מה שצמח צריך"]],
+salts:[["למה ים המלח פלא טבע?","המקום הנמוך בעולם – 430 מ׳ מתחת לפני הים"],["כמה מלוח ים המלח?","כמעט פי 10 מהים התיכון"],["שלושת המלחים","מלח בישול, אשלג, פוספט"],["מאיפה אשלג?","רק מים המלח"],["מאיפה מלח בישול?","ים תיכון, ים סוף, ים המלח"],["שימוש עיקרי באשלג","דשנים (אשלגן)"],["שימושים במלח בישול","תבלין, שימור מזון, הפשרת שלג, הכשרת בשר"],["מומס וממס","מומס – המלח; ממס – המים"],["איך מפרידים מלח ממים?","אידוי"],["מה קורה בבריכת אידוי?","השמש מחממת, המים מתאדים, המלח שוקע"],["מאיפה השם פוספט?","מזרחן – Phosphorus"],["מה מצאו בסלעי הפוספט?","מאובנים של דגים ושיני כרישים"],["התפלה","הוצאת מלח ממי ים לקבלת מים מתוקים"]]
+};
+
+/* ---------- question bank: [world, question, options (first is correct), explanation, image?, true/false?] ---------- */
+const TF=["נכון","לא נכון"];
+const QB=[
+["metals","איזו מתכת נמצאת במצב נוזל בטמפרטורת החדר?",["כספית","ברזל","אלומיניום","בדיל"],"כספית היא המתכת היחידה שאינה מוצקה בטמפרטורת החדר."],
+["metals","איזו תכונה מבדילה מתכות מכל החומרים האחרים?",["מוליכות חשמלית","צבע אפור","מגנטיות","כבדות"],"רק מתכות מוליכות חשמל היטב. מגנטיות יש רק לחלק מהמתכות."],
+["metals","איזו מתכת נמשכת למגנט?",["ברזל","נחושת","אלומיניום","זהב"],"ברזל נמשך למגנט; נחושת, אלומיניום וזהב לא.","magnet"],
+["metals","כל המתכות נמשכות למגנט.",TF,"לא נכון – רק חלק מהמתכות, למשל ברזל.",null,1],
+["metals","למה מייצרים כנפי מטוס מאלומיניום ולא מברזל?",["אלומיניום קל וחזק","אלומיניום נמשך למגנט","אלומיניום הכי זול","אלומיניום לא מוליך חשמל"],"מתכת קלה וחזקה חוסכת אנרגיה להמראה."],
+["metals","איזו מתכת מוליכה חשמל הכי טוב?",["כסף","נחושת","אלומיניום","ברזל"],"כסף הכי מוליך, אבל יקר מאוד – לכן משתמשים בנחושת.","podium"],
+["metals","מאיזו מתכת עושים בדרך כלל חוטי חשמל?",["נחושת","בדיל","כספית","זהב"],"נחושת מוליכה טוב מאוד ומחירה סביר."],
+["metals","בשביל מה משתמשים בבדיל?",["להגנה וציפוי של מתכות","לחוטי חשמל","לבניית גשרים","לכנפי מטוסים"],"בדיל מגן על מתכות אחרות מפני חלודה."],
+["metals","במעגל שבתמונה – מה יקרה לנורה?",["הנורה כבויה כי המעגל פתוח","הנורה דולקת","הנורה תתפוצץ","הסוללה תיטען"],"המפסק פתוח, הזרם לא עובר והנורה לא נדלקת.","circuitOff"],
+["metals","מכניסים מסמר לרווח במעגל והנורה נדלקת. מה המסקנה?",["המסמר מוליך","המסמר מבודד","הסוללה ריקה","המעגל פתוח"],"הנורה נדלקה – המסמר סגר את המעגל, כלומר הוא מוליך."],
+["metals","איזה חומר הוא מבודד חשמלי?",["פלסטיק","נחושת","אלומיניום","ברזל"],"פלסטיק, עץ וגומי לא מוליכים חשמל."],
+["metals","חוטי חשמל מצופים בפלסטיק כי פלסטיק מבודד.",TF,"נכון – הציפוי מגן עלינו מהתחשמלות.",null,0],
+["metals","מהי עפרת מתכת?",["סלע שמכיל מתכת","מתכת טהורה","ערבוב של שתי מתכות","אבקת מתכת"],"את העפרה כורים במכרות פתוחים וסגורים.","mine"],
+["metals","איך נקרא התהליך שבו מפיקים מתכת מהעפרה?",["צריפה","ערגול","עיבוד שבבי","אידוי"],"בצריפה מחממים את העפרה בכבשן."],
+["metals","מהו מסג?",["מתכת שעורבבה עם חומרים אחרים","מתכת טהורה","סוג של סלע","מתכת נוזלית"],"מתכת טהורה רכה; מוסיפים לה חומרים ומקבלים חומר חזק יותר."],
+["metals","ממה מורכב ארד?",["נחושת ומעט בדיל","ברזל ופחמן","כסף ונחושת","זהב וברזל"],"ארד חזק יותר מנחושת – לכן עושים ממנו פסלים ומטבעות.","bronze"],
+["metals","ממה מורכבת פלדה?",["ברזל ומעט פחמן","נחושת ובדיל","אלומיניום וזהב","כסף ונחושת"],"פלדה חזקה יותר מברזל."],
+["metals","בתמונה: איזו שיטה הפכה את המפתח העליון לתחתון?",["עיבוד שבבי","ריקוע","ערגול","צריפה"],"מכונה הסירה שבבים קטנים ויצרה זיזים מדויקים.","key"],
+["metals","מהם שבבים?",["חתיכות קטנות שמוסרות מהמתכת בעיבוד","חלקי מחשב","גבישי מלח","גרגירי קרקע"],"בעיבוד שבבי מכונה מסירה חתיכות קטנות – שבבים."],
+["metals","מהו ריקוע?",["רידוד מתכת ללוח שטוח","חימום עפרה בכבשן","יציקה לתבנית","חיתוך בורג"],"ריקוע הופך גוש מתכת ללוח שטוח בעזרת פטיש או מערוך."],
+["metals","מה מתואר בתמונה?",["ערגול – מתכת בין שני גלילים","עיבוד שבבי","צריפה","יציקה"],"שני גלילים שמסתובבים בכיוונים מנוגדים לוחצים את המתכת לפח.","rolling"],
+["metals","איך מייצרים מפתח?",["יציקה ואחריה עיבוד שבבי","רק ריקוע","רק ערגול","צריפה"],"היציקה נותנת צורה בסיסית, והעיבוד השבבי יוצר את הזיזים."],
+["metals","מישהו כתב: 'פסי רכבת עשויים מכסף'. מה נכון?",["פסי רכבת עשויים מפלדה – חזקה וזולה","אין טעות","הם עשויים מבדיל","הם עשויים מפלסטיק"],"כסף רך ויקר. פסי רכבת צריכים מתכת חזקה."],
+["metals","מישהו כתב: 'סגירה מגנטית של תיק עשויה מנחושת'. מה הטעות?",["נחושת לא נמשכת למגנט – צריך ברזל","אין טעות","צריך זהב","צריך בדיל"],"סגירה מגנטית צריכה מתכת שנמשכת למגנט – ברזל."],
+["rocks","מה הם סלעים?",["השכבה המוצקה העליונה של כדור הארץ","שכבה דקה של קרקע","מתכות טהורות","גבישי מלח"],"מעל הסלעים יש שכבה דקה של קרקע."],
+["rocks","איזה מדע חוקר סלעים וקרקעות?",["גאולוגיה","ביולוגיה","אסטרונומיה","כימיה"],"גאולוגים בודקים סלעים בפטיש, מסמר וחומצה מהולה."],
+["rocks","איך בודקים קשיות של סלע?",["שורטים אותו במסמר","מטפטפים לימון","מכניסים למים","מקרבים מגנט"],"אם המסמר שורט את הסלע – הסלע רך יחסית.","tests"],
+["rocks","מטפטפים לימון על סלע ורואים בועות. מה בודקים?",["תגובה לחומצה","קשיות","עיסתיות","צבע"],"סלע גיר מגיב לחומצה ומעלה בועות."],
+["rocks","מהו השימוש הנפוץ ביותר בסלעים?",["בנייה","דשנים","תכשיטים","חוטי חשמל"],"סלעים זמינים, חזקים ועמידים."],
+["rocks","איזו סיבה אינה מסבירה למה סלעים טובים לבנייה?",["הם מוליכים חשמל","הם זמינים","הם חזקים ועמידים","הם מבודדים חום ורעש"],"מוליכות חשמל היא תכונה של מתכות, לא של סלעים."],
+["rocks","ממה מכינים בטון?",["מלט, חול, חצץ ומים","ברזל ופחמן","חרסית בלבד","מלח ומים"],"התערובת נוצקת לתבנית ומתקשה.","concrete"],
+["rocks","בטון מזוין הוא בטון עם ברזל.",TF,"נכון – הברזל מאפשר בניינים גבוהים ועמידים.",null,0],
+["rocks","מלט מכינים מגיר וחרסית שנקלו בתנור.",TF,"נכון – המלט הוא מרכיב חשוב בבטון.",null,0],
+["rocks","איך נוצרת קרקע?",["מהתפוררות סלעים","ממים שהתאדו","ממתכות שהותכו","משלג"],"סלעים מתפוררים לגרגירים קטנים בתהליכי בלייה.","soil"],
+["rocks","מה נמצא ברווחים בין גרגירי הקרקע?",["מים ואוויר","מתכות","מלח בלבד","כלום"],"בקרקע יש גם שרידי צמחים ובעלי חיים."],
+["rocks","איזו קרקע נוצרת מסלע גיר?",["טרה רוסה","רנדזינה","קרקע בזלת","חול"],"טרה רוסה – בצבע חום-אדמדם."],
+["rocks","איזו קרקע נוצרת מסלע קרטון?",["רנדזינה","טרה רוסה","קרקע בזלת","חרסית"],"רנדזינה – קרקע אפרפרה."],
+["rocks","מה מקור הגרגירים של קרקע חולית?",["קוורץ מהתפוררות גרניט","חרסית","גיר","מלח"],"גרגירי הקוורץ גדולים יחסית."],
+["rocks","שפכנו מים לשתי צנצנות. באיזו צנצנת יש קרקע חולית?",["צנצנת א – המים עברו למטה","צנצנת ב – המים נשארו למעלה","בשתיהן","באף אחת"],"בחול המים מחלחלים מהר; בחרסית הם נשארים למעלה.","jarsQ"],
+["rocks","באיזו קרקע רואים את הגרגירים רק במיקרוסקופ?",["חרסיתית","חולית","בשתיהן","באף אחת"],"גרגירי חרסית זעירים מאוד."],
+["rocks","אחרי גשם הולכים בשדה ושוקעים בבוץ. מאיזו קרקע השדה?",["חרסיתית","חולית","סלעית","מלוחה"],"חרסית סופחת מים והופכת לעיסה."],
+["rocks","אפשר ללכת על חול רטוב בלי לשקוע כי חול לא סופח מים.",TF,"נכון – בניגוד לחרסית, חול לא יוצר עיסה.",null,0],
+["rocks","מה גורם לסחיפת קרקע?",["כריתת יערות","שתילת עצים","השקיה","דשנים טבעיים"],"בלי שורשים, מים ורוח סוחפים את הקרקע.","erosion"],
+["rocks","איזו פעולה פוגעת בקרקע?",["שימוש מוגזם בדשנים וחומרי הדברה","שתילת עצים","שמירה על יערות","מחזור"],"גם בנייה, עיבוד יתר וזיהום פוגעים בקרקע."],
+["rocks","מה ההשפעה המזיקה של חציבת סלעים?",["פגיעה בנוף, זיהום אוויר ורעש","יותר קרקע פורייה","יותר מים","אין השפעה"],"חציבה יוצרת בורות, אבק ורעש."],
+["salts","למה ים המלח נחשב פלא טבע עולמי?",["הוא המקום הנמוך בעולם","הוא הים העמוק בעולם","יש בו הכי הרבה דגים","הוא הקר בעולם"],"ים המלח נמצא כ-430 מטר מתחת לפני הים.","deadsea"],
+["salts","פי כמה ים המלח מלוח מהים התיכון?",["כמעט פי 10","פי 2","פי 100","אותו דבר"],"בגלל המליחות אפשר לצוף בו."],
+["salts","איזו סכנה קיימת היום ליד ים המלח?",["בולענים","הרי געש","שלג","כרישים"],"ים המלח מתייבש ונפערים בולענים."],
+["salts","איזה מלח מפיקים בישראל רק מים המלח?",["אשלג","מלח בישול","פוספט","כולם"],"מלח בישול מפיקים גם מהים התיכון ומים סוף.","salts3"],
+["salts","מה השימוש העיקרי באשלג?",["דשנים לחקלאות","תבלין","הפשרת שלג","הכשרת בשר"],"אשלג מכיל אשלגן – חיוני לגדילת צמחים."],
+["salts","איזה מהבאים אינו שימוש במלח בישול?",["דשן לחקלאות","שימור מזון","הפשרת שלג","הכשרת בשר"],"דשנים מכינים מאשלג ומפוספט."],
+["salts","למה מלח עוזר לשמור מזון?",["הוא מונע התפתחות חיידקים","הוא מקרר","הוא מוסיף ויטמינים","הוא מקשה את המזון"],"לכן משמרים דגים ובשר במלח."],
+["salts","בתמיסת מים ומלח – מהו המומס?",["המלח","המים","שניהם","אף אחד"],"המומס הוא החומר שהתמוסס.","solution"],
+["salts","בתמיסת מים ומלח – מהו הממס?",["המים","המלח","שניהם","אף אחד"],"הממס הוא הנוזל שבו החומר התמוסס."],
+["salts","איך מפרידים מלח מתמיסת מלח?",["אידוי המים","הקפאה","ערבוב","הוספת מלח"],"המים מתאדים והמלח נשאר."],
+["salts","מה רואים בתמונה?",["בריכות אידוי להפקת מלח","בריכות שחייה","מכרה נחושת","מפעל בטון"],"השמש מאדה את המים והמלח שוקע.","ponds"],
+["salts","למה בריכות האידוי רדודות?",["כדי שהמים יתאדו מהר","כדי שיהיו בהן דגים","כדי לחסוך מקום","כדי שהמלח לא ישקע"],"מים עמוקים מתאדים לאט – מהים העמוק זה היה לוקח 3,000 שנה."],
+["salts","בבריכות האידוי משתמשים באנרגיית השמש.",TF,"נכון – השמש מחממת את המים והם מתאדים.",null,0],
+["salts","ממה מגיע השם פוספט?",["מזרחן – Phosphorus","מים תטיס","מכריש המגלודון","מהמילה סאלרי"],"סלעי הפוספט עשירים בזרחן."],
+["salts","מה גילו בסלעי הפוספט בנגב?",["מאובנים של דגים ושיני כרישים","זהב","נפט","עצמות דינוזאורים"],"לפני מיליוני שנים כיסה את הנגב ים תטיס.","fossil"],
+["salts","מהו מאובן?",["שריד של יצור קדום שהשתמר בסלע","סלע שהותך","גביש מלח","סוג מתכת"],"שן כריש בסלע היא דוגמה למאובן."],
+["salts","לזרחן תפקיד חשוב בגוף. מהו?",["בניית עצמות ושיניים","עיכול","ראייה","שמיעה"],"זרחן חיוני לעצמות ולשיניים."],
+["salts","מפעלי ים המלח והפוספטים תורמים לכלכלה ולהתיישבות בנגב.",TF,"נכון – אבל יש להם גם מחיר סביבתי.",null,0],
+["salts","ים המלח הולך ומתמלא במים.",TF,"לא נכון – ים המלח מתייבש.",null,1]
+].map(([w,q,o,e,img,tf],i)=>({id:i,w,q,o,e,img:img||null,tf:tf!=null,a:tf!=null?tf:0}));
+
+/* ============================================================
+   STATE — progress lives on this device, per child profile
+   ============================================================ */
+const LS="sci1:";
+const ls={get(k,d){try{const v=localStorage.getItem(LS+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(LS+k,JSON.stringify(v))}catch(e){}}};
+let profiles=ls.get("profiles",[]);      // [{id,name,cls,av}]
+let me=profiles.find(p=>p.id===ls.get("active",""))||null;
+const blank=()=>({lessons:{},cards:{},practice:{},exam:{best:null,attempts:0,last:null,history:[]},sent:null});
+let P=me?ls.get("p:"+me.id,blank()):blank();
+const save=()=>{if(me)ls.set("p:"+me.id,P)};
+
+function worldMeter(wid){
+  const w=W[wid];const L=w.lessons.filter(l=>P.lessons[l.id]).length/w.lessons.length;
+  const C=CARDS[wid].filter((_,i)=>P.cards[wid+i]).length/CARDS[wid].length;
+  const Pr=(P.practice[wid]||0)/100;
+  return Math.round(100*(.5*L+.3*C+.2*Pr));
+}
+const meter=()=>Math.round(WORLDS.reduce((s,w)=>s+worldMeter(w.id),0)/WORLDS.length);
+const lessonsDone=()=>WORLDS.reduce((s,w)=>s+w.lessons.filter(l=>P.lessons[l.id]).length,0);
+const lessonsTotal=WORLDS.reduce((s,w)=>s+w.lessons.length,0);
+function statusOf(m,best){
+  if(best!=null&&best>=90)return["מצטיין/ת 🏅","st-star"];
+  if(best!=null)return["עשה/תה מבחן","st-done"];
+  if(m>=EXAM_UNLOCK)return["מוכן/ה למבחן","st-ready"];
+  return["בלמידה","st-learn"];
+}
+
+/* ============================================================
+   VERIFIED RESULT CODES — the WhatsApp text can be edited,
+   so the link carries a signed code the app re-checks
+   ============================================================ */
+const SALT="sci-mx-2026-k7q";
+function sig(str){let h1=0xdeadbeef^str.length,h2=0x41c6ce57^str.length;for(let i=0;i<str.length;i++){const c=str.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
+ h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+ return (4294967296*(2097151&h2)+(h1>>>0)).toString(36)}
+const toHex=t=>[...new TextEncoder().encode(t)].map(b=>b.toString(16).padStart(2,"0")).join("");
+const fromHex=h=>new TextDecoder().decode(new Uint8Array((h.match(/../g)||[]).map(x=>parseInt(x,16))));
+function makeToken(){
+  const day=Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5).toString(36);
+  const best=P.exam.best==null?101:P.exam.best;
+  const body=["s1",toHex(me.name),toHex(me.cls),AVATARS.indexOf(me.av),meter(),best,P.exam.attempts,lessonsDone(),day].join("-");
+  return body+"-"+sig(SALT+body);
+}
+function parseToken(t){
+  if(!/^s1-[0-9a-f]+-[0-9a-f]+(-\d+){5}-[0-9a-z]+-[0-9a-z]+$/.test(t||""))return null;
+  const parts=t.split("-"),mac=parts.pop(),body=parts.join("-");
+  let name="",cls="";try{name=fromHex(parts[1]);cls=fromHex(parts[2])}catch(e){return null}
+  const [, , ,av,m,best,att,les,day]=parts;
+  const r={tok:t,name,cls,av:AVATARS[+av]||"🙂",meter:+m,best:+best===101?null:+best,attempts:+att,lessons:+les,day:parseInt(day,36)};
+  r.ok=sig(SALT+body)===mac&&r.meter<=100&&(r.best==null||r.best<=100)&&r.lessons<=lessonsTotal&&!!name;
+  r.date=new Date(r.day*864e5+12*36e5);r.key=(name.trim()+"|"+cls).toLowerCase();
+  return r;
+}
+/* the shared class table is embedded in the page and republished by the owner */
+let BOARD={rows:[],updated:0};
+try{BOARD=JSON.parse(document.getElementById("board").textContent)}catch(e){}
+function boardRows(tokens){
+  const best={};
+  (tokens||BOARD.rows).map(parseToken).filter(r=>r&&r.ok).forEach(r=>{const b=best[r.key];
+    if(!b||r.day>b.day||(r.day===b.day&&(r.attempts>b.attempts||(r.attempts===b.attempts&&r.meter>=b.meter))))best[r.key]=r});
+  return Object.values(best).sort((a,b)=>(b.best??-1)-(a.best??-1)||b.meter-a.meter);
+}
+
+/* ============================================================
+   UI helpers
+   ============================================================ */
+const root=document.getElementById("root");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const ill=k=>k==="circuitOff"?ILL.circuit(false):k==="jarsQ"?ILL.jars(true):ILL[k]();
+let toastT;function toast(t){let el=document.querySelector(".toast");if(!el){el=document.createElement("div");el.className="toast";el.setAttribute("role","status");document.body.appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2600)}
+const WA_SVG='<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3a.5.5 0 0 0 0-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.4-.3Z"/></svg>';
+const LOGO='<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2h6v2h-1v5.2l5.6 9.4A2.2 2.2 0 0 1 17.7 22H6.3a2.2 2.2 0 0 1-1.9-3.4L10 9.2V4H9z" fill="#ffbe1a"/><circle cx="10" cy="17" r="1.6" fill="#3150f5"/><circle cx="14" cy="15" r="1.1" fill="#3150f5"/></svg>';
+
+function topbar(back){
+  return `<div class="top">${back?`<button class="back" data-nav="${back}">→ חזרה</button>`:`<div class="brand"><span class="logo">${LOGO}</span>מבחן במדעים · כיתה ה׳</div>`}
+  ${me?`<div class="who"><span class="small"><b>${esc(me.name)}</b> · ${esc(me.cls)}</span><span class="av">${me.av}</span></div>`:""}</div>`;
+}
+function bindNav(){root.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>nav(b.dataset.nav))}
+function nav(to){
+  const [s,a]=to.split(":");
+  ({home,world:()=>world(a),board,admin,exam:examIntro,profile:onboarding})[s]();
+  window.scrollTo(0,0);
+}
+
+/* confetti */
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const fx=document.getElementById("fx");fx.innerHTML="<canvas></canvas>";const c=fx.firstChild,x=c.getContext("2d");
+  c.width=innerWidth*devicePixelRatio;c.height=innerHeight*devicePixelRatio;x.scale(devicePixelRatio,devicePixelRatio);
+  const cols=["#ffbe1a","#3150f5","#e2692c","#0aa3a0","#17a35a","#e0443b"];
+  const ps=Array.from({length:120},()=>({x:innerWidth/2,y:innerHeight*.35,vx:(Math.random()-.5)*12,vy:Math.random()*-12-3,r:Math.random()*6+4,c:cols[Math.random()*6|0],a:Math.random()*6}));
+  let t=0;(function f(){x.clearRect(0,0,innerWidth,innerHeight);ps.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.a+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore()});
+  if(++t<110)requestAnimationFrame(f);else fx.innerHTML=""})();
+}
+
+/* ============================================================
+   SCREENS
+   ============================================================ */
+function onboarding(){
+  let av=me?me.av:AVATARS[Math.random()*AVATARS.length|0];
+  root.innerHTML=`${topbar(me?"home":null)}
+  <div class="onb">
+    <div class="showcase">
+      <span class="pill xp">המבחן בעוד שבועיים</span>
+      <h1>שלושה עולמות. מבחן אחד. בואו נתכונן.</h1>
+      <p>לומדים שיעור אחרי שיעור, משננים בכרטיסיות, מתרגלים, ומד הלמידה מתמלא. ב-${EXAM_UNLOCK}% נפתח המבחן המסכם, ואפשר לנסות שוב עד שמגיעים לציון שרוצים.</p>
+      <div class="mini3">${ILL.worldMetals()}${ILL.worldRocks()}${ILL.worldSalts()}</div>
+    </div>
+    <form class="panel stack" id="pf">
+      <h2>${me?"עריכת פרופיל":"מי לומד היום?"}</h2>
+      <div class="field"><label for="pn">שם פרטי ושם משפחה</label><input class="input" id="pn" maxlength="30" autocomplete="off" value="${me?esc(me.name):""}" placeholder="למשל: ליאם כהן"></div>
+      <div class="field"><label for="pg">כיתה</label><div class="row" style="flex-wrap:nowrap">
+        <select class="input" id="pg">${["ה","ד","ו"].map(g=>`<option ${me&&me.cls.startsWith(g)?"selected":""}>${g}</option>`).join("")}</select>
+        <select class="input" id="pc">${[1,2,3,4,5,6,7,8].map(n=>`<option ${me&&me.cls.endsWith(String(n))?"selected":""}>${n}</option>`).join("")}</select></div></div>
+      <div class="field"><label>הדמות שלי</label><div class="avs" id="avs">${AVATARS.map(a=>`<button type="button" aria-pressed="${a===av}" data-av="${a}">${a}</button>`).join("")}</div></div>
+      <div id="perr"></div>
+      <button class="btn primary block">${me?"שמירה":"יוצאים לדרך ←"}</button>
+      ${profiles.length>(me?1:0)?`<div class="stack"><span class="small muted">או המשיכו כ:</span><div class="profiles">${profiles.filter(p=>!me||p.id!==me.id).map(p=>`<button type="button" data-pid="${p.id}"><span class="av">${p.av}</span>${esc(p.name)}</button>`).join("")}</div></div>`:""}
+      <p class="small muted">ההתקדמות נשמרת במכשיר הזה. השם והכיתה יופיעו בטבלת הכיתה אחרי שתשתפו תוצאה עם ההורה.</p>
+    </form>
+  </div>`;
+  bindNav();
+  root.querySelectorAll("[data-av]").forEach(b=>b.onclick=()=>{av=b.dataset.av;root.querySelectorAll("[data-av]").forEach(x=>x.setAttribute("aria-pressed",x===b))});
+  root.querySelectorAll("[data-pid]").forEach(b=>b.onclick=()=>switchTo(b.dataset.pid));
+  document.getElementById("pf").onsubmit=e=>{e.preventDefault();
+    const name=document.getElementById("pn").value.trim().replace(/\s+/g," ");
+    if(name.length<2){document.getElementById("perr").innerHTML=`<div class="fb bad">כתבו שם כדי שנדע מי מתקדם.</div>`;return}
+    const cls=document.getElementById("pg").value+"׳"+document.getElementById("pc").value;
+    if(me){Object.assign(me,{name,cls,av})}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av};profiles.push(me);P=blank()}
+    ls.set("profiles",profiles);ls.set("active",me.id);save();home();};
+}
+function switchTo(id){me=profiles.find(p=>p.id===id);ls.set("active",id);P=ls.get("p:"+id,blank());home()}
+
+let SCREEN="";
+function home(){
+  if(!me)return onboarding();
+  SCREEN="home";
+  const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK;
+  const rows=boardRows().filter(r=>r.cls===me.cls).slice(0,5);
+  root.innerHTML=`${topbar()}
+  <section class="panel hero">
+    <div class="ring" style="--p:${m}"><div><div><b class="num">${m}%</b><small>מד הלמידה</small></div></div></div>
+    <div class="stack">
+      <div class="row"><span class="status ${stc}">${st}</span>${best!=null?`<span class="pill good">ציון מבחן: ${best}</span>`:""}</div>
+      <h2>${m>=100?"למדת את כל החומר! 🎉":open?"המבחן המסכם פתוח – בהצלחה!":`עוד ${EXAM_UNLOCK-m}% והמבחן נפתח`}</h2>
+      <div><div class="bar" style="--c:var(--xp)"><i style="width:${m}%"></i></div>
+      <div class="milestones"><span>שיעורים 50%</span><span>כרטיסיות 30%</span><span>תרגול 20%</span></div></div>
+      <div class="row"><button class="btn ghost" data-nav="profile">✎ פרופיל</button><button class="btn ghost" id="share">${WA_SVG} שליחת התקדמות להורה</button></div>
+    </div>
+  </section>
+  <div class="worlds">${WORLDS.map(w=>{const wm=worldMeter(w.id),d=w.lessons.filter(l=>P.lessons[l.id]).length;return `<button class="world w-${w.id}" data-nav="world:${w.id}">
+    <div class="art">${ILL[w.art]()}</div>
+    <div class="body"><span class="tag">${w.tag} · ${d}/${w.lessons.length} שיעורים</span><h3>${w.name}</h3><span class="small muted">${w.blurb}</span>
+    <div class="row between"><div class="bar" style="flex:1"><i style="width:${wm}%"></i></div><b class="num small">${wm}%</b></div></div></button>`}).join("")}</div>
+  <section class="exam">
+    <div class="stack"><span class="pill ${open?"xp":""}" style="align-self:flex-start">${open?"פתוח":"נעול"}</span><h2>המבחן המסכם</h2>
+      <p class="muted">24 שאלות מכל העולמות, עם תמונות. ציון בסוף ותיקון טעויות. ${P.exam.attempts?`ניסיונות: ${P.exam.attempts} · הציון הכי טוב: ${best}`:"אפשר לגשת שוב ולשפר."}</p></div>
+    ${open?`<button class="btn xp" data-nav="exam">${P.exam.attempts?"מבחן חוזר ←":"להתחיל ←"}</button>`:`<div class="lock" aria-hidden="true">🔒</div>`}
+  </section>
+  <section class="panel stack">
+    <div class="row between"><h2>🏆 טבלת הכיתה ${esc(me.cls)}</h2><button class="btn ghost" data-nav="board">לכל הטבלה</button></div>
+    ${rows.length?boardTable(rows,true):`<p class="muted">הטבלה עוד ריקה. שלחו להורה את ההתקדמות, והיא תתווסף לטבלה שכולם רואים.</p>`}
+  </section>
+  ${IS_OWNER?`<button class="btn primary block" data-nav="admin">🔑 ניהול טבלת הכיתה${pending().length?` · ${pending().length} חדשים`:""}</button>`:""}
+  ${profiles.length>1?`<div class="profiles">${profiles.filter(p=>p.id!==me.id).map(p=>`<button data-pid="${p.id}"><span class="av">${p.av}</span>להחליף ל${esc(p.name)}</button>`).join("")}</div>`:""}
+  <button class="btn ghost" id="addp" style="align-self:flex-start">+ ילד/ה נוסף/ת במכשיר הזה</button>`;
+  bindNav();
+  document.getElementById("share").onclick=()=>shareSheet();
+  root.querySelectorAll("[data-pid]").forEach(b=>b.onclick=()=>switchTo(b.dataset.pid));
+  document.getElementById("addp").onclick=()=>{me=null;P=blank();onboarding()};
+}
+
+function boardTable(rows,compact){
+  const mine=r=>me&&r.key===(me.name.trim()+"|"+me.cls).toLowerCase();
+  return `<div class="tablewrap"><table class="board${compact?" compact":""}"><thead><tr><th></th><th>תלמיד/ה</th>${compact?"":"<th>כיתה</th>"}<th>למידה</th><th>מבחן</th>${compact?"":"<th>סטטוס</th><th>עודכן</th>"}</tr></thead><tbody>
+  ${rows.map((r,i)=>{const [st,stc]=statusOf(r.meter,r.best);return `<tr class="r${mine(r)?" me":""}"><td class="rank">${["🥇","🥈","🥉"][i]||i+1}</td><td><span class="nm"><span class="av">${r.av}</span>${esc(r.name)}${mine(r)?" (אני)":""}</span></td>${compact?"":`<td>${esc(r.cls)}</td>`}
+  <td><div class="row" style="flex-wrap:nowrap"><div class="bar mini" style="--c:var(--xp)"><i style="width:${r.meter}%"></i></div><b class="num small">${r.meter}%</b></div></td>
+  <td class="num"><b>${r.best??"—"}</b>${r.attempts&&!compact?` <span class="small muted">(${r.attempts})</span>`:""}</td>${compact?"":`<td><span class="status ${stc}">${st}</span></td><td class="small muted">${r.date.toLocaleDateString("he-IL")}</td>`}</tr>`}).join("")}
+  </tbody></table></div>`;
+}
+
+/* ---------- world ---------- */
+function world(wid,tab){
+  const w=W[wid];tab=tab||"lessons";
+  root.innerHTML=`${topbar("home")}
+  <section class="whead w-${wid}"><div class="txt"><span class="tag">${w.tag}</span><h1>${w.name}</h1><p class="muted">${w.blurb}</p>
+    <div class="row"><div class="bar" style="flex:1"><i style="width:${worldMeter(wid)}%"></i></div><b class="num">${worldMeter(wid)}%</b></div></div>${ILL[w.art]()}</section>
+  <div class="tabs w-${wid}" role="tablist">${[["lessons","📖 שיעורים"],["cards","🃏 כרטיסיות"],["practice","🎯 תרגול"]].map(([k,n])=>`<button role="tab" aria-selected="${k===tab}" data-tab="${k}">${n}</button>`).join("")}</div>
+  <div id="wbody" class="w-${wid}"></div>`;
+  bindNav();
+  root.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>world(wid,b.dataset.tab));
+  const body=document.getElementById("wbody");
+  if(tab==="lessons"){
+    body.innerHTML=`<div class="lessons">${w.lessons.map((l,i)=>`<button class="lesson${P.lessons[l.id]?" done":""}" data-l="${i}"><div class="thumb">${ILL[l.img]()}</div><div><div class="n">שיעור ${i+1}</div><h3>${l.title}</h3></div><span class="ok">${P.lessons[l.id]?"✓":i+1}</span></button>`).join("")}</div>`;
+    body.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>lesson(wid,+b.dataset.l));
+  } else if(tab==="cards") cards(wid,body);
+  else practiceIntro(wid,body);
+}
+
+function lesson(wid,i){
+  const w=W[wid],l=w.lessons[i];const opts=shuffle(l.check.o.map((t,k)=>({t,ok:k===l.check.a})));
+  root.innerHTML=`${topbar("world:"+wid)}
+  <article class="panel stack w-${wid}">
+    <span class="small" style="color:var(--c);font-weight:800">${w.name} · שיעור ${i+1} מתוך ${w.lessons.length}</span>
+    <h1>${l.title}</h1>
+    <div class="figure">${ILL[l.img]()}</div>
+    <ul class="points">${l.pts.map(p=>`<li><span>${p}</span></li>`).join("")}</ul>
+    ${l.table?`<div class="tbl"><table><tr><th></th><th>קרקע חולית</th><th>קרקע חרסיתית</th></tr><tr><td>מקור</td><td>קוורץ מגרניט</td><td>החומר חרסית</td></tr><tr><td>גודל גרגיר</td><td>גדול</td><td>זעיר (מיקרוסקופ)</td></tr><tr><td>חלחול מים</td><td>מהיר</td><td>איטי מאוד</td></tr><tr><td>עם מים</td><td>לא נהיית עיסה</td><td>נהיית עיסה (בוץ)</td></tr></table></div>`:""}
+    ${l.img2?`<div class="figure">${ILL[l.img2]()}</div>`:""}
+    <div class="check"><span class="lbl">✔ בדקו את עצמכם כדי לסיים את השיעור</span><b>${l.check.q}</b>
+      <div class="opts">${opts.map((o,k)=>`<button class="opt" data-k="${k}"><span class="k">${"אבגד"[k]}</span>${o.t}</button>`).join("")}</div><div id="cfb"></div></div>
+    <div class="row between"><button class="btn ghost" ${i===0?"disabled":""} id="prev">→ הקודם</button><button class="btn primary" id="next">${i<w.lessons.length-1?"לשיעור הבא ←":"לכרטיסיות ←"}</button></div>
+  </article>`;
+  bindNav();
+  root.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    const o=opts[+b.dataset.k];
+    if(o.ok){root.querySelectorAll(".opt").forEach(x=>x.disabled=true);b.classList.add("right");
+      const first=!P.lessons[l.id];P.lessons[l.id]=1;save();
+      document.getElementById("cfb").innerHTML=`<div class="fb good">נכון! השיעור הושלם ✓ ${first?"· מד הלמידה עלה":""}</div>`;if(first)confetti();}
+    else{b.classList.add("wrong");b.disabled=true;document.getElementById("cfb").innerHTML=`<div class="fb bad">לא בדיוק. קראו שוב את השיעור ונסו תשובה אחרת.</div>`}
+  });
+  document.getElementById("prev").onclick=()=>lesson(wid,i-1);
+  document.getElementById("next").onclick=()=>i<w.lessons.length-1?(lesson(wid,i+1),scrollTo(0,0)):world(wid,"cards");
+}
+
+/* ---------- flashcards ---------- */
+function cards(wid,body){
+  const all=CARDS[wid].map((c,i)=>({c,i}));
+  let deck=shuffle(all.filter(x=>!P.cards[wid+x.i]));if(!deck.length)deck=shuffle(all);
+  let k=0;
+  const draw=()=>{
+    const known=all.filter(x=>P.cards[wid+x.i]).length;
+    if(k>=deck.length){body.innerHTML=`<div class="panel stack" style="text-align:center;align-items:center"><div class="score">🎉</div><h2>סיימתם סבב!</h2><p class="muted">אתם יודעים ${known} מתוך ${all.length} כרטיסים.</p><div class="row"><button class="btn primary" id="again">סבב נוסף</button><button class="btn ghost" id="toP">לתרגול ←</button></div></div>`;
+      document.getElementById("again").onclick=()=>cards(wid,body);document.getElementById("toP").onclick=()=>world(wid,"practice");if(known===all.length)confetti();return}
+    const [f,b]=deck[k].c;
+    body.innerHTML=`<div class="stack">
+      <div class="row between"><span class="small muted num">כרטיס ${k+1} מתוך ${deck.length}</span><span class="pill good num">ידוע: ${known}/${all.length}</span></div>
+      <button class="flash" id="fl" aria-label="הפוך כרטיס"><div class="flash-in"><div class="face"><div class="big">${f}</div><div class="hint">הקישו כדי להפוך</div></div><div class="face back"><div class="big">${b}</div><div class="hint">${f}</div></div></div></button>
+      <div class="row" style="justify-content:center"><button class="btn ghost" id="no">עוד לא ↺</button><button class="btn good" id="yes">ידעתי ✓</button></div></div>`;
+    const fl=document.getElementById("fl");fl.onclick=()=>fl.classList.toggle("flip");
+    document.getElementById("yes").onclick=()=>{P.cards[wid+deck[k].i]=1;save();k++;draw()};
+    document.getElementById("no").onclick=()=>{delete P.cards[wid+deck[k].i];save();deck.push(deck[k]);k++;draw()};
+  };draw();
+}
+
+/* ---------- quiz engine (practice + exam) ---------- */
+function buildQ(q){return {...q,opts:q.tf?q.o.map((t,k)=>({t,ok:k===q.a})):shuffle(q.o.map((t,k)=>({t,ok:k===q.a})))}}
+function practiceIntro(wid,body){
+  const b=P.practice[wid];
+  body.innerHTML=`<div class="panel stack"><h2>תרגול: ${W[wid].name}</h2><p class="muted">10 שאלות עם הסבר אחרי כל תשובה. הציון הכי טוב נספר במד הלמידה.</p>${b!=null?`<span class="pill good" style="align-self:flex-start">השיא שלך: ${b}</span>`:""}<button class="btn primary" id="go">להתחיל תרגול ←</button></div>`;
+  document.getElementById("go").onclick=()=>runQuiz({mode:"practice",wid,qs:shuffle(QB.filter(q=>q.w===wid)).slice(0,10).map(buildQ)});
+}
+function examIntro(){
+  if(meter()<EXAM_UNLOCK)return home();
+  root.innerHTML=`${topbar("home")}
+  <section class="panel stack">
+    <span class="pill xp" style="align-self:flex-start">המבחן המסכם</span><h1>מוכנים?</h1>
+    <ul class="points" style="--c:var(--primary)"><li><span><b>24 שאלות</b> – 8 מכל עולם, חלקן עם תמונות.</span></li><li><span>אפשר לחזור לשאלות קודמות ולשנות תשובה עד ההגשה.</span></li><li><span>הציון והתיקונים מופיעים אחרי ההגשה.</span></li><li><span>אפשר לגשת שוב כמה פעמים שרוצים. נשמר <b>הציון הכי טוב</b>.</span></li></ul>
+    ${P.exam.attempts?`<p class="muted">ניסיונות קודמים: ${P.exam.history.map(h=>`<b>${h}</b>`).join(" · ")}</p>`:""}
+    <button class="btn xp block" id="go">להתחיל את המבחן ←</button></section>`;
+  bindNav();
+  document.getElementById("go").onclick=()=>runQuiz({mode:"exam",qs:WORLDS.flatMap(w=>shuffle(QB.filter(q=>q.w===w.id)).slice(0,8)).map(buildQ)});
+}
+function runQuiz(st){
+  const {mode,qs}=st;const ans=qs.map(()=>null);let i=0;const exam=mode==="exam";
+  const draw=()=>{
+    const q=qs[i];
+    root.innerHTML=`${topbar(exam?"home":"world:"+st.wid)}
+    <section class="panel stack w-${q.w}">
+      <div class="qhead"><span>${exam?"מבחן מסכם":"תרגול"} · ${W[q.w].name}</span><span class="num">${i+1} / ${qs.length}</span></div>
+      ${exam?`<div class="dots">${qs.map((_,k)=>`<i class="${k===i?"cur":ans[k]!=null?"ans":""}"></i>`).join("")}</div>`:`<div class="bar"><i style="width:${i/qs.length*100}%"></i></div>`}
+      <p class="qtext">${q.q}</p>
+      ${q.img?`<div class="qimg">${ill(q.img)}</div>`:""}
+      <div class="opts${q.tf?" two":""}">${q.opts.map((o,k)=>`<button class="opt${exam&&ans[i]===k?" sel":""}" data-k="${k}"><span class="k">${q.tf?(k?"✗":"✓"):"אבגד"[k]}</span>${o.t}</button>`).join("")}</div>
+      <div id="qfb"></div>
+      <div class="row between">${exam?`<button class="btn ghost" id="qp" ${i===0?"disabled":""}>→ הקודמת</button>`:"<span></span>"}
+        <button class="btn primary" id="qn" ${ans[i]==null?"disabled":""}>${i<qs.length-1?"הבאה ←":exam?"הגשת המבחן ✓":"לסיום ←"}</button></div>
+    </section>`;
+    bindNav();
+    root.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      const k=+b.dataset.k;
+      if(exam){ans[i]=k;draw();return}
+      if(ans[i]!=null)return;ans[i]=k;
+      root.querySelectorAll(".opt").forEach((x,j)=>{x.disabled=true;if(q.opts[j].ok)x.classList.add("right")});
+      const ok=q.opts[k].ok;if(!ok)b.classList.add("wrong");
+      document.getElementById("qfb").innerHTML=`<div class="fb ${ok?"good":"bad"}">${ok?"נכון! ":"לא בדיוק. "}<span class="ex">${q.e}</span></div>`;
+      document.getElementById("qn").disabled=false;
+    });
+    if(document.getElementById("qp"))document.getElementById("qp").onclick=()=>{i--;draw()};
+    document.getElementById("qn").onclick=()=>{
+      if(i<qs.length-1){i++;draw();window.scrollTo(0,0);return}
+      if(exam&&ans.some(a=>a==null)){toast("יש שאלות בלי תשובה");i=ans.findIndex(a=>a==null);draw();return}
+      finish(st,ans);
+    };
+  };draw();
+}
+function finish(st,ans){
+  const {mode,qs}=st;const right=qs.filter((q,k)=>q.opts[ans[k]].ok).length;const score=Math.round(right/qs.length*100);
+  const wrong=qs.map((q,k)=>({q,a:ans[k]})).filter(x=>!x.q.opts[x.a].ok);
+  let isBest=false;
+  if(mode==="practice"){isBest=P.practice[st.wid]==null||score>P.practice[st.wid];if(isBest)P.practice[st.wid]=score}
+  else{isBest=P.exam.best==null||score>P.exam.best;if(isBest)P.exam.best=score;P.exam.attempts++;P.exam.last=score;P.exam.history.push(score)}
+  save();
+  const msg=score>=90?"מצוין! 🌟":score>=75?"יפה מאוד!":score>=55?"בכיוון הנכון – עוד קצת תרגול":"כדאי לחזור לשיעורים ולנסות שוב";
+  root.innerHTML=`${topbar(mode==="exam"?"home":"world:"+st.wid)}
+  <section class="panel stack" style="text-align:center;align-items:center">
+    <span class="pill ${mode==="exam"?"xp":"primary"}">${mode==="exam"?`מבחן מסכם · ניסיון ${P.exam.attempts}`:"תרגול · "+W[st.wid].name}</span>
+    <div class="score num">${score}</div><p class="muted">${right} תשובות נכונות מתוך ${qs.length}</p>
+    <h2>${msg}</h2>
+    ${isBest&&(mode==="practice"||P.exam.attempts>1)?`<span class="pill good">שיא חדש!</span>`:""}
+    ${mode==="exam"?`<p class="muted">הציון הכי טוב שלך: <b>${P.exam.best}</b>. אפשר לנסות שוב ולשפר לפני שולחים.</p>`:""}
+    <div class="row" style="justify-content:center">
+      ${mode==="exam"?`<button class="btn ghost" id="retry">↺ מבחן חוזר</button><button class="btn wa" id="send">${WA_SVG} שליחת הציון להורה</button>`
+      :`<button class="btn ghost" id="retry">↺ עוד תרגול</button><button class="btn primary" data-nav="home">לדף הבית</button>`}
+    </div>
+  </section>
+  ${wrong.length?`<section class="panel stack"><h2>שאלות לתיקון</h2><div class="review">${wrong.map(x=>`<div><b>${x.q.q}</b><small class="muted">ענית: ${x.q.opts[x.a].t}</small><br><span>✓ ${x.q.o[x.q.a]}</span> <small>${x.q.e}</small></div>`).join("")}</div></section>`:""}`;
+  bindNav();
+  if(score>=75)confetti();
+  document.getElementById("retry").onclick=()=>mode==="exam"?examIntro():runQuiz({...st,qs:shuffle(QB.filter(q=>q.w===st.wid)).slice(0,10).map(buildQ)});
+  if(document.getElementById("send"))document.getElementById("send").onclick=()=>shareSheet();
+}
+
+/* ---------- sharing to the parent ---------- */
+function shareText(){
+  const tok=makeToken(),m=meter(),b=P.exam.best;
+  return `🔬 ${me.name} (${me.cls}) · הכנה למבחן במדעים\n📈 מד למידה: ${m}%\n${b!=null?`📝 ציון במבחן: ${b} (ניסיונות: ${P.exam.attempts})`:"📝 עוד לא נגשתי למבחן"}\n\n✅ התוצאה המאומתת:\n${APP_URL}#${tok}`;
+}
+function shareSheet(){
+  const m=meter(),b=P.exam.best,t=shareText();
+  root.innerHTML=`${topbar("home")}
+  <section class="panel stack">
+    <h1>שליחה להורה</h1>
+    <p class="muted">ההורה יקבל קישור מאומת. כשההורה פותח אותו, התוצאה נכנסת לטבלת הכיתה שכולם רואים.</p>
+    <div class="row"><span class="av lg">${me.av}</span><div><h3>${esc(me.name)} · ${esc(me.cls)}</h3><div class="row small"><span class="pill">מד למידה ${m}%</span><span class="pill ${b!=null?"good":""}">מבחן: ${b??"עוד לא"}</span></div></div></div>
+    ${b==null&&m>=EXAM_UNLOCK?`<div class="fb bad">המבחן פתוח וטרם נגשת אליו. אפשר לשלוח עכשיו את ההתקדמות, או לעשות קודם את המבחן.</div>`:""}
+    ${b!=null&&b<90?`<div class="fb good">רוצה לשפר לפני השליחה? אפשר לגשת שוב למבחן – נשמר הציון הכי טוב.<span class="ex"><button class="btn ghost" data-nav="exam" style="margin-top:8px">↺ מבחן חוזר</button></span></div>`:""}
+    <a class="btn wa block" style="justify-content:center;text-decoration:none" href="https://wa.me/?text=${encodeURIComponent(t)}" target="_blank" rel="noopener">${WA_SVG} שליחה בווטסאפ</a>
+    <button class="btn ghost block" id="copy">העתקת ההודעה</button>
+    <textarea class="input" id="msg" readonly>${esc(t)}</textarea>
+  </section>`;
+  bindNav();
+  document.getElementById("copy").onclick=()=>{const done=()=>toast("ההודעה הועתקה");try{navigator.clipboard.writeText(t).then(done,()=>{const x=document.getElementById("msg");x.select();toast("סמנו והעתיקו את ההודעה")})}catch(e){document.getElementById("msg").select()}};
+  P.sent=Date.now();save();
+}
+
+/* ---------- full class table ---------- */
+function board(){
+  const rows=boardRows();const classes=[...new Set(rows.map(r=>r.cls))].sort();
+  let cur=me&&classes.includes(me.cls)?me.cls:"all";
+  const draw=()=>{const shown=cur==="all"?rows:rows.filter(r=>r.cls===cur);
+    document.getElementById("bt").innerHTML=shown.length?boardTable(shown,false):`<p class="muted">עדיין אין תוצאות בטבלה.</p>`};
+  root.innerHTML=`${topbar(me?"home":null)}
+  <section class="panel stack">
+    <div class="row between"><h1>🏆 טבלת הכיתה</h1>${classes.length>1?`<select class="input" id="cf" style="width:auto"><option value="all">כל הכיתות</option>${classes.map(c=>`<option ${c===cur?"selected":""}>${esc(c)}</option>`).join("")}</select>`:""}</div>
+    <p class="muted small">מסודר לפי ציון המבחן ואז לפי מד הלמידה. ${BOARD.updated?`עודכן: ${new Date(BOARD.updated).toLocaleString("he-IL",{dateStyle:"short",timeStyle:"short"})}`:""}</p>
+    <div id="bt"></div>
+    <div class="row small" style="gap:6px"><span class="status st-learn">בלמידה</span><span class="status st-ready">מוכן/ה למבחן</span><span class="status st-done">עשה/תה מבחן</span><span class="status st-star">מצטיין/ת – 90+</span></div>
+  </section>`;
+  bindNav();draw();
+  if(document.getElementById("cf"))document.getElementById("cf").onchange=e=>{cur=e.target.value;draw()};
+}
+
+/* ---------- a shared result link (#s1-...) ---------- */
+function resultLink(r){
+  SCREEN="result";
+  const [st,stc]=statusOf(r.meter,r.best);
+  root.innerHTML=`${topbar(me?"home":null)}
+  <section class="panel stack">
+    ${r.ok?`<div class="verified">✓ תוצאה מאומתת – זה מה שהאפליקציה רשמה</div>`:`<div class="fb bad">✗ הקישור שונה ולכן לא ניתן לאמת אותו.</div>`}
+    ${r.ok?`<div class="row"><span class="av lg">${r.av}</span><div><h2>${esc(r.name)}</h2><span class="muted">כיתה ${esc(r.cls)} · ${r.date.toLocaleDateString("he-IL")}</span></div></div>
+    <div class="row"><div class="ring" style="--p:${r.meter};width:120px;height:120px"><div style="width:94px;height:94px"><div><b class="num" style="font-size:2rem">${r.meter}%</b><small>מד למידה</small></div></div></div>
+    <div class="stack"><span class="status ${stc}" style="align-self:flex-start">${st}</span><p>ציון במבחן: <b class="num">${r.best??"עוד לא נבחן/ה"}</b>${r.attempts?` · ניסיונות: ${r.attempts}`:""}</p><p>שיעורים שהושלמו: <b>${r.lessons}</b> מתוך ${lessonsTotal}</p></div></div>
+    ${IS_OWNER?`<div class="stack" style="border-top:1px dashed var(--line);padding-top:14px"><b>ניהול</b>${BOARD.rows.includes(r.tok)?`<p class="muted">התוצאה הזו כבר בטבלה.</p>`:`<button class="btn primary block" id="addpub">הוספה לטבלה ופרסום לכולם</button><button class="btn ghost block" id="addlater">שמירה ברשימת ההמתנה</button>`}<div id="amsg"></div></div>`:""}`:""}
+    <button class="btn ghost" id="toapp">לאפליקציה ←</button>
+  </section>`;
+  bindNav();
+  document.getElementById("toapp").onclick=()=>{history.replaceState(null,"",location.pathname+location.search);home()};
+  if(document.getElementById("addpub"))document.getElementById("addpub").onclick=()=>publishBoard([r.tok]);
+  if(document.getElementById("addlater"))document.getElementById("addlater").onclick=()=>{addPending([r.tok]);toast("נשמר ברשימת ההמתנה");nav("admin")};
+}
+
+/* ---------- owner: manage and publish the shared table ---------- */
+let IS_OWNER=false,ART=null;
+const pending=()=>ls.get("pending",[]).filter(t=>!BOARD.rows.includes(t));
+function addPending(toks){const cur=pending();toks.forEach(t=>{if(!cur.includes(t))cur.push(t)});ls.set("pending",cur)}
+const SKEL='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>';
+const HEAD='<title>מתכות, סלעים ומלחים</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Assistant:wght@400;600;700;800&display=swap">\n';
+function pageSource(state){
+  const SC="script",css=document.getElementById("css").textContent,code=document.getElementById("app").textContent;
+  const json=JSON.stringify(state).replace(/</g,"\\u003c");
+  return SKEL+HEAD+'<style id="css">'+css+'</style>\n<div id="root"></div>\n<div id="fx"></div>\n<'+SC+' type="application/json" id="board">'+json+'</'+SC+'>\n<'+SC+' id="app">'+code+'</'+SC+'>\n</body></html>';
+}
+async function publishBoard(addToks,removeKeys){
+  if(!ART){toast("אי אפשר לפרסם מהתצוגה הזו");return}
+  let toks=BOARD.rows.concat(addToks||[]).filter((t,i,a)=>a.indexOf(t)===i);
+  if(removeKeys&&removeKeys.length)toks=toks.filter(t=>{const r=parseToken(t);return r&&!removeKeys.includes(r.key)});
+  // keep only each child's latest row so the page stays small
+  const keep=new Set(boardRows(toks).map(r=>r.tok));toks=toks.filter(t=>keep.has(t));
+  const msg=document.getElementById("amsg");if(msg)msg.innerHTML=`<div class="fb good">מפרסם את הטבלה…</div>`;
+  try{ls.set("pending",pending().filter(t=>!toks.includes(t)));history.replaceState(null,"",location.pathname+location.search);
+    await ART.publish(pageSource({rows:toks,updated:Date.now()}))}
+  catch(e){const c=e&&e.code;if(msg)msg.innerHTML=`<div class="fb bad">${c==="conflict"?"מישהו עדכן את הדף בדיוק עכשיו – הדף נטען מחדש. נסו שוב.":c==="not_writer"||c==="not_granted"?"רק בעלי הדף יכולים לפרסם את הטבלה.":"הפרסום לא הצליח. נסו שוב בעוד רגע."}</div>`}
+}
+function admin(){
+  if(!IS_OWNER)return home();
+  const pend=pending().map(parseToken).filter(r=>r&&r.ok),rows=boardRows();
+  root.innerHTML=`${topbar(me?"home":null)}
+  <section class="panel stack">
+    <h1>🔑 ניהול טבלת הכיתה</h1>
+    <p class="muted">רק את/ה רואה את המסך הזה. כשילד שולח לך קישור בווטסאפ, פתח/י אותו ולחץ/י "הוספה לטבלה ופרסום". אפשר גם להדביק כאן כמה הודעות בבת אחת.</p>
+    <textarea class="input" id="paste" placeholder="הדביקו כאן הודעות מהווטסאפ"></textarea>
+    <div class="row"><button class="btn ghost" id="scan">בדיקת ההודעות</button></div>
+    <div id="amsg"></div>
+    <h3>ממתינים לפרסום (${pend.length})</h3>
+    ${pend.length?`<div class="list-admin">${pend.map(r=>`<div><span>${r.av} <b>${esc(r.name)}</b> · ${esc(r.cls)}</span><span class="small num">למידה ${r.meter}% · מבחן ${r.best??"—"}</span></div>`).join("")}</div><button class="btn primary block" id="pub">פרסום ${pend.length} תוצאות לכל הכיתה</button>`:`<p class="muted small">אין תוצאות שממתינות.</p>`}
+  </section>
+  <section class="panel stack">
+    <h3>בטבלה כרגע (${rows.length})</h3>
+    ${rows.length?`<div class="list-admin">${rows.map(r=>`<div><span>${r.av} <b>${esc(r.name)}</b> · ${esc(r.cls)} · ${r.meter}% · ${r.best??"—"}</span><button class="btn ghost" data-rm="${esc(r.key)}">הסרה</button></div>`).join("")}</div>`:`<p class="muted small">הטבלה ריקה.</p>`}
+    <div id="rmc"></div>
+  </section>`;
+  bindNav();
+  document.getElementById("scan").onclick=()=>{
+    const toks=[...document.getElementById("paste").value.matchAll(/(s1-[0-9a-z-]+)/g)].map(m=>parseToken(m[1])).filter(Boolean);
+    const ok=toks.filter(r=>r.ok),bad=toks.length-ok.length;
+    if(!toks.length){document.getElementById("amsg").innerHTML=`<div class="fb bad">לא נמצאו קישורי תוצאה. העתיקו את כל ההודעה, כולל הקישור.</div>`;return}
+    addPending(ok.map(r=>r.tok));admin();
+    document.getElementById("amsg").innerHTML=`<div class="fb good">נמצאו ${ok.length} תוצאות תקינות.${bad?`<span class="ex">${bad} קישורים שונו ולא נכנסו.</span>`:""}</div>`;
+  };
+  if(document.getElementById("pub"))document.getElementById("pub").onclick=()=>publishBoard(pend.map(r=>r.tok));
+  root.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.rm;document.getElementById("rmc").innerHTML=`<div class="fb bad">להסיר את התלמיד/ה מהטבלה של כולם?<span class="ex"><button class="btn ghost" id="rmy" style="margin-top:8px">כן, להסיר ולפרסם</button></span></div>`;
+    document.getElementById("rmy").onclick=()=>publishBoard([],[k]);
+  });
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+function route(){
+  const h=location.hash.slice(1);
+  if(/^s1-/.test(h)){const r=parseToken(h);if(r)return resultLink(r)}
+  me?home():onboarding();
+}
+route();
+window.addEventListener("hashchange",route);
+(async()=>{try{
+  const c=window.claude;if(!c||!c.use)return;
+  const u=await c.use("user");IS_OWNER=u?await u.isOwner():false;
+  if(IS_OWNER){ART=await c.use("artifact");if(SCREEN==="home"||SCREEN==="result")route()}
+}catch(e){}})();
+</script>
+
+</body>
+</html>
