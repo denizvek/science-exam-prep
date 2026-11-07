@@ -1037,17 +1037,20 @@ function runQuiz(st){
     if(tried[i].size)return `<div class="fb bad">לא בדיוק – נסו תשובה אחרת. לא בטוחים? התשובה נמצאת בשיעור, קראו וחזרו לענות.<div class="actions"><button class="btn ghost" id="toLes">📖 לשיעור: ${ref?ref.l.title:""}</button></div></div>`;
     if(ans[i]===-1)return `<div class="fb good">קראתם את השיעור – עכשיו בחרו תשובה.</div>`;
     return ""};
+  let askHelp=-1;   // exam: index of a question whose help button was tapped once
   const draw=()=>{
-    const q=qs[i];
+    const q=qs[i];const helped=exam&&ans[i]===-2;
     root.innerHTML=`${topbar(exam?"home":"world:"+st.wid)}
     <section class="panel stack w-${q.w}">
       <div class="qhead"><span>${exam?"מבחן מסכם":"תרגול"} · ${W[q.w].name}</span><span class="num">${i+1} / ${qs.length}</span></div>
       ${exam?`<div class="dots">${qs.map((_,k)=>`<i class="${k===i?"cur":ans[k]!=null?"ans":""}"></i>`).join("")}</div>`:`<div class="bar"><i style="width:${i/qs.length*100}%"></i></div>`}
       <p class="qtext">${q.q}</p>
       ${q.img?`<div class="qimg">${ill(q.img)}</div>`:""}
-      <div class="opts${q.tf?" two":""}">${q.opts.map((o,k)=>{const cls=exam?(ans[i]===k?" sel":""):solved[i]&&o.ok?" right":tried[i].has(k)?" wrong":"";
-        return `<button class="opt${cls}" data-k="${k}" ${!exam&&(solved[i]||tried[i].has(k))?"disabled":""}><span class="k">${q.tf?(k?"✗":"✓"):"אבגד"[k]}</span>${o.t}</button>`}).join("")}</div>
+      <div class="opts${q.tf?" two":""}">${q.opts.map((o,k)=>{const cls=exam?(helped?(o.ok?" right":""):ans[i]===k?" sel":""):solved[i]&&o.ok?" right":tried[i].has(k)?" wrong":"";
+        return `<button class="opt${cls}" data-k="${k}" ${(!exam&&(solved[i]||tried[i].has(k)))||helped?"disabled":""}><span class="k">${q.tf?(k?"✗":"✓"):"אבגד"[k]}</span>${o.t}</button>`}).join("")}</div>
       ${!exam&&!solved[i]&&!tried[i].size?`<button class="idk" id="idk">🤔 לא יודע/ת – לקרוא בשיעור</button>`:""}
+      ${exam&&!helped?`<button class="idk" id="help">${askHelp===i?"בטוח/ה? השאלה תיחשב כתשובה לא נכונה – להציג הסבר 💡":"💡 לא יודע/ת – עזרה (תיחשב כטעות)"}</button>`:""}
+      ${helped?`<div class="fb bad">💡 עזרה: התשובה הנכונה היא <b>${q.o[q.a]}</b>.<span class="ex">${q.e}</span><span class="ex small muted">בשאלה הזו השתמשת בעזרה, ולכן היא תיחשב כתשובה לא נכונה.</span></div>`:""}
       <div id="qfb">${!exam?pfb():""}</div>
       <div class="row between">${exam?`<button class="btn ghost" id="qp" ${i===0?"disabled":""}>→ הקודמת</button>`:"<span></span>"}
         <button class="btn primary" id="qn" ${(exam?ans[i]==null:!solved[i])?"disabled":""}>${i<qs.length-1?"הבאה ←":exam?"הגשת המבחן ✓":"לסיום ←"}</button></div>
@@ -1055,7 +1058,7 @@ function runQuiz(st){
     bindNav();
     root.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
       const k=+b.dataset.k;
-      if(exam){ans[i]=k;draw();return}
+      if(exam){if(helped)return;ans[i]=k;draw();return}
       if(solved[i]||tried[i].has(k))return;
       if(ans[i]==null)ans[i]=k;                 // the first answer is the one that counts
       if(q.opts[k].ok)solved[i]=true;else tried[i].add(k);
@@ -1063,6 +1066,7 @@ function runQuiz(st){
     });
     const goLesson=()=>{const ref=lessonRef(q.les);if(!ref)return;if(ans[i]==null)ans[i]=-1;lesson(ref.wid,ref.i,draw)};
     if(document.getElementById("idk"))document.getElementById("idk").onclick=goLesson;
+    if(document.getElementById("help"))document.getElementById("help").onclick=()=>{if(askHelp!==i){askHelp=i;draw();return}askHelp=-1;ans[i]=-2;draw()};
     if(document.getElementById("toLes"))document.getElementById("toLes").onclick=goLesson;
     if(document.getElementById("qp"))document.getElementById("qp").onclick=()=>{i--;draw()};
     document.getElementById("qn").onclick=()=>{
@@ -1094,7 +1098,7 @@ function finish(st,ans){
       :`${masteredIn(st.wid)<worldQs(st.wid).length?`<button class="btn primary" id="retry">לסבב הבא ←</button>`:`<button class="btn primary" id="retry">חזרה לנושא</button>`}<button class="btn ghost" data-nav="home">לדף הבית</button>`}
     </div>
   </section>
-  ${wrong.length?(mode==="exam"?`<section class="panel stack"><h2>שאלות לתיקון</h2><div class="review">${wrong.map(x=>`<div><b>${x.q.q}</b><small class="muted">ענית: ${x.q.opts[x.a].t}</small><br><span>✓ ${x.q.o[x.q.a]}</span> <small>${x.q.e}</small></div>`).join("")}</div></section>`
+  ${wrong.length?(mode==="exam"?`<section class="panel stack"><h2>שאלות לתיקון</h2><div class="review">${wrong.map(x=>`<div><b>${x.q.q}</b><small class="muted">${x.a===-2?"💡 נעזרת בעזרה":"ענית: "+x.q.opts[x.a].t}</small><br><span>✓ ${x.q.o[x.q.a]}</span> <small>${x.q.e}</small></div>`).join("")}</div></section>`
     :`<section class="panel stack"><h2>כדאי לחזור על השיעורים האלה</h2><p class="muted small">בשאלות האלה לא הצלחתם בניסיון הראשון.</p><div class="lessons">${[...new Set(wrong.map(x=>x.q.les))].map(id=>{const r=lessonRef(id);return r?`<button class="lesson" data-rl="${id}"><div class="thumb">${ILL[r.l.img]()}</div><div><div class="n">${W[r.wid].name}</div><h3>${r.l.title}</h3></div><span class="ok">📖</span></button>`:""}).join("")}</div></section>`):""}`;
   bindNav();
   if(mode==="exam"?score>=75:(gained&&masteredIn(st.wid)===worldQs(st.wid).length)||score===100)confetti();
