@@ -670,16 +670,17 @@ function parseToken(t){
 /* the shared class table is embedded in the page and republished by the owner */
 let BOARD={rows:[],updated:0};
 try{BOARD=JSON.parse(document.getElementById("board").textContent)}catch(e){}
-const byRank=(a,b)=>(b.best??-1)-(a.best??-1)||b.meter-a.meter;
+const byRank=(a,b)=>(b.best??-1)-(a.best??-1)||(b.correct||0)-(a.correct||0)||b.meter-a.meter;
 /* ---------- automatic sync to the results sheet ---------- */
 let LIVE=null,liveLoading=false,syncT,lastSent="";
 const EXAM_Q=24;
 const covered=()=>P.exam.attempts?Math.max((P.exam.seen||[]).length,EXAM_Q):0;   // distinct bank questions this child was tested on
-function payload(){return {id:me.id,name:me.name,cls:me.cls,av:me.av,meter:meter(),lessons:lessonsDone(),best:P.exam.best,attempts:P.exam.attempts,covered:covered(),minutes:Math.round((P.time||0)/60)}}
+const correctN=()=>P.exam.attempts?Math.max((P.exam.right||[]).length,Math.round((P.exam.best||0)*EXAM_Q/100)):0;   // distinct exam questions answered right
+function payload(){return {id:me.id,name:me.name,cls:me.cls,av:me.av,meter:meter(),lessons:lessonsDone(),best:P.exam.best,attempts:P.exam.attempts,covered:covered(),minutes:Math.round((P.time||0)/60),correct:correctN()}}
 function queueSync(){if(!LIVE_ON||!me)return;clearTimeout(syncT);syncT=setTimeout(sendSync,2000)}
 function sendSync(){
   if(!LIVE_ON||!me)return;const d=payload(),body=JSON.stringify(d);if(body===lastSent)return;lastSent=body;
-  const args={p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes};
+  const args={p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes,p_correct:d.correct};
   try{fetch(SUPA_URL+"/rest/v1/rpc/save_result",{method:"POST",headers:SUPA_H,body:JSON.stringify(args),keepalive:true}).then(r=>{if(!r.ok)lastSent="";LIVE=null}).catch(()=>{lastSent=""})}catch(e){lastSent=""}
 }
 addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){clearTimeout(syncT);sendSync()}});
@@ -709,17 +710,17 @@ checkVersion();
 addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){lastCheck=0;checkVersion()}});
 setInterval(checkVersion,10*60000);
 const liveRow=r=>{const name=String(r.name||"").slice(0,40),cls=String(r.cls||"").slice(0,10);
-  return {name,cls,av:AVATARS.includes(r.av)?r.av:"🙂",meter:Math.max(0,Math.min(100,+r.meter||0)),best:r.best==null||r.best===""?null:Math.max(0,Math.min(100,+r.best)),attempts:+r.attempts||0,covered:Math.max(0,Math.min(EXAM_BANK.length,+r.covered||0)),minutes:Math.max(0,+r.minutes||0),date:new Date(r.updated||0),key:(name.trim()+"|"+cls).toLowerCase()}};
+  return {name,cls,av:AVATARS.includes(r.av)?r.av:"🙂",meter:Math.max(0,Math.min(100,+r.meter||0)),best:r.best==null||r.best===""?null:Math.max(0,Math.min(100,+r.best)),attempts:+r.attempts||0,covered:Math.max(0,Math.min(EXAM_BANK.length,+r.covered||0)),minutes:Math.max(0,+r.minutes||0),correct:Math.max(0,Math.min(EXAM_BANK.length,+r.correct||0)),date:new Date(r.updated||0),key:(name.trim()+"|"+cls).toLowerCase()}};
 function loadLive(){
   if(!LIVE_ON||LIVE||liveLoading)return;liveLoading=true;
   fetch(SUPA_URL+"/rest/v1/results_public?select=*&order=updated.desc&limit=1000",{headers:SUPA_H}).then(r=>r.ok?r.json():null).then(d=>{if(Array.isArray(d)){LIVE=d.map(liveRow);if(SCREEN==="home"&&document.getElementById("share"))home();else if(SCREEN==="board"&&document.getElementById("bt"))board()}}).catch(()=>{}).finally(()=>{liveLoading=false});
 }
 function boardRows(tokens){
-  if(!tokens&&LIVE)return LIVE.filter(r=>r.name).sort((a,b)=>(b.best??-1)-(a.best??-1)||b.meter-a.meter);
+  if(!tokens&&LIVE)return LIVE.filter(r=>r.name).sort(byRank);
   const best={};
   (tokens||BOARD.rows).map(parseToken).filter(r=>r&&r.ok).forEach(r=>{const b=best[r.key];
     if(!b||r.day>b.day||(r.day===b.day&&(r.attempts>b.attempts||(r.attempts===b.attempts&&r.meter>=b.meter))))best[r.key]=r});
-  return Object.values(best).sort((a,b)=>(b.best??-1)-(a.best??-1)||b.meter-a.meter);
+  return Object.values(best).sort(byRank);
 }
 
 /* ============================================================
@@ -846,7 +847,7 @@ function home(){
 }
 
 /* places: same exam score and learning % share a place; the next group takes the next place (1, 1, 2 …) */
-const rankKey=r=>(r.best??-1)+"|"+r.meter;
+const rankKey=r=>(r.best??-1)+"|"+(r.correct||0)+"|"+r.meter;
 function placeOf(rows,i){const seen=new Set();for(let k=0;k<=i;k++)seen.add(rankKey(rows[k]));return seen.size}
 /* after gold, silver and bronze: metals from the lessons by value, then rocks and stones */
 const LADDER=[["זהב"],["כסף"],["ארד"],
@@ -867,8 +868,8 @@ function boardTable(rows,compact){
     const rk=placeOf(rows,i);
     return `<tr class="r${mine(r)?" me":""}"><td class="rank">${medalCell(rk)}</td><td><span class="nm"><span class="av">${r.av}</span>${esc(r.name)}${mine(r)?" (אני)":""}</span></td><td>${esc(r.cls)}</td>
   <td><div class="row" style="flex-wrap:nowrap"><div class="bar mini" style="--c:var(--xp)"><i style="width:${r.meter}%"></i></div><b class="num small">${r.meter}%</b></div>${r.minutes?`<div class="small muted" style="white-space:nowrap">⏱ ${fmtTime(r.minutes)}</div>`:""}</td>
-  <td class="num"><b>${r.best??"—"}</b>${r.attempts&&!compact?` <span class="small muted att">(${r.attempts})</span>`:""}${r.best!=null&&r.covered?`<div class="small muted cov" style="white-space:nowrap">על ${r.covered}/${EXAM_BANK.length}</div>`:""}</td>${compact?"":`<td class="wide"><span class="status ${stc}">${st}</span></td><td class="wide small muted">${r.date.toLocaleDateString("he-IL")}</td>`}</tr>`}).join("")}
-  </tbody></table></div>${rows.some(r=>r.covered)?`<p class="small muted">מבחן = הציון הכי טוב. כל מבחן בודק ${EXAM_Q} מתוך ${EXAM_BANK.length} השאלות במאגר; "על 40/${EXAM_BANK.length}" = נבחן עד היום על 40 שאלות שונות.</p>`:""}${rows.some(r=>r.minutes)?`<p class="small muted">⏱ = זמן למידה פעיל באתר (שעות:דקות), נמדד מ-7.11.2026.</p>`:""}`;
+  <td class="num"><b>${r.best??"—"}</b>${r.attempts&&!compact?` <span class="small muted att">(${r.attempts})</span>`:""}${r.best!=null&&r.correct?`<div class="small muted cov" style="white-space:nowrap">✓ ${r.correct}/${EXAM_BANK.length}</div>`:""}</td>${compact?"":`<td class="wide"><span class="status ${stc}">${st}</span></td><td class="wide small muted">${r.date.toLocaleDateString("he-IL")}</td>`}</tr>`}).join("")}
+  </tbody></table></div>${rows.some(r=>r.correct)?`<p class="small muted">מבחן = הציון הכי טוב. "✓ 40/${EXAM_BANK.length}" = ענה/תה נכון על 40 שאלות שונות מתוך ${EXAM_BANK.length} השאלות במאגר (בכל המבחנים יחד). המיקום נקבע לפי הציון, אחר כך לפי מספר השאלות הנכונות, ואחר כך לפי מד הלמידה.</p>`:""}${rows.some(r=>r.minutes)?`<p class="small muted">⏱ = זמן למידה פעיל באתר (שעות:דקות), נמדד מ-7.11.2026.</p>`:""}`;
 }
 
 /* ---------- world ---------- */
@@ -1029,7 +1030,7 @@ function finish(st,ans){
   const wrong=qs.map((q,k)=>({q,a:ans[k]})).filter(x=>!isOk(x.q,x.a));
   let isBest=false,gained=0;
   if(mode==="practice"){qs.forEach((q,k)=>{if(isOk(q,ans[k])&&!M()[q.id]){M()[q.id]=1;gained++}})}
-  else{isBest=P.exam.best==null||score>P.exam.best;if(isBest)P.exam.best=score;P.exam.seen=[...new Set([...(P.exam.seen||[]),...qs.map(q=>q.id)])];P.exam.attempts++;P.exam.last=score;P.exam.history.push(score)}
+  else{isBest=P.exam.best==null||score>P.exam.best;if(isBest)P.exam.best=score;P.exam.seen=[...new Set([...(P.exam.seen||[]),...qs.map(q=>q.id)])];P.exam.right=[...new Set([...(P.exam.right||[]),...qs.filter((q,k)=>isOk(q,ans[k])).map(q=>q.id)])];P.exam.attempts++;P.exam.last=score;P.exam.history.push(score)}
   save();
   const msg=score>=90?"מצוין! 🌟":score>=75?"יפה מאוד!":score>=55?"בכיוון הנכון – עוד קצת תרגול":"כדאי לחזור לשיעורים ולנסות שוב";
   root.innerHTML=`${topbar(mode==="exam"?"home":"world:"+st.wid)}
@@ -1089,7 +1090,7 @@ function board(){
     <div class="row between"><h1>🏆 טבלת התוצאות</h1>${classes.length>1?`<select class="input" id="cf" style="width:auto"><option value="all">כל הכיתות</option>${classes.map(c=>`<option ${c===cur?"selected":""}>${esc(c)}</option>`).join("")}</select>`:""}</div>
     <p class="muted small">מסודר לפי ציון המבחן ואז לפי מד הלמידה. ${LIVE?"מתעדכן אוטומטית.":BOARD.updated?`עודכן: ${new Date(BOARD.updated).toLocaleString("he-IL",{dateStyle:"short",timeStyle:"short"})}`:""}</p>
     <div id="bt"></div>
-    <p class="small muted">🥇 זהב · 🥈 כסף · 🥉 ארד, ואחריהם מדליות לפי ערך החומרים שלמדנו: פלטינה, בדיל, נחושת, אלומיניום, עופרת, פלדה, ברזל – ואז סלעים ואבנים: גרניט, בזלת, גיר, אבן, חצץ, חול וחרסית. ילדים עם אותו ציון ואותו אחוז למידה – באותו מקום.</p>
+    <p class="small muted">🥇 זהב · 🥈 כסף · 🥉 ארד, ואחריהם מדליות לפי ערך החומרים שלמדנו: פלטינה, בדיל, נחושת, אלומיניום, עופרת, פלדה, ברזל – ואז סלעים ואבנים: גרניט, בזלת, גיר, אבן, חצץ, חול וחרסית. ילדים עם אותו ציון, אותו מספר תשובות נכונות ואותו אחוז למידה – באותו מקום.</p>
     <div class="row small" style="gap:6px"><span class="status st-learn">בלמידה</span><span class="status st-ready">מוכן/ה למבחן</span><span class="status st-done">עשה/תה מבחן</span><span class="status st-star">מצטיין/ת – 90+</span></div>
   </section>`;
   bindNav();draw();
@@ -1185,7 +1186,7 @@ function moveLink(){   // old link -> new site, carrying every child on this dev
 function syncOne(pr,data){   // send one child's row (not only the active one)
   if(!LIVE_ON)return;const sm=me,sp=P;me=pr;P=data;let d;try{d=payload()}finally{me=sm;P=sp}
   fetch(SUPA_URL+"/rest/v1/rpc/save_result",{method:"POST",headers:SUPA_H,keepalive:true,
-    body:JSON.stringify({p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes})}).catch(()=>{});
+    body:JSON.stringify({p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes,p_correct:d.correct})}).catch(()=>{});
 }
 function importFromHash(){
   const m=location.hash.match(/^#import=([A-Za-z0-9_-]+)$/);if(!m)return false;

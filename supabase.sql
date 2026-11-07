@@ -120,3 +120,42 @@ create or replace view public.results_public as
   from public.results
   where not hidden;
 grant select on public.results_public to anon;
+
+-- Added later: distinct exam questions answered right (all attempts together); the class table ranks by
+-- best score, then this count, then the learning meter. Additive: older save_result overloads stay.
+alter table public.results add column if not exists correct int not null default 0;
+
+create or replace view public.results_public as
+  select name, cls, av, meter, lessons, best, attempts, updated,
+         case when attempts > 0 then greatest(covered, 24) else 0 end as covered,
+         minutes,
+         case when attempts > 0 then greatest(correct, round(coalesce(best, 0) * 0.24)::int) else 0 end as correct
+  from public.results
+  where not hidden;
+grant select on public.results_public to anon;
+
+create or replace function public.save_result(
+  p_id text, p_name text, p_cls text, p_av text,
+  p_meter int, p_lessons int, p_best int, p_attempts int, p_covered int, p_minutes int, p_correct int
+) returns void
+language sql security definer set search_path = public as $$
+  insert into results (id, name, cls, av, meter, lessons, best, attempts, covered, minutes, correct, updated)
+  select left(p_id, 40), left(trim(p_name), 40), left(p_cls, 10), left(p_av, 8),
+         least(greatest(coalesce(p_meter, 0), 0), 100),
+         least(greatest(coalesce(p_lessons, 0), 0), 50),
+         case when p_best is null then null else least(greatest(p_best, 0), 100) end,
+         least(greatest(coalesce(p_attempts, 0), 0), 999),
+         least(greatest(coalesce(p_covered, 0), 0), 200),
+         least(greatest(coalesce(p_minutes, 0), 0), 100000),
+         least(greatest(coalesce(p_correct, 0), 0), 200),
+         now()
+  where length(coalesce(p_id, '')) >= 8 and length(trim(coalesce(p_name, ''))) >= 2
+  on conflict (id) do update set
+    name = excluded.name, cls = excluded.cls, av = excluded.av, meter = excluded.meter,
+    lessons = excluded.lessons, best = excluded.best, attempts = excluded.attempts,
+    covered = greatest(excluded.covered, results.covered),
+    minutes = greatest(excluded.minutes, results.minutes),
+    correct = greatest(excluded.correct, results.correct), updated = now();
+$$;
+revoke all on function public.save_result(text, text, text, text, int, int, int, int, int, int, int) from public;
+grant execute on function public.save_result(text, text, text, text, int, int, int, int, int, int, int) to anon;
