@@ -980,7 +980,7 @@ function recentTable(rows){
   return `<div class="tablewrap"><table class="board compact"><thead><tr><th>תלמיד/ה</th><th>כיתה</th><th>מתי למד/ה</th><th>למידה</th><th>מבחן</th></tr></thead><tbody>
   ${list.map(r=>`<tr class="r${isMine(r)?" me":""}"><td><span class="nm"><span class="av">${r.av}</span>${esc(r.name)}${isMine(r)?" (אני)":""}<span class="dot" data-ok="${esc(r.key)}" ${r.online?"":"hidden"}></span></span></td><td>${esc(r.cls)}</td>
     <td class="small" style="white-space:nowrap">${r.online?`<b style="color:#16a34a">🟢 עכשיו</b>`:`📅 ${fmtDay(r.activeAt)}<br><span class="muted">🕒 ${fmtTimeOfDay(r.activeAt)}</span>`}</td>
-    <td class="num small"><b>${r.meter}%</b></td><td class="num">${(top.has(r.key)||isMine(r))&&r.best!=null?`<b>${r.best}</b>`:`${r.covered?`<span class="small muted" style="white-space:nowrap">על ${r.covered}/${EXAM_BANK.length}</span>`:`<span class="small muted">עוד לא התחיל/ה מבחנים</span>`}`}</td></tr>`).join("")}
+    <td class="num small"><b>${r.meter}%</b></td><td class="num">${(top.has(r.key)||isMine(r))&&r.best!=null?`<b>${r.best}</b>${r.covered?`<div class="small muted" style="white-space:nowrap">על ${r.covered}/${EXAM_BANK.length}</div>`:""}`:`${r.covered?`<span class="small muted" style="white-space:nowrap">על ${r.covered}/${EXAM_BANK.length}</span>`:`<span class="small muted">עוד לא התחיל/ה מבחנים</span>`}`}</td></tr>`).join("")}
   </tbody></table></div>`;
 }
 function recentPane(rows){
