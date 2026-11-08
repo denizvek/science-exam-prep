@@ -56,13 +56,16 @@ button{cursor:pointer}
 .num{font-variant-numeric:tabular-nums}
 
 /* top bar */
-.top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-block:8px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:nowrap;padding-block:8px}
+.top>*{min-width:0}.brand .btxt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who{flex:none;max-width:60%}.who .small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:600;font-size:1.15rem}
 .brand .logo{width:38px;height:38px;border-radius:12px;background:var(--ink);display:grid;place-items:center}
 .who{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 12px}
 .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:1.25rem;background:var(--primary-soft);flex:none}
 .av.lg{width:64px;height:64px;font-size:2.2rem}
 .back{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-weight:700}
+@media (max-width:480px){.brand{font-size:1rem;gap:8px}.brand .logo{width:32px;height:32px;border-radius:10px}.brand .bsub{display:none}.who{padding:3px 4px 3px 10px}.who .av{width:30px;height:30px;font-size:1.1rem}}
 
 /* generic blocks */
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow)}
@@ -785,7 +788,7 @@ const WA_SVG='<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"
 const LOGO='<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2h6v2h-1v5.2l5.6 9.4A2.2 2.2 0 0 1 17.7 22H6.3a2.2 2.2 0 0 1-1.9-3.4L10 9.2V4H9z" fill="#ffbe1a"/><circle cx="10" cy="17" r="1.6" fill="#3150f5"/><circle cx="14" cy="15" r="1.1" fill="#3150f5"/></svg>';
 
 function topbar(back){
-  return `<div class="top">${back?`<button class="back" data-nav="${back}">→ חזרה</button>`:`<div class="brand"><span class="logo">${LOGO}</span>מבחן במדעים · כיתה ה׳</div>`}
+  return `<div class="top">${back?`<button class="back" data-nav="${back}">→ חזרה</button>`:`<div class="brand"><span class="logo">${LOGO}</span><span class="btxt">מבחן במדעים<span class="bsub"> · כיתה ה׳</span></span></div>`}
   ${me?`<div class="who"><span class="small"><b>${esc(me.name)}</b> · ${esc(me.cls)}</span><span class="av">${me.av}</span></div>`:""}</div>`;
 }
 function bindNav(){root.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>nav(b.dataset.nav))}
