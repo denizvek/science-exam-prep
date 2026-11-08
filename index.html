@@ -815,7 +815,7 @@ function topbar(back){
 function bindNav(){root.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>nav(b.dataset.nav))}
 function nav(to){
   const [s,a]=to.split(":");
-  ({home,world:()=>world(a),board,admin,exam:examIntro,profile:onboarding})[s]();
+  ({home,world:()=>world(a),board,admin,exam:examIntro,profile:onboarding,refresh:refreshIntro,classlike:()=>classLike(a)})[s]();
   window.scrollTo(0,0);
 }
 
@@ -1028,6 +1028,10 @@ function home(){
     <h2>🆕 נוסף חומר חדש ב-${st.length} שיעורים</h2>
     <p class="muted">הוספנו לשיעורים חומר מדפי המידע, והוא חלק מהמבחן. קראו כל שיעור שוב וענו על שאלת הבדיקה – ומד הלמידה יחזור לעלות.</p>
     <div class="profiles">${st.map(x=>`<button data-redo="${x.w.id}:${x.i}">📖 ${x.l.title}</button>`).join("")}</div></section>`:""})()}
+  <section class="panel stack" style="border:2px solid var(--xp)">
+    <h2>🌙 חזרה לפני המבחן</h2>
+    <div class="row" style="flex-wrap:wrap"><button class="btn xp" data-nav="refresh" style="flex:1;min-width:150px">🎯 החזרה האישית שלי</button><button class="btn primary" data-nav="classlike:fill" style="flex:1;min-width:150px">📝 כמו במבחן בכיתה</button></div>
+  </section>
   <div class="worlds">${WORLDS.map(w=>{const wm=worldMeter(w.id),d=w.lessons.filter(l=>lessonDone(l.id)).length;return `<button class="world w-${w.id}" data-nav="world:${w.id}">
     <div class="art">${ILL[w.art]()}</div>
     <div class="body"><span class="tag">${w.tag} · ${d}/${w.lessons.length} שיעורים</span><h3>${w.name}</h3><span class="small muted">${w.blurb}</span>
@@ -1241,7 +1245,7 @@ function runQuiz(st){
   const helpSet=st.helped=new Set();   // exam: questions where the child opened the help material
   const draw=()=>{
     const q=qs[i];const helped=exam&&helpSet.has(i);
-    root.innerHTML=`${topbar(exam?"home":"world:"+st.wid)}
+    root.innerHTML=`${topbar(exam?"home":st.back||"world:"+st.wid)}
     <section class="panel stack w-${q.w}">
       <div class="qhead"><span>${exam?"מבחן מסכם":"תרגול"} · ${W[q.w].name}</span><span class="num">${i+1} / ${qs.length}</span></div>
       ${exam?`<div class="dots">${qs.map((_,k)=>`<i class="${k===i?"cur":ans[k]!=null?"ans":""}"></i>`).join("")}</div>`:`<div class="bar"><i style="width:${i/qs.length*100}%"></i></div>`}
@@ -1281,12 +1285,13 @@ function runQuiz(st){
   };draw();
 }
 function finish(st,ans){
+  if(st.mode==="review")return reviewFinish(st,ans);
   const {mode,qs}=st;const helpSet=st.helped||new Set();const isOk=(q,a,k)=>!helpSet.has(k)&&a>=0&&q.opts[a].ok;
   const right=qs.filter((q,k)=>isOk(q,ans[k],k)).length;const score=Math.round(right/qs.length*100);
   const wrong=qs.map((q,k)=>({q,a:ans[k],h:helpSet.has(k),k})).filter(x=>!isOk(x.q,x.a,x.k));
   let isBest=false,gained=0;
   if(mode==="practice"){qs.forEach((q,k)=>{if(isOk(q,ans[k])&&!M()[q.id]){M()[q.id]=1;gained++}})}
-  else{isBest=P.exam.best==null||score>P.exam.best;if(isBest)P.exam.best=score;P.exam.seen=[...new Set([...(P.exam.seen||[]),...qs.map(q=>q.id)])];P.exam.right=[...new Set([...(P.exam.right||[]),...qs.filter((q,k)=>isOk(q,ans[k],k)).map(q=>q.id)])];P.exam.attempts++;P.exam.last=score;P.exam.history.push(score)}
+  else{isBest=P.exam.best==null||score>P.exam.best;if(isBest)P.exam.best=score;P.exam.seen=[...new Set([...(P.exam.seen||[]),...qs.map(q=>q.id)])];P.exam.right=[...new Set([...(P.exam.right||[]),...qs.filter((q,k)=>isOk(q,ans[k],k)).map(q=>q.id)])];{const ok=new Set(qs.filter((q,k)=>isOk(q,ans[k],k)).map(q=>q.id));P.exam.wrong=[...new Set([...(P.exam.wrong||[]).filter(id=>!ok.has(id)),...qs.filter((q,k)=>!isOk(q,ans[k],k)).map(q=>q.id)])]}P.exam.attempts++;P.exam.last=score;P.exam.history.push(score)}
   save();
   const msg=score>=90?"מצוין! 🌟":score>=75?"יפה מאוד!":score>=55?"בכיוון הנכון – עוד קצת תרגול":"כדאי לחזור לשיעורים ולנסות שוב";
   root.innerHTML=`${topbar(mode==="exam"?"home":"world:"+st.wid)}
@@ -1309,6 +1314,154 @@ function finish(st,ans){
   document.getElementById("retry").onclick=()=>{if(mode==="exam")examIntro();else{world(st.wid,"practice");scrollTo(0,0)}};
   if(document.getElementById("send"))document.getElementById("send").onclick=()=>shareSheet();
   root.querySelectorAll("[data-rl]").forEach(b=>b.onclick=()=>{const r=lessonRef(b.dataset.rl);lesson(r.wid,r.i);scrollTo(0,0)});
+}
+
+
+/* ============================================================
+   REFRESHERS BEFORE THE EXAM
+   ============================================================ */
+/* 1. personal: questions answered wrong in exams first, then questions never tested, then the rest */
+const REVIEW_N=12;
+function reviewPool(){
+  const fixed=new Set((P.review&&P.review.fixed)||[]),seen=new Set(P.exam.seen||[]);
+  const wrong=EXAM_BANK.filter(q=>(P.exam.wrong||[]).includes(q.id)&&!fixed.has(q.id));
+  const unseen=EXAM_BANK.filter(q=>!seen.has(q.id)&&!wrong.includes(q));
+  return {wrong,unseen};
+}
+function refreshIntro(){
+  SCREEN="refresh";
+  const {wrong,unseen}=reviewPool();
+  const take=shuffle(wrong).slice(0,REVIEW_N),more=shuffle(unseen).slice(0,REVIEW_N-take.length);
+  const fill=REVIEW_N-take.length-more.length>0?shuffle(EXAM_BANK.filter(q=>!take.includes(q)&&!more.includes(q))).slice(0,REVIEW_N-take.length-more.length):[];
+  const qs=[...take,...more,...fill];
+  root.innerHTML=`${topbar("home")}
+  <section class="panel stack">
+    <span class="pill xp" style="align-self:flex-start">🎯 החזרה האישית שלי</span>
+    <h1>סבב של ${qs.length} שאלות בשבילך</h1>
+    <ul class="points" style="--c:var(--primary)">
+      ${take.length?`<li><span><b>${take.length} שאלות שטעית בהן</b> במבחנים – עכשיו הזדמנות לתקן.</span></li>`:`<li><span>${(P.exam.attempts||0)?"<b>אין לך טעויות שמורות</b> – כל הכבוד! 🎉":"עוד לא עשית מבחן, אז אין טעויות לתקן."}</span></li>`}
+      ${more.length?`<li><span><b>${more.length} שאלות שעוד לא נבחנת עליהן</b> – מתוך ${unseen.length} כאלה במאגר.</span></li>`:""}
+      ${fill.length?`<li><span><b>${fill.length} שאלות לחזרה</b> מכל החומר.</span></li>`:""}
+      <li><span>אם טועים – מנסים שוב או קופצים לשיעור. הסבב לא משנה את מד הלמידה ואת הציון.</span></li>
+    </ul>
+    <button class="btn xp block" id="go">להתחיל ←</button></section>`;
+  bindNav();
+  document.getElementById("go").onclick=()=>runQuiz({mode:"review",back:"refresh",qs:shuffle(qs).map(buildQ)});
+}
+function reviewFinish(st,ans){
+  const {qs}=st;const ok=(q,a)=>a>=0&&q.opts[a].ok;
+  const right=qs.filter((q,k)=>ok(q,ans[k]));
+  P.review=P.review||{fixed:[]};
+  const fixedNow=right.filter(q=>(P.exam.wrong||[]).includes(q.id));
+  P.review.fixed=[...new Set([...P.review.fixed,...fixedNow.map(q=>q.id)])];
+  save();
+  const left=reviewPool().wrong.length,score=Math.round(right.length/qs.length*100);
+  root.innerHTML=`${topbar("home")}
+  <section class="panel stack" style="text-align:center;align-items:center">
+    <span class="pill xp">🎯 החזרה האישית שלי</span>
+    <div class="score num">${right.length}/${qs.length}</div><p class="muted">נכון בניסיון הראשון</p>
+    <h2>${score>=90?"מוכנים למבחן! 🌟":score>=70?"יפה מאוד – עוד סבב ואתם שם":"כדאי לעשות עוד סבב ולקרוא את השיעורים"}</h2>
+    ${fixedNow.length?`<span class="pill good">תיקנת ${fixedNow.length} טעויות מהמבחנים ✓</span>`:""}
+    ${left?`<p class="muted">נשארו ${left} שאלות שטעית בהן – הן יחכו לך בסבב הבא.</p>`:(P.exam.wrong||[]).length?`<p class="muted">תיקנת את כל הטעויות מהמבחנים 🎉</p>`:""}
+    <div class="row" style="justify-content:center"><button class="btn xp" data-nav="refresh">↺ עוד סבב</button><button class="btn primary" data-nav="classlike:fill">📝 כמו במבחן בכיתה</button><button class="btn ghost" data-nav="home">לדף הבית</button></div>
+  </section>`;
+  bindNav();if(score>=90)confetti();
+}
+
+/* 2. like the exam in class: the question formats from the textbook's review pages */
+const FILL={
+ metals:{bank:["עיבוד","משותפות","מוצרים","ייחודיות","עפרת מתכת","צריפה","מתכות"],items:[
+  ["התכונות ה","משותפות"," לרוב המתכות: מוליכות חום ומוליכות חשמל, מבריקות, מוצקות בטמפרטורת החדר, גמישות וניתנות לריקוע."],
+  ["למתכות שונות יש גם תכונות ","ייחודיות"," (ברזל נמשך למגנט, נחושת מוליכה חשמל טובה)."],
+  ["ה","מתכות"," נמצאות בשימוש נרחב: בניית כלים, כלי תחבורה, גשרים, מבנים ועוד."],
+  ["האדם מנצל את תכונות המתכות לבניית ","מוצרים"," לפי המטרה שלהם."],
+  ["רוב המתכות נמצאות בטבע בסלעים הנקראים ","עפרת מתכת","."],
+  ["את המתכת מפיקים מעפרת המתכת בתהליך שנקרא ","צריפה","."],
+  ["יציקה, עיבוד שבבי וריקוע הם שיטות של ","עיבוד"," מתכות למוצרים."]]},
+ rocks:{bank:["סביבה","בנייה","כדור הארץ","קרקעות","תכונות","חלחול","מזון","גרגירים","סלעים"],items:[
+  ["סלעים וקרקעות הם השכבה המוצקה של ","כדור הארץ","."],
+  ["קרקע נוצרת מהתפוררות של סלעים ל","גרגירים","."],
+  ["גרניט, בזלת, גיר, חרסית, צור וכורכר הם דוגמאות של ","סלעים","."],
+  ["קרקע חולית וקרקע חרסיתית הן דוגמאות של ","קרקעות","."],
+  ["מבדילים בין סוגי סלעים באמצעות ","תכונות"," כמו צבע, קשיות, מבנה הסלע, עיסתיות ותגובה לחומצה מהולה."],
+  ["מבדילים בין סוגי קרקעות באמצעות תכונות כמו צבע, גודל גרגיר, עיסתיות ו","חלחול","."],
+  ["האדם משתמש בסלעים ל","בנייה",", ליצירת כלים ולהפקת חומרים."],
+  ["הקרקע משמשת אותנו לגידול צמחים ל","מזון",", כמצע לבניית בניינים, להקמת פארקים ועוד."],
+  ["שימוש בסלעים ובקרקעות עלול לגרום לפגיעה ב","סביבה","."]]},
+ salts:{bank:["מזון","זרחן","תרומה","מלחים","תמיסות","חשובים","דשנים","אשלגן"],items:[
+  ["מלח בישול, אשלג ופוספטים הם סוגים של ","מלחים"," חיוניים לאדם."],
+  ["מלח הבישול משמש בעיקר בתעשיית ה","מזון","."],
+  ["אשלג ופוספטים משמשים כ","דשנים"," לגידול צמחים."],
+  ["מסלעי הפוספטים מפיקים דשנים שונים עשירים ב","זרחן","."],
+  ["האשלג מכיל ","אשלגן"," – חומר חיוני לגדילה ולהתפתחות של צמחים."],
+  ["מלח הבישול, האשלג והפוספטים ","חשובים"," מאוד לכלכלת ישראל."],
+  ["בישראל מפיקים את מלח האשלג ואת מלח הבישול מ","תמיסות"," מלחים, ואת הפוספטים מסלעים."],
+  ["למפעלי ים המלח והפוספטים יש ","תרומה"," רבה לכלכלת המדינה ולהתיישבות בנגב."]]}
+};
+const MATCH=[
+ {t:"🔨 התאימו את המוצר לשיטת העיבוד",pairs:[["ראש פטיש","יציקה"],["מפתח","יציקה ועיבוד שבבי"],["הזיזים בבורג","עיבוד שבבי"],["פחית שתייה","ריקוע (ערגול)"]]},
+ {t:"⚗️ התאימו את המסג למה שהוא עשוי ממנו",pairs:[["ארד","נחושת ומעט בדיל"],["פלדה","ברזל ומעט פחמן"],["מסג כסף","כסף ומעט נחושת"]]},
+ {t:"🪨 התאימו את הסלע לקרקע שנוצרת ממנו",pairs:[["גיר","טרה רוסה (חום-אדמדם)"],["קרטון","רנדזינה (אפרפר)"],["בזלת","קרקע בזלת (חום כהה)"],["גרניט","קרקע חולית (קוורץ)"]]},
+ {t:"🧂 התאימו את המלח למקום שממנו מפיקים אותו בישראל",pairs:[["מלח בישול","הים התיכון, ים סוף וים המלח"],["אשלג","רק ים המלח"],["פוספט","סלעים בנגב"]]}
+];
+const MISTAKES=[
+ ["עוגן סירות","אלומיניום",["אלומיניום קל מדי – עוגן צריך מתכת כבדה וחזקה כמו ברזל","אלומיניום נמשך למגנט","אין טעות – אלומיניום מתאים לעוגן"]],
+ ["סגירה מגנטית של תיק","נחושת",["נחושת לא נמשכת למגנט – צריך ברזל","נחושת יקרה מדי לתיקים","אין טעות – נחושת נמשכת למגנט"]],
+ ["מטוסים","כסף",["כסף כבד ויקר – מטוסים עושים מאלומיניום, קל וחזק","כסף לא מוליך חשמל","אין טעות – כסף הכי מתאים למטוסים"]],
+ ["תנור חימום","בדיל",["בדיל משמש להגנה על מתכות מחלודה – לתנור צריך מתכת חזקה שמוליכה חום, כמו ברזל","בדיל לא מוליך חום בכלל כי הוא לא מתכת","אין טעות – בדיל הכי מתאים לתנורים"]],
+ ["פסי רכבת","כסף",["כסף רך ויקר – פסי רכבת עשויים מפלדה חזקה","כסף נמשך למגנט ולכן לא מתאים","אין טעות – פסי רכבת עשויים מכסף"]]
+];
+let CL={tab:"fill",w:"metals"};
+function classLike(tab){
+  SCREEN="classlike";if(tab)CL.tab=tab;
+  root.innerHTML=`${topbar("home")}
+  <section class="panel stack">
+    <span class="pill primary" style="align-self:flex-start">📝 כמו במבחן בכיתה</span>
+    <h1>תרגול בסגנון דפי החזרה בספר</h1>
+    <div class="tabs" role="tablist">${[["fill","השלמת משפטים"],["match","התאמה"],["mistake","מצאו את הטעות"]].map(([k,n])=>`<button role="tab" aria-selected="${CL.tab===k}" data-cl="${k}">${n}</button>`).join("")}</div>
+    <div id="clBody" class="stack"></div>
+  </section>`;
+  bindNav();
+  root.querySelectorAll("[data-cl]").forEach(b=>b.onclick=()=>classLike(b.dataset.cl));
+  ({fill:clFill,match:clMatch,mistake:clMistake})[CL.tab](document.getElementById("clBody"));
+}
+const selCss=`style="display:inline-block;width:auto;min-width:110px;padding:6px 10px;font-size:1rem;margin:2px 4px"`;
+function checkSelects(body,doneMsg){
+  let ok=0,all=0;
+  body.querySelectorAll("select[data-a]").forEach(sel=>{all++;const good=sel.value===sel.dataset.a;if(good)ok++;
+    sel.style.borderColor=sel.value?(good?"var(--good)":"var(--bad)"):"var(--line)";sel.style.background=sel.value?(good?"var(--good-soft)":"var(--bad-soft)"):""});
+  body.querySelector("#clRes").innerHTML=ok===all?`<div class="fb good">${doneMsg} ✓ ${ok}/${all}</div>`:`<div class="fb bad">${ok} מתוך ${all} נכונות. תקנו את המסומנים באדום ובדקו שוב.</div>`;
+  if(ok===all)confetti();
+}
+function clFill(body){
+  const f=FILL[CL.w],bank=shuffle(f.bank);
+  body.innerHTML=`<div class="row" style="gap:6px">${WORLDS.map(w=>`<button class="pill ${CL.w===w.id?"primary":""}" data-w="${w.id}" style="border:none">${w.name}</button>`).join("")}</div>
+    <p class="muted small">"בפרק ${W[CL.w].name} למדנו ש…" – בחרו לכל משפט את המילה החסרה ממחסן המילים.</p>
+    <div class="why" style="background:var(--bg);border-radius:14px;padding:10px 12px"><b>מחסן מילים:</b> ${bank.join(" • ")}</div>
+    <ol class="stack" style="padding-inline-start:20px;margin:0">${f.items.map(([a,ans,b])=>`<li style="line-height:2.1">${a}<select class="input" data-a="${ans}" ${selCss}><option value="">______</option>${bank.map(x=>`<option>${x}</option>`).join("")}</select>${b}</li>`).join("")}</ol>
+    <button class="btn primary block" id="clCheck">בדיקה ✓</button><div id="clRes"></div>`;
+  body.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{CL.w=b.dataset.w;clFill(body)});
+  body.querySelector("#clCheck").onclick=()=>checkSelects(body,"השלמתם את כל המשפטים!");
+}
+function clMatch(body){
+  body.innerHTML=MATCH.map((m,j)=>{const rights=shuffle(m.pairs.map(p=>p[1]));
+    return `<div class="stack" style="border:1px solid var(--line);border-radius:16px;padding:12px"><b>${m.t}</b>
+      ${m.pairs.map(([l,r])=>`<div class="row" style="flex-wrap:wrap;gap:6px"><span style="font-weight:800;min-width:110px">${l}</span><select class="input" data-a="${r}" style="flex:1;min-width:170px"><option value="">בחרו…</option>${rights.map(x=>`<option>${x}</option>`).join("")}</select></div>`).join("")}</div>`}).join("")+
+    `<button class="btn primary block" id="clCheck">בדיקה ✓</button><div id="clRes"></div>`;
+  body.querySelector("#clCheck").onclick=()=>checkSelects(body,"כל ההתאמות נכונות!");
+}
+function clMistake(body){
+  body.innerHTML=`<p class="muted small">בטבלה יש מוצרים שייצרו אותם ממתכת לא מתאימה. בחרו מה הטעות בכל שורה.</p>`+
+    MISTAKES.map(([prod,metal,opts],j)=>{const o=shuffle(opts.map((t,k)=>({t,ok:k===0})));
+      return `<div class="stack" style="border:1px solid var(--line);border-radius:16px;padding:12px" data-m="${j}">
+        <div><b>${prod}</b> – עשוי מ<b>${metal}</b>. מה הטעות?</div>
+        <div class="opts">${o.map((x,k)=>`<button class="opt" data-ok="${x.ok?1:0}"><span class="k">${"אבג"[k]}</span>${x.t}</button>`).join("")}</div><div class="mfb"></div></div>`}).join("")+`<div id="clRes"></div>`;
+  let done=0;
+  body.querySelectorAll("[data-m]").forEach(card=>card.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    if(b.dataset.ok==="1"){card.querySelectorAll(".opt").forEach(x=>x.disabled=true);b.classList.add("right");card.querySelector(".mfb").innerHTML=`<div class="fb good">נכון!</div>`;
+      if(++done===MISTAKES.length){body.querySelector("#clRes").innerHTML=`<div class="fb good">מצאתם את כל הטעויות! ✓</div>`;confetti()}}
+    else{b.classList.add("wrong");b.disabled=true;card.querySelector(".mfb").innerHTML=`<div class="fb bad">לא בדיוק – חשבו על התכונה הייחודית של כל מתכת ונסו שוב.</div>`}
+  }));
 }
 
 /* ---------- sharing to the parent ---------- */
