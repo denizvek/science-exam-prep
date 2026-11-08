@@ -279,3 +279,29 @@ create or replace view public.results_public as
   from public.results
   where not hidden;
 grant select on public.results_public to anon;
+
+-- Added later: parent profiles. A device marks its own profile as a parent; such rows stay out of the class table.
+-- Kept apart from "hidden" (set by the owner), so a parent switching back to child never un-hides an owner-hidden row.
+alter table public.results add column if not exists is_parent boolean not null default false;
+
+create or replace view public.results_public as
+  select name, cls, av, meter, lessons, best, attempts, updated,
+         case when attempts > 0 then greatest(covered, 24) else 0 end as covered,
+         minutes,
+         case when attempts > 0 then greatest(correct, round(coalesce(best, 0) * 0.24)::int) else 0 end as correct,
+         coalesce(last_seen > now() - interval '2 minutes', false) as online,
+         greatest(updated, coalesce(last_seen, updated)) as active_at,
+         greatest(
+           case when today_date = (now() at time zone 'Asia/Jerusalem')::date then today_minutes else 0 end,
+           case when day_base_date = (now() at time zone 'Asia/Jerusalem')::date then greatest(minutes - day_base_minutes, 0) else 0 end
+         ) as today_minutes
+  from public.results
+  where not hidden and not is_parent;
+grant select on public.results_public to anon;
+
+create or replace function public.set_parent(p_id text, p_parent boolean) returns void
+language sql security definer set search_path = public as $$
+  update results set is_parent = coalesce(p_parent, false) where id = left(p_id, 40);
+$$;
+revoke all on function public.set_parent(text, boolean) from public;
+grant execute on function public.set_parent(text, boolean) to anon;

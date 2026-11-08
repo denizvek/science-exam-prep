@@ -241,6 +241,15 @@ details.fold>summary{list-style:none;cursor:pointer;padding:18px 0;display:flex;
 details.fold>summary::-webkit-details-marker{display:none}
 details.fold>summary::after{content:"▾";transition:transform .2s}
 details.fold[open]>summary::after{transform:rotate(180deg)}
+.role{position:fixed;inset:0;z-index:46;display:grid;place-items:center;padding:16px;background:rgba(10,14,30,.55);overflow:auto}
+.role>div{background:var(--surface);color:var(--ink);border-radius:24px;padding:20px 18px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.role h2{font-size:1.45rem;text-align:center}
+.role .why{background:var(--bg);border-radius:14px;padding:10px 12px;font-size:.92rem;color:var(--muted)}
+.pick{text-align:start;border:2px solid var(--line);background:var(--surface);border-radius:18px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;width:100%}
+.pick .ic{font-size:2rem;line-height:1}
+.pick b{font-size:1.1rem;display:block;margin-bottom:2px}
+.pick span{font-size:.9rem;color:var(--muted);line-height:1.4}
+.pick:hover,.pick[aria-pressed="true"]{border-color:var(--primary)}
 .more{border:1px solid var(--line);border-radius:16px;padding:4px 12px;background:var(--bg)}
 .more>summary{cursor:pointer;font-weight:800;padding:10px 0;list-style:none;display:flex;justify-content:space-between;gap:10px}
 .more>summary::-webkit-details-marker{display:none}
@@ -713,9 +722,18 @@ const EXAM_Q=24;
 const covered=()=>P.exam.attempts?Math.max((P.exam.seen||[]).length,EXAM_Q):0;   // distinct bank questions this child was tested on
 const correctN=()=>P.exam.attempts?Math.max((P.exam.right||[]).length,Math.round((P.exam.best||0)*EXAM_Q/100)):0;   // distinct exam questions answered right
 function payload(){return {id:me.id,name:me.name,cls:me.cls,av:me.av,meter:meter(),lessons:lessonsDone(),best:P.exam.best,attempts:P.exam.attempts,covered:covered(),minutes:Math.round((P.time||0)/60),correct:correctN(),todayMin:P.today&&P.today.d===localDay()?Math.round(P.today.s/60):0,today:localDay()}}
-function queueSync(){if(!LIVE_ON||!me)return;clearTimeout(syncT);syncT=setTimeout(sendSync,2000)}
+/* parent or child: a parent profile never reaches the class table, and has everything open */
+const isParent=()=>!!me&&me.role==="parent";
+function setParentOnServer(pr,on){if(LIVE_ON)fetch(SUPA_URL+"/rest/v1/rpc/set_parent",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:pr.id,p_parent:on}),keepalive:true}).then(()=>{LIVE=null}).catch(()=>{})}
+function setRole(role){
+  const was=me.role;me.role=role;ls.set("profiles",profiles);
+  if(role==="parent")setParentOnServer(me,true);
+  else{if(was==="parent")setParentOnServer(me,false);lastSent="";queueSync()}
+  LIVE=null;
+}
+function queueSync(){if(!LIVE_ON||!me||isParent())return;clearTimeout(syncT);syncT=setTimeout(sendSync,2000)}
 function sendSync(){
-  if(!LIVE_ON||!me)return;const d=payload(),body=JSON.stringify(d);if(body===lastSent)return;lastSent=body;
+  if(!LIVE_ON||!me||isParent())return;const d=payload(),body=JSON.stringify(d);if(body===lastSent)return;lastSent=body;
   const args={p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes,p_correct:d.correct,p_today_minutes:d.todayMin,p_today:d.today};
   try{fetch(SUPA_URL+"/rest/v1/rpc/save_result",{method:"POST",headers:SUPA_H,body:JSON.stringify(args),keepalive:true}).then(r=>{if(!r.ok)lastSent="";LIVE=null}).catch(()=>{lastSent=""})}catch(e){lastSent=""}
 }
@@ -726,7 +744,7 @@ let lastAct=Date.now();
 const localDay=()=>{const t=new Date();return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")};
 /* ---------- "learning now": a heartbeat while the child is active, and the green dots refresh without redrawing ---------- */
 const activeNow=()=>!!me&&document.visibilityState==="visible"&&Date.now()-lastAct<60000;
-function ping(){if(LIVE_ON&&activeNow())fetch(SUPA_URL+"/rest/v1/rpc/ping",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:me.id}),keepalive:true}).catch(()=>{})}
+function ping(){if(LIVE_ON&&activeNow()&&!isParent())fetch(SUPA_URL+"/rest/v1/rpc/ping",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:me.id}),keepalive:true}).catch(()=>{})}
 function refreshOnline(){
   if(!LIVE_ON||!me||document.visibilityState!=="visible")return;
   fetch(SUPA_URL+"/rest/v1/results_public?select=*&order=updated.desc&limit=1000",{headers:SUPA_H}).then(r=>r.ok?r.json():null).then(d=>{if(!Array.isArray(d))return;
@@ -792,7 +810,7 @@ const LOGO='<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><
 
 function topbar(back){
   return `<div class="top">${back?`<button class="back" data-nav="${back}">→ חזרה</button>`:`<div class="brand"><span class="logo">${LOGO}</span><span class="btxt">מבחן במדעים<span class="bsub"> · כיתה ה׳</span></span></div>`}
-  ${me?`<div class="who"><span class="small"><b>${esc(me.name)}</b> · ${esc(me.cls)}</span><span class="av">${me.av}</span></div>`:""}</div>`;
+  ${me?`<div class="who"><span class="small"><b>${esc(me.name)}</b> · ${isParent()?"👨‍👩‍👧 הורה":esc(me.cls)}</span><span class="av">${me.av}</span></div>`:""}</div>`;
 }
 function bindNav(){root.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>nav(b.dataset.nav))}
 function nav(to){
@@ -874,6 +892,7 @@ function onboarding(){
         <select class="input" id="pg">${["ה","ד","ו"].map(g=>`<option ${me&&me.cls.startsWith(g)?"selected":""}>${g}</option>`).join("")}</select>
         <select class="input" id="pc">${[1,2,3,4,5,6,7,8].map(n=>`<option ${me&&me.cls.endsWith(String(n))?"selected":""}>${n}</option>`).join("")}</select></div></div>
       <div class="field"><label>הדמות שלי</label><div class="avs" id="avs">${AVATARS.map(a=>`<button type="button" aria-pressed="${a===av}" data-av="${a}">${a}</button>`).join("")}</div></div>
+      ${me?`<div class="field"><label>מי משתמש/ת בפרופיל הזה?</label><div class="stack" id="roles"><button type="button" class="pick" data-role="kid" aria-pressed="${me.role!=="parent"}">${ROLE_KID}</button><button type="button" class="pick" data-role="parent" aria-pressed="${me.role==="parent"}">${ROLE_PARENT}</button></div></div>`:""}
       <div id="perr"></div>
       <button class="btn primary block">${me?"שמירה":"יוצאים לדרך ←"}</button>
       ${profiles.length>(me?1:0)?`<div class="stack"><span class="small muted">או המשיכו כ:</span><div class="profiles">${profiles.filter(p=>!me||p.id!==me.id).map(p=>`<button type="button" data-pid="${p.id}"><span class="av">${p.av}</span>${esc(p.name)}</button>`).join("")}</div></div>`:""}
@@ -882,24 +901,40 @@ function onboarding(){
   </div>`;
   bindNav();
   root.querySelectorAll("[data-av]").forEach(b=>b.onclick=()=>{av=b.dataset.av;root.querySelectorAll("[data-av]").forEach(x=>x.setAttribute("aria-pressed",x===b))});
+  let role=me?(me.role==="parent"?"parent":"kid"):null;
+  root.querySelectorAll("#roles [data-role]").forEach(b=>b.onclick=()=>{role=b.dataset.role;root.querySelectorAll("#roles [data-role]").forEach(x=>x.setAttribute("aria-pressed",x===b))});
   root.querySelectorAll("[data-pid]").forEach(b=>b.onclick=()=>switchTo(b.dataset.pid));
   document.getElementById("pf").onsubmit=e=>{e.preventDefault();
     const name=document.getElementById("pn").value.trim().replace(/\s+/g," ");
     if(name.length<2){document.getElementById("perr").innerHTML=`<div class="fb bad">כתבו שם כדי שנדע מי מתקדם.</div>`;return}
     const cls=document.getElementById("pg").value+"׳"+document.getElementById("pc").value;
-    if(me){Object.assign(me,{name,cls,av})}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av};profiles.push(me);P=blank()}
+    if(me){Object.assign(me,{name,cls,av});if(role&&(role!==me.role))setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av};profiles.push(me);P=blank()}
     ls.set("profiles",profiles);ls.set("active",me.id);save();home();};
 }
 function switchTo(id){me=profiles.find(p=>p.id===id);ls.set("active",id);P=ls.get("p:"+id,blank());home()}
 
 let SCREEN="";
+const ROLE_KID=`<span class="ic">🧒</span><span><b>אני ילד/ה</b>לומד/ת למבחן. ההתקדמות שלי נשמרת ומופיעה בטבלת ההישגים.</span>`;
+const ROLE_PARENT=`<span class="ic">👨‍👩‍👧</span><span><b>אני הורה</b>לא אופיע בטבלה. אוכל לראות את ההישגים של כולם ולעבור על כל השיעורים, הכרטיסיות והמבחן – בלי חובה להשלים קודם את הלמידה.</span>`;
+function askRole(){
+  if(document.querySelector(".role"))return;
+  const el=document.createElement("div");el.className="role";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");
+  el.innerHTML=`<div><div style="font-size:2.2rem;text-align:center">👋</div><h2>מי משתמש/ת באפליקציה?</h2>
+    <p class="why">טבלת ההישגים מיועדת לילדים בלבד. הורים שנכנסים לאפליקציה כדי להכיר את החומר לא אמורים להופיע בה – ולכן אנחנו שואלים מי נכנס.</p>
+    ${profiles.length>1?`<p class="small" style="text-align:center;font-weight:800">הפרופיל: ${me.av} ${esc(me.name)}</p>`:""}
+    <button class="pick" data-role="kid">${ROLE_KID}</button><button class="pick" data-role="parent">${ROLE_PARENT}</button>
+    <p class="small muted" style="text-align:center">אפשר לשנות את הבחירה בכל רגע במסך הפרופיל ✎</p></div>`;
+  document.body.appendChild(el);
+  el.querySelectorAll("[data-role]").forEach(b=>b.onclick=()=>{setRole(b.dataset.role);el.remove();home()});
+}
 let FOLD={my:false,board:false};
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.fold)FOLD[d.dataset.fold]=d.open},true);
 function home(){
   if(!me)return onboarding();
   if(newVersion)reloadOnce();
+  if(!me.role)setTimeout(askRole,0);
   SCREEN="home";loadLive();queueSync();
-  const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK;
+  const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK||isParent();
   const rows=boardRows();
   root.innerHTML=`${topbar()}
   <details class="fold" data-fold="my" ${FOLD.my?"open":""}><summary><span>📈 ההישגים שלי <span class="small muted">· מד הלמידה ${m}%${best!=null?` · ציון ${best}`:""}</span></span></summary>
@@ -924,7 +959,7 @@ function home(){
     <a class="btn primary block" style="text-align:center;text-decoration:none" href="${moveLink()}" target="_blank" rel="noopener">מעבר לאתר החדש עם ההתקדמות שלי ←</a>
     <p class="small muted">מעכשיו כדאי להיכנס רק מהכתובת: denizvek.github.io/science-exam-prep</p>
   </section>`}
-  ${(()=>{const st=[];WORLDS.forEach(w=>w.lessons.forEach((l,i)=>{if(lessonStale(l.id))st.push({w,l,i})}));
+  ${isParent()?"":(()=>{const st=[];WORLDS.forEach(w=>w.lessons.forEach((l,i)=>{if(lessonStale(l.id))st.push({w,l,i})}));
     return st.length?`<section class="panel stack" style="border:2px solid var(--bad)">
     <h2>🆕 נוסף חומר חדש ב-${st.length} שיעורים</h2>
     <p class="muted">הוספנו לשיעורים חומר מדפי המידע, והוא חלק מהמבחן. קראו כל שיעור שוב וענו על שאלת הבדיקה – ומד הלמידה יחזור לעלות.</p>
@@ -1120,7 +1155,7 @@ function practiceIntro(wid,body){
   if(document.getElementById("rev"))document.getElementById("rev").onclick=()=>runQuiz({mode:"practice",wid,review:true,qs:shuffle(all).slice(0,size).map(buildQ)});
 }
 function examIntro(){
-  if(meter()<EXAM_UNLOCK)return home();
+  if(meter()<EXAM_UNLOCK&&!isParent())return home();
   root.innerHTML=`${topbar("home")}
   <section class="panel stack">
     <span class="pill xp" style="align-self:flex-start">המבחן המסכם</span><h1>מוכנים?</h1>
@@ -1341,7 +1376,7 @@ function moveLink(){   // old link -> new site, carrying every child on this dev
   return SITE_URL+"#import="+b64e(JSON.stringify({v:1,profiles,data,active:me?me.id:null}));
 }
 function syncOne(pr,data){   // send one child's row (not only the active one)
-  if(!LIVE_ON)return;const sm=me,sp=P;me=pr;P=data;let d;try{d=payload()}finally{me=sm;P=sp}
+  if(!LIVE_ON||pr.role==="parent")return;const sm=me,sp=P;me=pr;P=data;let d;try{d=payload()}finally{me=sm;P=sp}
   fetch(SUPA_URL+"/rest/v1/rpc/save_result",{method:"POST",headers:SUPA_H,keepalive:true,
     body:JSON.stringify({p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes,p_correct:d.correct,p_today_minutes:d.todayMin,p_today:d.today})}).catch(()=>{});
 }
@@ -1357,7 +1392,7 @@ function importFromHash(){
     const inc=d.data[pr.id];if(!inc||typeof inc!=="object")return;
     if(!inc.exam)inc.exam={best:null,attempts:0,last:null,history:[]};
     let ex=profiles.find(x=>x.id===pr.id);
-    if(!ex){ex={id:pr.id,name:String(pr.name).slice(0,40),cls:String(pr.cls||"").slice(0,10),av:AVATARS.includes(pr.av)?pr.av:"🙂"};profiles.push(ex)}
+    if(!ex){ex={id:pr.id,name:String(pr.name).slice(0,40),cls:String(pr.cls||"").slice(0,10),av:AVATARS.includes(pr.av)?pr.av:"🙂"};if(pr.role==="parent"||pr.role==="kid")ex.role=pr.role;profiles.push(ex)}
     if(amount(inc)>=amount(ls.get("p:"+pr.id,null)))ls.set("p:"+pr.id,inc);
     syncOne(ex,ls.get("p:"+pr.id,blank()));n++;
   });
