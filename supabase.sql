@@ -245,3 +245,37 @@ language sql security definer set search_path = public as $$
 $$;
 revoke all on function public.save_result(text, text, text, text, int, int, int, int, int, int, int, int, date) from public;
 grant execute on function public.save_result(text, text, text, text, int, int, int, int, int, int, int, int, date) to anon;
+
+-- Added later: today's minutes for every app version. At a row's first write of the day (Israel time) a trigger
+-- stores the total minutes it had; the view's today_minutes = the larger of the app's own count and minutes - that.
+alter table public.results add column if not exists day_base_minutes int;
+alter table public.results add column if not exists day_base_date date;
+
+create or replace function public.results_day_base() returns trigger
+language plpgsql set search_path = public as $$
+declare d date := (now() at time zone 'Asia/Jerusalem')::date;
+begin
+  if tg_op = 'INSERT' then
+    new.day_base_date := d; new.day_base_minutes := 0;
+  elsif old.day_base_date is null or old.day_base_date < d then
+    new.day_base_date := d; new.day_base_minutes := old.minutes;
+  end if;
+  return new;
+end $$;
+create trigger results_day_base before insert or update on public.results
+  for each row execute function public.results_day_base();
+
+create or replace view public.results_public as
+  select name, cls, av, meter, lessons, best, attempts, updated,
+         case when attempts > 0 then greatest(covered, 24) else 0 end as covered,
+         minutes,
+         case when attempts > 0 then greatest(correct, round(coalesce(best, 0) * 0.24)::int) else 0 end as correct,
+         coalesce(last_seen > now() - interval '2 minutes', false) as online,
+         greatest(updated, coalesce(last_seen, updated)) as active_at,
+         greatest(
+           case when today_date = (now() at time zone 'Asia/Jerusalem')::date then today_minutes else 0 end,
+           case when day_base_date = (now() at time zone 'Asia/Jerusalem')::date then greatest(minutes - day_base_minutes, 0) else 0 end
+         ) as today_minutes
+  from public.results
+  where not hidden;
+grant select on public.results_public to anon;

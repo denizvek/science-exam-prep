@@ -975,7 +975,7 @@ function recentTable(rows){
 function recentPane(rows){
   const t=rows.filter(r=>r.todayMin>0).sort((a,b)=>b.todayMin-a.todayMin);
   return `<p class="small muted" style="text-align:center;font-weight:800">⏱ מי למד הכי הרבה היום</p>`+
-    (t.length?podium(t,true):`<p class="muted" style="text-align:center">עוד אף אחד לא למד היום. מי יהיה הראשון/ה? 💪</p>`)+recentTable(rows);
+    (t.length?podium(t,true):`<p class="muted" style="text-align:center">${rows.some(r=>fmtDay(r.activeAt)===fmtDay(new Date()))?"הזמן של היום נספר תוך כדי לימוד – הפודיום יתמלא אחרי כמה דקות ⏳":"עוד אף אחד לא למד היום. מי יהיה הראשון/ה? 💪"}</p>`)+recentTable(rows);
 }
 function setLbTab(t){LB_TAB=t;document.querySelectorAll(".lbtabs [data-lb]").forEach(b=>b.setAttribute("aria-selected",b.dataset.lb===t));
   document.querySelectorAll("[data-lbpane]").forEach(x=>x.hidden=x.dataset.lbpane!==t)}
@@ -983,7 +983,7 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 function leaderboard(rows,compact){
   if(!rows.length)return "";
   const on=rows.filter(r=>r.online).length;
-  return `<div class="tabs lbtabs" role="tablist"><button role="tab" data-lb="rank" aria-selected="${LB_TAB==="rank"}">🏆 דירוג</button><button role="tab" data-lb="recent" aria-selected="${LB_TAB==="recent"}">🕒 לומדים עכשיו ולאחרונה</button></div>
+  return `<div class="tabs lbtabs" role="tablist"><button role="tab" data-lb="rank" aria-selected="${LB_TAB==="rank"}">📊 תמונת מצב</button><button role="tab" data-lb="recent" aria-selected="${LB_TAB==="recent"}">🕒 לומדים עכשיו ולאחרונה</button></div>
   <p class="small" style="font-weight:800;color:#16a34a;text-align:center" id="onlineN">${on?`🟢 ${on} לומדים עכשיו`:""}</p>
   <div data-lbpane="rank" ${LB_TAB==="rank"?"":"hidden"}>${rankPane(rows,compact)}</div>
   <div data-lbpane="recent" id="recentPane" ${LB_TAB==="recent"?"":"hidden"}>${recentPane(rows)}</div>`;
