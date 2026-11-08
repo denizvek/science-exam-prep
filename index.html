@@ -212,14 +212,16 @@ th{background:var(--cs,var(--bg2));font-weight:800}
 .st-done{background:var(--good-soft);color:var(--good)}
 .st-star{background:var(--primary);color:var(--primary-ink)}
 .tablewrap{max-width:100%}
-.board .nm{white-space:normal;overflow-wrap:anywhere}
+.board .nm{white-space:normal}
+.nmt{min-width:0;overflow-wrap:break-word;word-break:normal}
+.nm .dot{order:-1}
 .board.compact{min-width:0}
 @media (max-width:600px){.board .wide,.board .mini,.board .att{display:none}.board{min-width:0}.board td,.board th{padding:8px 5px}.board .nm{gap:6px;white-space:normal}.rank{width:44px}.board .av{width:28px;height:28px;font-size:1rem}.board:not(.compact) tr.r td:nth-child(5){border-left:1px solid var(--line);border-radius:14px 0 0 14px}}
 .board.compact .mini{width:56px}
 .podium{display:flex;align-items:flex-end;gap:8px;margin-top:4px}
 .step{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px}
 .step .av{width:44px;height:44px;font-size:1.6rem}
-.step .pn{font-weight:800;font-size:.95rem;line-height:1.2;overflow-wrap:anywhere}
+.step .pn{font-weight:800;font-size:.95rem;line-height:1.2;overflow-wrap:break-word}
 .step .ps{font-size:.78rem;color:var(--muted);line-height:1.3}
 .step .blk{width:100%;border-radius:14px 14px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:var(--display);font-weight:700;color:#3a2700;margin-top:4px}
 .step .blk b{font-size:1.5rem;line-height:1}
@@ -981,7 +983,7 @@ function recentTable(rows){
   const top=new Set(rows.slice(0,SHOW_SCORES).map(r=>r.key));
   const list=rows.slice().sort((a,b)=>(b.online?1:0)-(a.online?1:0)||b.activeAt-a.activeAt);
   return `<div class="tablewrap"><table class="board compact"><thead><tr><th>תלמיד/ה</th><th>כיתה</th><th>מתי למד/ה</th><th>למידה</th><th>מבחן</th></tr></thead><tbody>
-  ${list.map(r=>`<tr class="r${isMine(r)?" me":""}"><td><span class="nm"><span class="av">${r.av}</span>${esc(r.name)}${isMine(r)?" (אני)":""}<span class="dot" data-ok="${esc(r.key)}" ${r.online?"":"hidden"}></span></span></td><td>${esc(r.cls)}</td>
+  ${list.map(r=>`<tr class="r${isMine(r)?" me":""}"><td><span class="nm"><span class="av">${r.av}</span><span class="nmt">${esc(r.name)}${isMine(r)?" (אני)":""}</span><span class="dot" data-ok="${esc(r.key)}" ${r.online?"":"hidden"}></span></span></td><td>${esc(r.cls)}</td>
     <td class="small" style="white-space:nowrap">${r.online?`<b style="color:#16a34a">🟢 עכשיו</b>`:`📅 ${fmtDay(r.activeAt)}<br><span class="muted">🕒 ${fmtTimeOfDay(r.activeAt)}</span>`}</td>
     <td class="num small"><b>${r.meter}%</b></td><td class="num">${(top.has(r.key)||isMine(r))&&r.best!=null?`<b>${r.best}</b>${r.covered?`<div class="small muted" style="white-space:nowrap">על ${r.covered}/${EXAM_BANK.length}</div>`:""}`:`${r.covered?`<span class="small muted" style="white-space:nowrap">על ${r.covered}/${EXAM_BANK.length}</span>`:`<span class="small muted">עוד לא התחיל/ה מבחנים</span>`}`}</td></tr>`).join("")}
   </tbody></table></div>`;
@@ -1012,7 +1014,7 @@ function boardTable(rows,compact,from=0){
   return `<div class="tablewrap"><table class="board${compact?" compact":""}"><thead><tr><th></th><th>תלמיד/ה</th><th>כיתה</th><th>למידה</th><th>מבחן</th>${compact?"":`<th class="wide">סטטוס</th>`}</tr></thead><tbody>
   ${rows.slice(from).map((r,j)=>{const i=from+j;const [st,stc]=statusOf(r.meter,r.best);
     const rk=placeOf(rows,i);
-    return `<tr class="r${mine(r)?" me":""}"><td class="rank">${medalCell(rk)}</td><td><span class="nm"><span class="av">${r.av}</span>${esc(r.name)}${mine(r)?" (אני)":""}<span class="dot" data-ok="${esc(r.key)}" ${r.online?"":"hidden"} title="לומד/ת עכשיו"></span></span></td><td>${esc(r.cls)}</td>
+    return `<tr class="r${mine(r)?" me":""}"><td class="rank">${medalCell(rk)}</td><td><span class="nm"><span class="av">${r.av}</span><span class="nmt">${esc(r.name)}${mine(r)?" (אני)":""}</span><span class="dot" data-ok="${esc(r.key)}" ${r.online?"":"hidden"} title="לומד/ת עכשיו"></span></span></td><td>${esc(r.cls)}</td>
   <td><div class="row" style="flex-wrap:nowrap"><div class="bar mini" style="--c:var(--xp)"><i style="width:${r.meter}%"></i></div><b class="num small">${r.meter}%</b></div>${r.minutes?`<div class="small muted" style="white-space:nowrap">⏱ ${fmtTime(r.minutes)}</div>`:""}</td>
   <td class="num">${(i<SHOW_SCORES||mine(r))&&r.best==null?`<span class="small muted">עוד לא התחיל/ה מבחנים</span>`:i<SHOW_SCORES||mine(r)?`<b>${r.best??"—"}</b>${r.attempts&&!compact?` <span class="small muted att">(${r.attempts})</span>`:""}${r.best!=null&&r.covered?`<div class="small muted cov" style="white-space:nowrap">על ${r.covered}/${EXAM_BANK.length}</div>`:""}`:`${r.covered?`<span class="small muted" style="white-space:nowrap">על ${r.covered}/${EXAM_BANK.length}</span>`:`<span class="small muted">עוד לא התחיל/ה מבחנים</span>`}`}</td>${compact?"":`<td class="wide"><span class="status ${stc}">${st}</span></td>`}</tr>`}).join("")}
   </tbody></table></div>${rows.some(r=>r.covered)?`<p class="small muted">מבחן = הציון הכי טוב (מוצג רק ל-${SHOW_SCORES} הראשונים; לשאר – רק על כמה שאלות נבחנו). "על 40/${EXAM_BANK.length}" = נבחן/ה עד היום על 40 שאלות שונות מתוך ${EXAM_BANK.length} השאלות במאגר. באותו ציון – מי שנבחן/ה על יותר שאלות מקבל/ת מקום גבוה יותר.</p>`:""}${rows.some(r=>r.minutes)?`<p class="small muted">⏱ = זמן למידה פעיל באתר (שעות:דקות), נמדד מ-7.11.2026. 🟢 = לומד/ת באתר עכשיו.</p>`:""}`;
