@@ -892,7 +892,7 @@ function onboarding(){
         <select class="input" id="pg">${["ה","ד","ו"].map(g=>`<option ${me&&me.cls.startsWith(g)?"selected":""}>${g}</option>`).join("")}</select>
         <select class="input" id="pc">${[1,2,3,4,5,6,7,8].map(n=>`<option ${me&&me.cls.endsWith(String(n))?"selected":""}>${n}</option>`).join("")}</select></div></div>
       <div class="field"><label>הדמות שלי</label><div class="avs" id="avs">${AVATARS.map(a=>`<button type="button" aria-pressed="${a===av}" data-av="${a}">${a}</button>`).join("")}</div></div>
-      ${me?`<div class="field"><label>מי משתמש/ת בפרופיל הזה?</label><div class="stack" id="roles"><button type="button" class="pick" data-role="kid" aria-pressed="${me.role!=="parent"}">${ROLE_KID}</button><button type="button" class="pick" data-role="parent" aria-pressed="${me.role==="parent"}">${ROLE_PARENT}</button></div></div>`:""}
+      <div class="field"><label>מי משתמש/ת בפרופיל הזה?</label><p class="small muted">טבלת ההישגים מיועדת לילדים בלבד. הורים שנכנסים כדי להכיר את החומר לא מופיעים בה – לכן חשוב לבחור.</p><div class="stack" id="roles"><button type="button" class="pick" data-role="kid" aria-pressed="${!!me&&me.role==="kid"}">${ROLE_KID}</button><button type="button" class="pick" data-role="parent" aria-pressed="${!!me&&me.role==="parent"}">${ROLE_PARENT}</button></div></div>
       <div id="perr"></div>
       <button class="btn primary block">${me?"שמירה":"יוצאים לדרך ←"}</button>
       ${profiles.length>(me?1:0)?`<div class="stack"><span class="small muted">או המשיכו כ:</span><div class="profiles">${profiles.filter(p=>!me||p.id!==me.id).map(p=>`<button type="button" data-pid="${p.id}"><span class="av">${p.av}</span>${esc(p.name)}</button>`).join("")}</div></div>`:""}
@@ -901,14 +901,15 @@ function onboarding(){
   </div>`;
   bindNav();
   root.querySelectorAll("[data-av]").forEach(b=>b.onclick=()=>{av=b.dataset.av;root.querySelectorAll("[data-av]").forEach(x=>x.setAttribute("aria-pressed",x===b))});
-  let role=me?(me.role==="parent"?"parent":"kid"):null;
+  let role=me&&me.role?me.role:null;
   root.querySelectorAll("#roles [data-role]").forEach(b=>b.onclick=()=>{role=b.dataset.role;root.querySelectorAll("#roles [data-role]").forEach(x=>x.setAttribute("aria-pressed",x===b))});
   root.querySelectorAll("[data-pid]").forEach(b=>b.onclick=()=>switchTo(b.dataset.pid));
   document.getElementById("pf").onsubmit=e=>{e.preventDefault();
     const name=document.getElementById("pn").value.trim().replace(/\s+/g," ");
     if(name.length<2){document.getElementById("perr").innerHTML=`<div class="fb bad">כתבו שם כדי שנדע מי מתקדם.</div>`;return}
+    if(!role){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו אם אתם ילד/ה או הורה.</div>`;document.getElementById("roles").scrollIntoView({behavior:"smooth",block:"center"});return}
     const cls=document.getElementById("pg").value+"׳"+document.getElementById("pc").value;
-    if(me){Object.assign(me,{name,cls,av});if(role&&(role!==me.role))setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av};profiles.push(me);P=blank()}
+    if(me){Object.assign(me,{name,cls,av});if(role!==me.role)setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av,role};profiles.push(me);P=blank();if(role==="parent")setParentOnServer(me,true)}
     ls.set("profiles",profiles);ls.set("active",me.id);save();home();};
 }
 function switchTo(id){me=profiles.find(p=>p.id===id);ls.set("active",id);P=ls.get("p:"+id,blank());home()}
