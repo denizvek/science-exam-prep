@@ -1028,10 +1028,6 @@ function home(){
     <h2>🆕 נוסף חומר חדש ב-${st.length} שיעורים</h2>
     <p class="muted">הוספנו לשיעורים חומר מדפי המידע, והוא חלק מהמבחן. קראו כל שיעור שוב וענו על שאלת הבדיקה – ומד הלמידה יחזור לעלות.</p>
     <div class="profiles">${st.map(x=>`<button data-redo="${x.w.id}:${x.i}">📖 ${x.l.title}</button>`).join("")}</div></section>`:""})()}
-  <section class="panel stack" style="border:2px solid var(--xp)">
-    <h2>🌙 חזרה לפני המבחן</h2>
-    <div class="row" style="flex-wrap:wrap"><button class="btn xp" data-nav="refresh" style="flex:1;min-width:150px">🎯 החזרה האישית שלי</button><button class="btn primary" data-nav="classlike:fill" style="flex:1;min-width:150px">📝 כמו במבחן בכיתה</button></div>
-  </section>
   <div class="worlds">${WORLDS.map(w=>{const wm=worldMeter(w.id),d=w.lessons.filter(l=>lessonDone(l.id)).length;return `<button class="world w-${w.id}" data-nav="world:${w.id}">
     <div class="art">${ILL[w.art]()}</div>
     <div class="body"><span class="tag">${w.tag} · ${d}/${w.lessons.length} שיעורים</span><h3>${w.name}</h3><span class="small muted">${w.blurb}</span>
@@ -1043,7 +1039,11 @@ function home(){
   </section>
   ${IS_OWNER?`<button class="btn primary block" data-nav="admin">🔑 ניהול טבלת התוצאות${pending().length?` · ${pending().length} חדשים`:""}</button>`:""}
   ${profiles.length>1?`<div class="profiles">${profiles.filter(p=>p.id!==me.id).map(p=>`<button data-pid="${p.id}"><span class="av">${p.av}</span>להחליף ל${esc(p.name)}</button>`).join("")}</div>`:""}
-  <button class="btn ghost" id="addp" style="align-self:flex-start">+ ילד/ה נוסף/ת במכשיר הזה</button>`;
+  <button class="btn ghost" id="addp" style="align-self:flex-start">+ ילד/ה נוסף/ת במכשיר הזה</button>
+  <section class="panel stack" style="border:2px solid var(--xp)">
+    <h2>🌙 חזרה לפני המבחן</h2>
+    <div class="row" style="flex-wrap:wrap"><button class="btn xp" data-nav="refresh" style="flex:1;min-width:150px">🎯 החזרה האישית שלי</button><button class="btn primary" data-nav="classlike:fill" style="flex:1;min-width:150px">📝 כמו במבחן בכיתה</button></div>
+  </section>`;
   bindNav();
   document.getElementById("share").onclick=()=>shareSheet();
   root.querySelectorAll("[data-redo]").forEach(b=>b.onclick=()=>{const [w,i]=b.dataset.redo.split(":");lesson(w,+i);scrollTo(0,0)});
