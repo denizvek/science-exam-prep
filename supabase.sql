@@ -192,3 +192,56 @@ create or replace view public.results_public as
   from public.results
   where not hidden;
 grant select on public.results_public to anon;
+
+-- Added later: learning minutes for the current day (Israel time), for the "who learned most today" podium.
+-- Additive: older save_result overloads stay; a call without p_today keeps the stored day's minutes.
+alter table public.results add column if not exists today_minutes int not null default 0;
+alter table public.results add column if not exists today_date date;
+
+create or replace view public.results_public as
+  select name, cls, av, meter, lessons, best, attempts, updated,
+         case when attempts > 0 then greatest(covered, 24) else 0 end as covered,
+         minutes,
+         case when attempts > 0 then greatest(correct, round(coalesce(best, 0) * 0.24)::int) else 0 end as correct,
+         coalesce(last_seen > now() - interval '2 minutes', false) as online,
+         greatest(updated, coalesce(last_seen, updated)) as active_at,
+         case when today_date = (now() at time zone 'Asia/Jerusalem')::date then today_minutes else 0 end as today_minutes
+  from public.results
+  where not hidden;
+grant select on public.results_public to anon;
+
+create or replace function public.save_result(
+  p_id text, p_name text, p_cls text, p_av text,
+  p_meter int, p_lessons int, p_best int, p_attempts int, p_covered int, p_minutes int, p_correct int,
+  p_today_minutes int, p_today date
+) returns void
+language sql security definer set search_path = public as $$
+  insert into results (id, name, cls, av, meter, lessons, best, attempts, covered, minutes, correct, today_minutes, today_date, updated)
+  select left(p_id, 40), left(trim(p_name), 40), left(p_cls, 10), left(p_av, 8),
+         least(greatest(coalesce(p_meter, 0), 0), 100),
+         least(greatest(coalesce(p_lessons, 0), 0), 50),
+         case when p_best is null then null else least(greatest(p_best, 0), 100) end,
+         least(greatest(coalesce(p_attempts, 0), 0), 999),
+         least(greatest(coalesce(p_covered, 0), 0), 200),
+         least(greatest(coalesce(p_minutes, 0), 0), 100000),
+         least(greatest(coalesce(p_correct, 0), 0), 200),
+         least(greatest(coalesce(p_today_minutes, 0), 0), 1440),
+         p_today,
+         now()
+  where length(coalesce(p_id, '')) >= 8 and length(trim(coalesce(p_name, ''))) >= 2
+  on conflict (id) do update set
+    name = excluded.name, cls = excluded.cls, av = excluded.av, meter = excluded.meter,
+    lessons = excluded.lessons, best = excluded.best, attempts = excluded.attempts,
+    covered = greatest(excluded.covered, results.covered),
+    minutes = greatest(excluded.minutes, results.minutes),
+    correct = greatest(excluded.correct, results.correct),
+    today_minutes = case when excluded.today_date is null then results.today_minutes
+                         when results.today_date is null or excluded.today_date > results.today_date then excluded.today_minutes
+                         when excluded.today_date = results.today_date then greatest(excluded.today_minutes, results.today_minutes)
+                         else results.today_minutes end,
+    today_date = case when excluded.today_date is null then results.today_date
+                      else greatest(excluded.today_date, coalesce(results.today_date, excluded.today_date)) end,
+    updated = now();
+$$;
+revoke all on function public.save_result(text, text, text, text, int, int, int, int, int, int, int, int, date) from public;
+grant execute on function public.save_result(text, text, text, text, int, int, int, int, int, int, int, int, date) to anon;

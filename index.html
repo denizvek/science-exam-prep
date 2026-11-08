@@ -701,17 +701,18 @@ let LIVE=null,liveLoading=false,syncT,lastSent="";
 const EXAM_Q=24;
 const covered=()=>P.exam.attempts?Math.max((P.exam.seen||[]).length,EXAM_Q):0;   // distinct bank questions this child was tested on
 const correctN=()=>P.exam.attempts?Math.max((P.exam.right||[]).length,Math.round((P.exam.best||0)*EXAM_Q/100)):0;   // distinct exam questions answered right
-function payload(){return {id:me.id,name:me.name,cls:me.cls,av:me.av,meter:meter(),lessons:lessonsDone(),best:P.exam.best,attempts:P.exam.attempts,covered:covered(),minutes:Math.round((P.time||0)/60),correct:correctN()}}
+function payload(){return {id:me.id,name:me.name,cls:me.cls,av:me.av,meter:meter(),lessons:lessonsDone(),best:P.exam.best,attempts:P.exam.attempts,covered:covered(),minutes:Math.round((P.time||0)/60),correct:correctN(),todayMin:P.today&&P.today.d===localDay()?Math.round(P.today.s/60):0,today:localDay()}}
 function queueSync(){if(!LIVE_ON||!me)return;clearTimeout(syncT);syncT=setTimeout(sendSync,2000)}
 function sendSync(){
   if(!LIVE_ON||!me)return;const d=payload(),body=JSON.stringify(d);if(body===lastSent)return;lastSent=body;
-  const args={p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes,p_correct:d.correct};
+  const args={p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes,p_correct:d.correct,p_today_minutes:d.todayMin,p_today:d.today};
   try{fetch(SUPA_URL+"/rest/v1/rpc/save_result",{method:"POST",headers:SUPA_H,body:JSON.stringify(args),keepalive:true}).then(r=>{if(!r.ok)lastSent="";LIVE=null}).catch(()=>{lastSent=""})}catch(e){lastSent=""}
 }
 addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){clearTimeout(syncT);sendSync()}});
 /* ---------- learning time: counts only while the page is visible and the child did something in the last minute ---------- */
 let lastAct=Date.now();
 ["pointerdown","keydown","scroll","touchstart"].forEach(e=>addEventListener(e,()=>{lastAct=Date.now()},{passive:true,capture:true}));
+const localDay=()=>{const t=new Date();return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")};
 /* ---------- "learning now": a heartbeat while the child is active, and the green dots refresh without redrawing ---------- */
 const activeNow=()=>!!me&&document.visibilityState==="visible"&&Date.now()-lastAct<60000;
 function ping(){if(LIVE_ON&&activeNow())fetch(SUPA_URL+"/rest/v1/rpc/ping",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:me.id}),keepalive:true}).catch(()=>{})}
@@ -724,14 +725,15 @@ function refreshOnline(){
     if(LIVE)LIVE.forEach(r=>r.online=on.has(r.key));
     document.querySelectorAll("[data-ok]").forEach(el=>el.hidden=!on.has(el.dataset.ok));
     const n=document.getElementById("onlineN");if(n){n.textContent=on.size?`🟢 ${on.size} לומדים עכשיו`:"";}
-    const rp=document.getElementById("recentPane");if(rp&&SCREEN==="home")rp.innerHTML=recentTable(boardRows());
+    const rp=document.getElementById("recentPane");if(rp&&SCREEN==="home")rp.innerHTML=recentPane(boardRows());
     podiumCheck(true);
   }).catch(()=>{});
 }
 setTimeout(ping,3000);setInterval(ping,60000);setInterval(refreshOnline,60000);
 addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){ping();setTimeout(refreshOnline,1500)}});
 setInterval(()=>{if(!me||document.visibilityState!=="visible"||Date.now()-lastAct>60000)return;
-  P.time=(P.time||0)+15;ls.set("p:"+me.id,P);if(P.time%300===0)queueSync()},15000);
+  P.time=(P.time||0)+15;const d=localDay();if(!P.today||P.today.d!==d)P.today={d,s:0};P.today.s+=15;
+  ls.set("p:"+me.id,P);if(P.time%300===0||P.today.s===60)queueSync()},15000);
 const fmtTime=m=>!m?"":m<60?`${m} דק׳`:`${Math.floor(m/60)}:${String(m%60).padStart(2,"0")} ש׳`;
 /* ---------- self-update: a tab left open picks up a new version of the site ---------- */
 let pageSig=null,newVersion=false,lastCheck=0;
@@ -753,7 +755,7 @@ checkVersion();
 addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){lastCheck=0;checkVersion()}});
 setInterval(checkVersion,10*60000);
 const liveRow=r=>{const name=String(r.name||"").slice(0,40),cls=String(r.cls||"").slice(0,10);
-  return {online:r.online===true,name,cls,av:AVATARS.includes(r.av)?r.av:"🙂",meter:Math.max(0,Math.min(100,+r.meter||0)),best:r.best==null||r.best===""?null:Math.max(0,Math.min(100,+r.best)),attempts:+r.attempts||0,covered:Math.max(0,Math.min(EXAM_BANK.length,+r.covered||0)),minutes:Math.max(0,+r.minutes||0),correct:Math.max(0,Math.min(EXAM_BANK.length,+r.correct||0)),date:new Date(r.updated||0),activeAt:new Date(r.active_at||r.updated||0),key:(name.trim()+"|"+cls).toLowerCase()}};
+  return {online:r.online===true,name,cls,av:AVATARS.includes(r.av)?r.av:"🙂",meter:Math.max(0,Math.min(100,+r.meter||0)),best:r.best==null||r.best===""?null:Math.max(0,Math.min(100,+r.best)),attempts:+r.attempts||0,covered:Math.max(0,Math.min(EXAM_BANK.length,+r.covered||0)),minutes:Math.max(0,+r.minutes||0),correct:Math.max(0,Math.min(EXAM_BANK.length,+r.correct||0)),date:new Date(r.updated||0),activeAt:new Date(r.active_at||r.updated||0),todayMin:Math.max(0,+r.today_minutes||0),key:(name.trim()+"|"+cls).toLowerCase()}};
 function loadLive(){
   if(!LIVE_ON||LIVE||liveLoading)return;liveLoading=true;
   fetch(SUPA_URL+"/rest/v1/results_public?select=*&order=updated.desc&limit=1000",{headers:SUPA_H}).then(r=>r.ok?r.json():null).then(d=>{if(Array.isArray(d)){LIVE=d.map(liveRow);podiumCheck(false);if(SCREEN==="home"&&document.getElementById("share"))home();else if(SCREEN==="board"&&document.getElementById("bt"))board()}}).catch(()=>{}).finally(()=>{liveLoading=false});
@@ -947,11 +949,15 @@ function medalCell(rk){
 }
 const isMine=r=>!!me&&r.key===(me.name.trim()+"|"+me.cls).toLowerCase();
 /* the 3 leaders on a podium, the rest folded away */
-function podium(rows){
+function podium(rows,today){
   const H=[96,76,60],BG=["linear-gradient(#f9dc6b,#dcae1f)","linear-gradient(#e6eaf0,#aab4c0)","linear-gradient(#eab084,#b8763e)"];
-  const step=i=>{const r=rows[i];if(!r)return `<div class="step"></div>`;const rk=placeOf(rows,i),k=Math.min(rk,3)-1;
+  const place=i=>today?new Set(rows.slice(0,i+1).map(r=>r.todayMin)).size:placeOf(rows,i);
+  const step=i=>{const r=rows[i];if(!r)return `<div class="step"></div>`;const rk=place(i),k=Math.min(rk,3)-1;
+    if(today)return `<div class="step${isMine(r)?" me":""}"><span class="av">${r.av}</span><span class="pn"><span class="dot" data-ok="${esc(r.key)}" ${r.online?"":"hidden"} title="לומד/ת עכשיו"></span> ${esc(r.name)}</span>
+      <span class="ps">${esc(r.cls)} · למד/ה היום</span>
+      <div class="blk" style="height:${H[k]}px;background:${BG[k]}"><span>${["🥇","🥈","🥉"][k]}</span><b style="font-size:1.15rem">⏱ ${fmtTime(r.todayMin)}</b></div></div>`;
     return `<div class="step${isMine(r)?" me":""}"><span class="av">${r.av}</span><span class="pn"><span class="dot" data-ok="${esc(r.key)}" ${r.online?"":"hidden"} title="לומד/ת עכשיו"></span> ${esc(r.name)}</span>
-      <span class="ps">${esc(r.cls)} · ${r.meter}% למידה${r.covered?`<br>על ${r.covered}/${EXAM_BANK.length}`:""}${r.minutes?`<br>⏱ ${fmtTime(r.minutes)}`:""}${fmtDay(r.date)?`<br>📅 ${fmtDay(r.date)}`:""}</span>
+      <span class="ps">${esc(r.cls)} · ${r.meter}% למידה${r.covered?`<br>על ${r.covered}/${EXAM_BANK.length}`:""}${r.minutes?`<br>⏱ ${fmtTime(r.minutes)}`:""}</span>
       <div class="blk" style="height:${H[k]}px;background:${BG[k]}"><span>${["🥇","🥈","🥉"][k]}</span><b>${r.best??"—"}</b></div></div>`};
   return `<div class="podium">${[1,0,2].map(step).join("")}</div>`;
 }
@@ -966,6 +972,11 @@ function recentTable(rows){
     <td class="num small"><b>${r.meter}%</b></td><td class="num"><b>${r.best??"—"}</b></td></tr>`).join("")}
   </tbody></table></div>`;
 }
+function recentPane(rows){
+  const t=rows.filter(r=>r.todayMin>0).sort((a,b)=>b.todayMin-a.todayMin);
+  return `<p class="small muted" style="text-align:center;font-weight:800">⏱ מי למד הכי הרבה היום</p>`+
+    (t.length?podium(t,true):`<p class="muted" style="text-align:center">עוד אף אחד לא למד היום. מי יהיה הראשון/ה? 💪</p>`)+recentTable(rows);
+}
 function setLbTab(t){LB_TAB=t;document.querySelectorAll(".lbtabs [data-lb]").forEach(b=>b.setAttribute("aria-selected",b.dataset.lb===t));
   document.querySelectorAll("[data-lbpane]").forEach(x=>x.hidden=x.dataset.lbpane!==t)}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".lbtabs [data-lb]");if(b)setLbTab(b.dataset.lb)});
@@ -975,7 +986,7 @@ function leaderboard(rows,compact){
   return `<div class="tabs lbtabs" role="tablist"><button role="tab" data-lb="rank" aria-selected="${LB_TAB==="rank"}">🏆 דירוג</button><button role="tab" data-lb="recent" aria-selected="${LB_TAB==="recent"}">🕒 לומדים עכשיו ולאחרונה</button></div>
   <p class="small" style="font-weight:800;color:#16a34a;text-align:center" id="onlineN">${on?`🟢 ${on} לומדים עכשיו`:""}</p>
   <div data-lbpane="rank" ${LB_TAB==="rank"?"":"hidden"}>${rankPane(rows,compact)}</div>
-  <div data-lbpane="recent" id="recentPane" ${LB_TAB==="recent"?"":"hidden"}>${recentTable(rows)}</div>`;
+  <div data-lbpane="recent" id="recentPane" ${LB_TAB==="recent"?"":"hidden"}>${recentPane(rows)}</div>`;
 }
 function rankPane(rows,compact){
   const rest=rows.length-3,mi=rows.findIndex(isMine);
@@ -988,9 +999,9 @@ function boardTable(rows,compact,from=0){
   ${rows.slice(from).map((r,j)=>{const i=from+j;const [st,stc]=statusOf(r.meter,r.best);
     const rk=placeOf(rows,i);
     return `<tr class="r${mine(r)?" me":""}"><td class="rank">${medalCell(rk)}</td><td><span class="nm"><span class="av">${r.av}</span>${esc(r.name)}${mine(r)?" (אני)":""}<span class="dot" data-ok="${esc(r.key)}" ${r.online?"":"hidden"} title="לומד/ת עכשיו"></span></span></td><td>${esc(r.cls)}</td>
-  <td><div class="row" style="flex-wrap:nowrap"><div class="bar mini" style="--c:var(--xp)"><i style="width:${r.meter}%"></i></div><b class="num small">${r.meter}%</b></div>${r.minutes?`<div class="small muted" style="white-space:nowrap">⏱ ${fmtTime(r.minutes)}</div>`:""}${fmtDay(r.date)?`<div class="small muted" style="white-space:nowrap">📅 ${fmtDay(r.date)}</div>`:""}</td>
+  <td><div class="row" style="flex-wrap:nowrap"><div class="bar mini" style="--c:var(--xp)"><i style="width:${r.meter}%"></i></div><b class="num small">${r.meter}%</b></div>${r.minutes?`<div class="small muted" style="white-space:nowrap">⏱ ${fmtTime(r.minutes)}</div>`:""}</td>
   <td class="num"><b>${r.best??"—"}</b>${r.attempts&&!compact?` <span class="small muted att">(${r.attempts})</span>`:""}${r.best!=null&&r.covered?`<div class="small muted cov" style="white-space:nowrap">על ${r.covered}/${EXAM_BANK.length}</div>`:""}</td>${compact?"":`<td class="wide"><span class="status ${stc}">${st}</span></td>`}</tr>`}).join("")}
-  </tbody></table></div>${rows.some(r=>r.covered)?`<p class="small muted">מבחן = הציון הכי טוב. "על 40/${EXAM_BANK.length}" = נבחן/ה עד היום על 40 שאלות שונות מתוך ${EXAM_BANK.length} השאלות במאגר. באותו ציון – מי שנבחן/ה על יותר שאלות מקבל/ת מקום גבוה יותר.</p>`:""}${rows.some(r=>r.minutes)?`<p class="small muted">⏱ = זמן למידה פעיל באתר (שעות:דקות), נמדד מ-7.11.2026. 📅 = הפעם האחרונה שלמד/ה באתר (יום.חודש). 🟢 = לומד/ת באתר עכשיו.</p>`:""}`;
+  </tbody></table></div>${rows.some(r=>r.covered)?`<p class="small muted">מבחן = הציון הכי טוב. "על 40/${EXAM_BANK.length}" = נבחן/ה עד היום על 40 שאלות שונות מתוך ${EXAM_BANK.length} השאלות במאגר. באותו ציון – מי שנבחן/ה על יותר שאלות מקבל/ת מקום גבוה יותר.</p>`:""}${rows.some(r=>r.minutes)?`<p class="small muted">⏱ = זמן למידה פעיל באתר (שעות:דקות), נמדד מ-7.11.2026. 🟢 = לומד/ת באתר עכשיו.</p>`:""}`;
 }
 
 /* ---------- world ---------- */
@@ -1315,7 +1326,7 @@ function moveLink(){   // old link -> new site, carrying every child on this dev
 function syncOne(pr,data){   // send one child's row (not only the active one)
   if(!LIVE_ON)return;const sm=me,sp=P;me=pr;P=data;let d;try{d=payload()}finally{me=sm;P=sp}
   fetch(SUPA_URL+"/rest/v1/rpc/save_result",{method:"POST",headers:SUPA_H,keepalive:true,
-    body:JSON.stringify({p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes,p_correct:d.correct})}).catch(()=>{});
+    body:JSON.stringify({p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes,p_correct:d.correct,p_today_minutes:d.todayMin,p_today:d.today})}).catch(()=>{});
 }
 function importFromHash(){
   const m=location.hash.match(/^#import=([A-Za-z0-9_-]+)$/);if(!m)return false;
