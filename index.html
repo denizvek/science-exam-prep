@@ -890,7 +890,7 @@ function onboarding(){
       <div class="field"><label for="pn">שם פרטי ושם משפחה</label><input class="input" id="pn" maxlength="30" autocomplete="off" value="${me?esc(me.name):""}" placeholder="למשל: ליאם כהן"></div>
       <div class="field"><label for="pg">כיתה</label><div class="row" style="flex-wrap:nowrap">
         <select class="input" id="pg">${["ה","ד","ו"].map(g=>`<option ${me&&me.cls.startsWith(g)?"selected":""}>${g}</option>`).join("")}</select>
-        <select class="input" id="pc">${[1,2,3,4,5,6,7,8].map(n=>`<option ${me&&me.cls.endsWith(String(n))?"selected":""}>${n}</option>`).join("")}</select></div></div>
+        <select class="input" id="pc">${me?"":`<option value="" selected>מספר כיתה</option>`}${[1,2,3,4,5,6,7,8].map(n=>`<option ${me&&me.cls.endsWith(String(n))?"selected":""}>${n}</option>`).join("")}</select></div></div>
       <div class="field"><label>הדמות שלי</label><div class="avs" id="avs">${AVATARS.map(a=>`<button type="button" aria-pressed="${a===av}" data-av="${a}">${a}</button>`).join("")}</div></div>
       <div class="field"><label>מי משתמש/ת בפרופיל הזה?</label><p class="small muted">טבלת ההישגים מיועדת לילדים בלבד. הורים שנכנסים כדי להכיר את החומר לא מופיעים בה – לכן חשוב לבחור.</p><div class="stack" id="roles"><button type="button" class="pick" data-role="kid" aria-pressed="${!!me&&me.role==="kid"}">${ROLE_KID}</button><button type="button" class="pick" data-role="parent" aria-pressed="${!!me&&me.role==="parent"}">${ROLE_PARENT}</button></div></div>
       <div id="perr"></div>
@@ -904,12 +904,14 @@ function onboarding(){
   let role=me&&me.role?me.role:null;
   root.querySelectorAll("#roles [data-role]").forEach(b=>b.onclick=()=>{role=b.dataset.role;root.querySelectorAll("#roles [data-role]").forEach(x=>x.setAttribute("aria-pressed",x===b))});
   root.querySelectorAll("[data-pid]").forEach(b=>b.onclick=()=>switchTo(b.dataset.pid));
+  document.getElementById("pc").onchange=()=>{document.getElementById("perr").innerHTML=""};
   document.getElementById("pf").onsubmit=e=>{e.preventDefault();
     const name=document.getElementById("pn").value.trim().replace(/\s+/g," ");
     if(name.length<2){document.getElementById("perr").innerHTML=`<div class="fb bad">כתבו שם כדי שנדע מי מתקדם.</div>`;return}
     if(!role){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו אם אתם ילד/ה או הורה.</div>`;document.getElementById("roles").scrollIntoView({behavior:"smooth",block:"center"});return}
+    if(!document.getElementById("pc").value){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו את מספר הכיתה.</div>`;document.getElementById("pc").focus();return}
     const cls=document.getElementById("pg").value+"׳"+document.getElementById("pc").value;
-    if(me){Object.assign(me,{name,cls,av});if(role!==me.role)setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av,role};profiles.push(me);P=blank();if(role==="parent")setParentOnServer(me,true)}
+    if(me){Object.assign(me,{name,cls,av,clsOk:true});if(role!==me.role)setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av,role,clsOk:true};profiles.push(me);P=blank();if(role==="parent")setParentOnServer(me,true)}
     ls.set("profiles",profiles);ls.set("active",me.id);save();home();};
 }
 function switchTo(id){me=profiles.find(p=>p.id===id);ls.set("active",id);P=ls.get("p:"+id,blank());home()}
@@ -929,20 +931,28 @@ function askRole(){
   const done=()=>{el.remove();home()};
   el.querySelectorAll("[data-role]").forEach(b=>b.onclick=()=>{
     if(b.dataset.role!=="kid"){setRole("parent");return done()}
-    // a child confirms the class before going on
-    const box=el.firstElementChild;
-    const ask=()=>{box.innerHTML=`<div style="font-size:2.2rem;text-align:center">🏫</div><h2>הכיתה שלך היא ${esc(me.cls)}?</h2>
-      <p class="why" style="text-align:center">הכיתה מופיעה ליד השם שלך בטבלת ההישגים, אז חשוב שתהיה נכונה.</p>
-      <button class="btn primary block" id="clsYes">כן, ${esc(me.cls)} נכון ✓</button><button class="btn ghost block" id="clsNo">לא, אני בכיתה אחרת</button>`;
-      box.querySelector("#clsYes").onclick=()=>{setRole("kid");done()};
-      box.querySelector("#clsNo").onclick=pick};
-    const pick=()=>{box.innerHTML=`<div style="font-size:2.2rem;text-align:center">🏫</div><h2>באיזו כיתה את/ה?</h2>
-      <div class="row" style="flex-wrap:nowrap"><select class="input" id="rg">${["ה","ד","ו"].map(g=>`<option ${me.cls.startsWith(g)?"selected":""}>${g}</option>`).join("")}</select>
-      <select class="input" id="rc">${[1,2,3,4,5,6,7,8].map(n=>`<option ${me.cls.endsWith(String(n))?"selected":""}>${n}</option>`).join("")}</select></div>
-      <button class="btn primary block" id="clsSave">שמירה והמשך ←</button>`;
-      box.querySelector("#clsSave").onclick=()=>{me.cls=box.querySelector("#rg").value+"׳"+box.querySelector("#rc").value;ls.set("profiles",profiles);setRole("kid");lastSent="";queueSync();done()}};
-    ask();
+    setRole("kid");el.remove();confirmClass();
   });
+}
+/* every child confirms the class once (sign-up used to start at ה׳1, so many kept it by mistake) */
+function confirmClass(){
+  if(document.querySelector(".role"))return;
+  const el=document.createElement("div");el.className="role";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");
+  el.innerHTML="<div></div>";document.body.appendChild(el);const box=el.firstElementChild;
+  const done=()=>{me.clsOk=true;ls.set("profiles",profiles);el.remove();home()};
+  const ask=()=>{box.innerHTML=`<div style="font-size:2.2rem;text-align:center">🏫</div><h2>${esc(me.name)}, הכיתה שלך היא ${esc(me.cls)}?</h2>
+    <p class="why" style="text-align:center">הכיתה מופיעה ליד השם שלך בטבלת ההישגים, אז חשוב שתהיה נכונה.</p>
+    <button class="btn primary block" id="clsYes">כן, ${esc(me.cls)} נכון ✓</button><button class="btn ghost block" id="clsNo">לא, אני בכיתה אחרת</button>`;
+    box.querySelector("#clsYes").onclick=done;box.querySelector("#clsNo").onclick=pick};
+  const pick=()=>{box.innerHTML=`<div style="font-size:2.2rem;text-align:center">🏫</div><h2>באיזו כיתה את/ה?</h2>
+    <div class="row" style="flex-wrap:nowrap"><select class="input" id="rg">${["ה","ד","ו"].map(g=>`<option ${me.cls.startsWith(g)?"selected":""}>${g}</option>`).join("")}</select>
+    <select class="input" id="rc"><option value="">בחרו</option>${[1,2,3,4,5,6,7,8].map(n=>`<option>${n}</option>`).join("")}</select></div>
+    <div id="rcErr"></div><button class="btn primary block" id="clsSave">שמירה והמשך ←</button>`;
+    box.querySelector("#rc").onchange=()=>{box.querySelector("#rcErr").innerHTML=""};
+    box.querySelector("#clsSave").onclick=()=>{const n=box.querySelector("#rc").value;
+      if(!n){box.querySelector("#rcErr").innerHTML=`<div class="fb bad">בחרו את מספר הכיתה.</div>`;return}
+      me.cls=box.querySelector("#rg").value+"׳"+n;lastSent="";queueSync();done()}};
+  ask();
 }
 let FOLD={my:false,board:false};
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.fold)FOLD[d.dataset.fold]=d.open},true);
@@ -950,6 +960,7 @@ function home(){
   if(!me)return onboarding();
   if(newVersion)reloadOnce();
   if(!me.role)setTimeout(askRole,0);
+  else if(me.role==="kid"&&!me.clsOk)setTimeout(confirmClass,0);
   SCREEN="home";loadLive();queueSync();
   const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK||isParent();
   const rows=boardRows();
