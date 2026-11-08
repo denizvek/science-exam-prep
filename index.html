@@ -728,7 +728,7 @@ function setParentOnServer(pr,on){if(LIVE_ON)fetch(SUPA_URL+"/rest/v1/rpc/set_pa
 function setRole(role){
   const was=me.role;me.role=role;ls.set("profiles",profiles);
   if(role==="parent")setParentOnServer(me,true);
-  else{if(was==="parent")setParentOnServer(me,false);lastSent="";queueSync()}
+  else{const pr=me;if(was==="parent")setParentOnServer(pr,false);lastSent="";queueSync();setTimeout(()=>setParentOnServer(pr,false),4000)}
   LIVE=null;
 }
 function queueSync(){if(!LIVE_ON||!me||isParent())return;clearTimeout(syncT);syncT=setTimeout(sendSync,2000)}
@@ -911,7 +911,7 @@ function onboarding(){
     if(!role){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו אם אתם ילד/ה או הורה.</div>`;document.getElementById("roles").scrollIntoView({behavior:"smooth",block:"center"});return}
     if(!document.getElementById("pc").value){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו את מספר הכיתה.</div>`;document.getElementById("pc").focus();return}
     const cls=document.getElementById("pg").value+"׳"+document.getElementById("pc").value;
-    if(me){Object.assign(me,{name,cls,av,clsOk:true});if(role!==me.role)setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av,role,clsOk:true};profiles.push(me);P=blank();if(role==="parent")setParentOnServer(me,true)}
+    if(me){Object.assign(me,{name,cls,av,clsOk:true});if(role!==me.role)setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av,role,clsOk:true};profiles.push(me);P=blank();{const pr=me;if(role==="parent")setParentOnServer(pr,true);else setTimeout(()=>setParentOnServer(pr,false),4000)}}
     ls.set("profiles",profiles);ls.set("active",me.id);save();home();};
 }
 function switchTo(id){me=profiles.find(p=>p.id===id);ls.set("active",id);P=ls.get("p:"+id,blank());home()}
@@ -939,7 +939,10 @@ function confirmClass(){
   if(document.querySelector(".role"))return;
   const el=document.createElement("div");el.className="role";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");
   el.innerHTML="<div></div>";document.body.appendChild(el);const box=el.firstElementChild;
-  const done=()=>{me.clsOk=true;ls.set("profiles",profiles);el.remove();home()};
+  const before=me.cls;
+  const done=()=>{me.clsOk=true;ls.set("profiles",profiles);
+    if(LIVE_ON)fetch(SUPA_URL+"/rest/v1/rpc/confirm_class",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:me.id,p_old:before,p_new:me.cls}),keepalive:true}).catch(()=>{});
+    el.remove();home()};
   const ask=()=>{box.innerHTML=`<div style="font-size:2.2rem;text-align:center">🏫</div><h2>${esc(me.name)}, הכיתה שלך היא ${esc(me.cls)}?</h2>
     <p class="why" style="text-align:center">הכיתה מופיעה ליד השם שלך בטבלת ההישגים, אז חשוב שתהיה נכונה.</p>
     <button class="btn primary block" id="clsYes">כן, ${esc(me.cls)} נכון ✓</button><button class="btn ghost block" id="clsNo">לא, אני בכיתה אחרת</button>`;

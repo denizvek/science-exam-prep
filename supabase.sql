@@ -305,3 +305,25 @@ language sql security definer set search_path = public as $$
 $$;
 revoke all on function public.set_parent(text, boolean) from public;
 grant execute on function public.set_parent(text, boolean) to anon;
+
+-- Added later: who chose child/parent, who confirmed the class and where they moved from (for the owner's reports).
+alter table public.results add column if not exists role_chosen_at timestamptz;
+alter table public.results add column if not exists cls_confirmed_at timestamptz;
+alter table public.results add column if not exists cls_changed_from text;
+
+create or replace function public.set_parent(p_id text, p_parent boolean) returns void
+language sql security definer set search_path = public as $$
+  update results set is_parent = coalesce(p_parent, false), role_chosen_at = now() where id = left(p_id, 40);
+$$;
+revoke all on function public.set_parent(text, boolean) from public;
+grant execute on function public.set_parent(text, boolean) to anon;
+
+create or replace function public.confirm_class(p_id text, p_old text, p_new text) returns void
+language sql security definer set search_path = public as $$
+  update results set cls_confirmed_at = now(),
+    cls_changed_from = case when coalesce(p_old,'') <> coalesce(p_new,'') then left(p_old, 10) else cls_changed_from end,
+    cls = coalesce(left(p_new, 10), cls)
+  where id = left(p_id, 40);
+$$;
+revoke all on function public.confirm_class(text, text, text) from public;
+grant execute on function public.confirm_class(text, text, text) to anon;
