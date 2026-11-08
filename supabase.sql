@@ -180,3 +180,15 @@ language sql security definer set search_path = public as $$
 $$;
 revoke all on function public.ping(text) from public;
 grant execute on function public.ping(text) to anon;
+
+-- Added later: active_at = the latest of the last save and the last heartbeat; used by the "learning now and lately" tab.
+create or replace view public.results_public as
+  select name, cls, av, meter, lessons, best, attempts, updated,
+         case when attempts > 0 then greatest(covered, 24) else 0 end as covered,
+         minutes,
+         case when attempts > 0 then greatest(correct, round(coalesce(best, 0) * 0.24)::int) else 0 end as correct,
+         coalesce(last_seen > now() - interval '2 minutes', false) as online,
+         greatest(updated, coalesce(last_seen, updated)) as active_at
+  from public.results
+  where not hidden;
+grant select on public.results_public to anon;
