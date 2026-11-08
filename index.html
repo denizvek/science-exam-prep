@@ -231,6 +231,11 @@ th{background:var(--cs,var(--bg2));font-weight:800}
 @keyframes pop{from{transform:scale(.6);opacity:0}}
 .lbtabs{margin-bottom:4px}
 .lbtabs button[aria-selected="true"]{background:var(--primary);color:var(--primary-ink)}
+details.fold{background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:0 20px}
+details.fold>summary{list-style:none;cursor:pointer;padding:18px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:var(--display);font-weight:600;font-size:1.2rem}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:"▾";transition:transform .2s}
+details.fold[open]>summary::after{transform:rotate(180deg)}
 .more{border:1px solid var(--line);border-radius:16px;padding:4px 12px;background:var(--bg)}
 .more>summary{cursor:pointer;font-weight:800;padding:10px 0;list-style:none;display:flex;justify-content:space-between;gap:10px}
 .more>summary::-webkit-details-marker{display:none}
@@ -882,6 +887,8 @@ function onboarding(){
 function switchTo(id){me=profiles.find(p=>p.id===id);ls.set("active",id);P=ls.get("p:"+id,blank());home()}
 
 let SCREEN="";
+let FOLD={my:false,board:false};
+document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.fold)FOLD[d.dataset.fold]=d.open},true);
 function home(){
   if(!me)return onboarding();
   if(newVersion)reloadOnce();
@@ -895,25 +902,11 @@ function home(){
     <a class="btn primary block" style="text-align:center;text-decoration:none" href="${moveLink()}" target="_blank" rel="noopener">מעבר לאתר החדש עם ההתקדמות שלי ←</a>
     <p class="small muted">מעכשיו כדאי להיכנס רק מהכתובת: denizvek.github.io/science-exam-prep</p>
   </section>`}
-  <section class="panel stack">
-    <div class="row between"><h2>🏆 טבלת התוצאות</h2><button class="btn ghost" data-nav="board">לכל הטבלה</button></div>
-    ${rows.length?leaderboard(rows,true):`<p class="muted">${LIVE_ON?"הטבלה עוד ריקה. ברגע שמישהו יתחיל ללמוד, הוא יופיע כאן.":"הטבלה עוד ריקה. שלחו להורה את ההתקדמות, והיא תתווסף לטבלה שכולם רואים."}</p>`}
-  </section>
   ${(()=>{const st=[];WORLDS.forEach(w=>w.lessons.forEach((l,i)=>{if(lessonStale(l.id))st.push({w,l,i})}));
     return st.length?`<section class="panel stack" style="border:2px solid var(--bad)">
     <h2>🆕 נוסף חומר חדש ב-${st.length} שיעורים</h2>
     <p class="muted">הוספנו לשיעורים חומר מדפי המידע, והוא חלק מהמבחן. קראו כל שיעור שוב וענו על שאלת הבדיקה – ומד הלמידה יחזור לעלות.</p>
     <div class="profiles">${st.map(x=>`<button data-redo="${x.w.id}:${x.i}">📖 ${x.l.title}</button>`).join("")}</div></section>`:""})()}
-  <section class="panel hero">
-    <div class="ring" style="--p:${m}"><div><div><b class="num">${m}%</b><small>מד הלמידה</small></div></div></div>
-    <div class="stack">
-      <div class="row"><span class="status ${stc}">${st}</span>${best!=null?`<span class="pill good">ציון מבחן: ${best}</span>`:""}${P.time>=60?`<span class="pill">⏱ ${fmtTime(Math.round(P.time/60))}</span>`:""}</div>
-      <h2>${open?"למדת את כל החומר! המבחן פתוח 🎉":`עוד ${EXAM_UNLOCK-m}% והמבחן נפתח`}</h2>
-      <div><div class="bar" style="--c:var(--xp)"><i style="width:${m}%"></i></div>
-      <div class="milestones"><span>כל השיעורים 50%</span><span>כל הכרטיסיות 30%</span><span>כל שאלות התרגול 20%</span></div></div>
-      <div class="row"><button class="btn ghost" data-nav="profile">✎ פרופיל</button><button class="btn ghost" id="share">${WA_SVG} שליחת התקדמות להורה</button></div>
-    </div>
-  </section>
   <div class="worlds">${WORLDS.map(w=>{const wm=worldMeter(w.id),d=w.lessons.filter(l=>lessonDone(l.id)).length;return `<button class="world w-${w.id}" data-nav="world:${w.id}">
     <div class="art">${ILL[w.art]()}</div>
     <div class="body"><span class="tag">${w.tag} · ${d}/${w.lessons.length} שיעורים</span><h3>${w.name}</h3><span class="small muted">${w.blurb}</span>
@@ -923,6 +916,22 @@ function home(){
       <p class="muted">24 שאלות מכל העולמות, עם תמונות. ציון בסוף ותיקון טעויות. ${P.exam.attempts?`ניסיונות: ${P.exam.attempts} · הציון הכי טוב: ${best} · נבחנת על ${covered()} מתוך ${EXAM_BANK.length} השאלות`:"אפשר לגשת שוב ולשפר."}</p></div>
     ${open?`<button class="btn xp" data-nav="exam">${P.exam.attempts?"מבחן חוזר ←":"להתחיל ←"}</button>`:`<div class="lock" aria-hidden="true">🔒</div>`}
   </section>
+  <details class="fold" data-fold="my" ${FOLD.my?"open":""}><summary><span>📈 ההישגים שלי <span class="small muted">· מד הלמידה ${m}%${best!=null?` · ציון ${best}`:""}</span></span></summary>
+  <div class="hero" style="padding-bottom:20px">
+    <div class="ring" style="--p:${m}"><div><div><b class="num">${m}%</b><small>מד הלמידה</small></div></div></div>
+    <div class="stack">
+      <div class="row"><span class="status ${stc}">${st}</span>${best!=null?`<span class="pill good">ציון מבחן: ${best}</span>`:""}${P.time>=60?`<span class="pill">⏱ ${fmtTime(Math.round(P.time/60))}</span>`:""}</div>
+      <h2>${open?"למדת את כל החומר! המבחן פתוח 🎉":`עוד ${EXAM_UNLOCK-m}% והמבחן נפתח`}</h2>
+      <div><div class="bar" style="--c:var(--xp)"><i style="width:${m}%"></i></div>
+      <div class="milestones"><span>כל השיעורים 50%</span><span>כל הכרטיסיות 30%</span><span>כל שאלות התרגול 20%</span></div></div>
+      <div class="row"><button class="btn ghost" data-nav="profile">✎ פרופיל</button><button class="btn ghost" id="share">${WA_SVG} שליחת התקדמות להורה</button></div>
+    </div>
+  </div></details>
+  <details class="fold" data-fold="board" ${FOLD.board?"open":""}><summary><span>🏆 טבלת ההישגים${rows.some(r=>r.online)?` <span class="small" style="color:#16a34a">· 🟢 ${rows.filter(r=>r.online).length} לומדים עכשיו</span>`:""}</span></summary>
+  <div class="stack" style="padding-bottom:20px">
+    <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-nav="board">לכל הטבלה</button></div>
+    ${rows.length?leaderboard(rows,true):`<p class="muted">${LIVE_ON?"הטבלה עוד ריקה. ברגע שמישהו יתחיל ללמוד, הוא יופיע כאן.":"הטבלה עוד ריקה. שלחו להורה את ההתקדמות, והיא תתווסף לטבלה שכולם רואים."}</p>`}
+  </div></details>
   ${IS_OWNER?`<button class="btn primary block" data-nav="admin">🔑 ניהול טבלת התוצאות${pending().length?` · ${pending().length} חדשים`:""}</button>`:""}
   ${profiles.length>1?`<div class="profiles">${profiles.filter(p=>p.id!==me.id).map(p=>`<button data-pid="${p.id}"><span class="av">${p.av}</span>להחליף ל${esc(p.name)}</button>`).join("")}</div>`:""}
   <button class="btn ghost" id="addp" style="align-self:flex-start">+ ילד/ה נוסף/ת במכשיר הזה</button>`;
@@ -983,7 +992,7 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 function leaderboard(rows,compact){
   if(!rows.length)return "";
   const on=rows.filter(r=>r.online).length;
-  return `<div class="tabs lbtabs" role="tablist"><button role="tab" data-lb="rank" aria-selected="${LB_TAB==="rank"}">📊 תמונת מצב</button><button role="tab" data-lb="recent" aria-selected="${LB_TAB==="recent"}">🕒 לומדים עכשיו ולאחרונה</button></div>
+  return `<div class="tabs lbtabs" role="tablist"><button role="tab" data-lb="rank" aria-selected="${LB_TAB==="rank"}">🏆 הישגים</button><button role="tab" data-lb="recent" aria-selected="${LB_TAB==="recent"}">🕒 לומדים עכשיו ולאחרונה</button></div>
   <p class="small" style="font-weight:800;color:#16a34a;text-align:center" id="onlineN">${on?`🟢 ${on} לומדים עכשיו`:""}</p>
   <div data-lbpane="rank" ${LB_TAB==="rank"?"":"hidden"}>${rankPane(rows,compact)}</div>
   <div data-lbpane="recent" id="recentPane" ${LB_TAB==="recent"?"":"hidden"}>${recentPane(rows)}</div>`;
