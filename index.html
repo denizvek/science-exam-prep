@@ -896,6 +896,22 @@ function home(){
   const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK;
   const rows=boardRows();
   root.innerHTML=`${topbar()}
+  <details class="fold" data-fold="my" ${FOLD.my?"open":""}><summary><span>📈 ההישגים שלי <span class="small muted">· מד הלמידה ${m}%${best!=null?` · ציון ${best}`:""}</span></span></summary>
+  <div class="hero" style="padding-bottom:20px">
+    <div class="ring" style="--p:${m}"><div><div><b class="num">${m}%</b><small>מד הלמידה</small></div></div></div>
+    <div class="stack">
+      <div class="row"><span class="status ${stc}">${st}</span>${best!=null?`<span class="pill good">ציון מבחן: ${best}</span>`:""}${P.time>=60?`<span class="pill">⏱ ${fmtTime(Math.round(P.time/60))}</span>`:""}</div>
+      <h2>${open?"למדת את כל החומר! המבחן פתוח 🎉":`עוד ${EXAM_UNLOCK-m}% והמבחן נפתח`}</h2>
+      <div><div class="bar" style="--c:var(--xp)"><i style="width:${m}%"></i></div>
+      <div class="milestones"><span>כל השיעורים 50%</span><span>כל הכרטיסיות 30%</span><span>כל שאלות התרגול 20%</span></div></div>
+      <div class="row"><button class="btn ghost" data-nav="profile">✎ פרופיל</button><button class="btn ghost" id="share">${WA_SVG} שליחת התקדמות להורה</button></div>
+    </div>
+  </div></details>
+  <details class="fold" data-fold="board" ${FOLD.board?"open":""}><summary><span>🏆 טבלת ההישגים${rows.some(r=>r.online)?` <span class="small" style="color:#16a34a">· 🟢 ${rows.filter(r=>r.online).length} לומדים עכשיו</span>`:""}</span></summary>
+  <div class="stack" style="padding-bottom:20px">
+    <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-nav="board">לכל הטבלה</button></div>
+    ${rows.length?leaderboard(rows,true):`<p class="muted">${LIVE_ON?"הטבלה עוד ריקה. ברגע שמישהו יתחיל ללמוד, הוא יופיע כאן.":"הטבלה עוד ריקה. שלחו להורה את ההתקדמות, והיא תתווסף לטבלה שכולם רואים."}</p>`}
+  </div></details>
   ${ON_SITE?"":`<section class="panel stack" style="border:2px solid var(--primary)">
     <h2>📢 האפליקציה עברה לכתובת חדשה</h2>
     <p>כדי שתופיעו בטבלת התוצאות של כל הכיתות, לחצו על הכפתור. כל ההתקדמות שלכם תעבור איתכם${profiles.length>1?` – של כל ${profiles.length} הילדים במכשיר הזה`:""}.</p>
@@ -916,22 +932,6 @@ function home(){
       <p class="muted">24 שאלות מכל העולמות, עם תמונות. ציון בסוף ותיקון טעויות. ${P.exam.attempts?`ניסיונות: ${P.exam.attempts} · הציון הכי טוב: ${best} · נבחנת על ${covered()} מתוך ${EXAM_BANK.length} השאלות`:"אפשר לגשת שוב ולשפר."}</p></div>
     ${open?`<button class="btn xp" data-nav="exam">${P.exam.attempts?"מבחן חוזר ←":"להתחיל ←"}</button>`:`<div class="lock" aria-hidden="true">🔒</div>`}
   </section>
-  <details class="fold" data-fold="my" ${FOLD.my?"open":""}><summary><span>📈 ההישגים שלי <span class="small muted">· מד הלמידה ${m}%${best!=null?` · ציון ${best}`:""}</span></span></summary>
-  <div class="hero" style="padding-bottom:20px">
-    <div class="ring" style="--p:${m}"><div><div><b class="num">${m}%</b><small>מד הלמידה</small></div></div></div>
-    <div class="stack">
-      <div class="row"><span class="status ${stc}">${st}</span>${best!=null?`<span class="pill good">ציון מבחן: ${best}</span>`:""}${P.time>=60?`<span class="pill">⏱ ${fmtTime(Math.round(P.time/60))}</span>`:""}</div>
-      <h2>${open?"למדת את כל החומר! המבחן פתוח 🎉":`עוד ${EXAM_UNLOCK-m}% והמבחן נפתח`}</h2>
-      <div><div class="bar" style="--c:var(--xp)"><i style="width:${m}%"></i></div>
-      <div class="milestones"><span>כל השיעורים 50%</span><span>כל הכרטיסיות 30%</span><span>כל שאלות התרגול 20%</span></div></div>
-      <div class="row"><button class="btn ghost" data-nav="profile">✎ פרופיל</button><button class="btn ghost" id="share">${WA_SVG} שליחת התקדמות להורה</button></div>
-    </div>
-  </div></details>
-  <details class="fold" data-fold="board" ${FOLD.board?"open":""}><summary><span>🏆 טבלת ההישגים${rows.some(r=>r.online)?` <span class="small" style="color:#16a34a">· 🟢 ${rows.filter(r=>r.online).length} לומדים עכשיו</span>`:""}</span></summary>
-  <div class="stack" style="padding-bottom:20px">
-    <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-nav="board">לכל הטבלה</button></div>
-    ${rows.length?leaderboard(rows,true):`<p class="muted">${LIVE_ON?"הטבלה עוד ריקה. ברגע שמישהו יתחיל ללמוד, הוא יופיע כאן.":"הטבלה עוד ריקה. שלחו להורה את ההתקדמות, והיא תתווסף לטבלה שכולם רואים."}</p>`}
-  </div></details>
   ${IS_OWNER?`<button class="btn primary block" data-nav="admin">🔑 ניהול טבלת התוצאות${pending().length?` · ${pending().length} חדשים`:""}</button>`:""}
   ${profiles.length>1?`<div class="profiles">${profiles.filter(p=>p.id!==me.id).map(p=>`<button data-pid="${p.id}"><span class="av">${p.av}</span>להחליף ל${esc(p.name)}</button>`).join("")}</div>`:""}
   <button class="btn ghost" id="addp" style="align-self:flex-start">+ ילד/ה נוסף/ת במכשיר הזה</button>`;
