@@ -926,7 +926,23 @@ function askRole(){
     <button class="pick" data-role="kid">${ROLE_KID}</button><button class="pick" data-role="parent">${ROLE_PARENT}</button>
     <p class="small muted" style="text-align:center">אפשר לשנות את הבחירה בכל רגע במסך הפרופיל ✎</p></div>`;
   document.body.appendChild(el);
-  el.querySelectorAll("[data-role]").forEach(b=>b.onclick=()=>{setRole(b.dataset.role);el.remove();home()});
+  const done=()=>{el.remove();home()};
+  el.querySelectorAll("[data-role]").forEach(b=>b.onclick=()=>{
+    if(b.dataset.role!=="kid"){setRole("parent");return done()}
+    // a child confirms the class before going on
+    const box=el.firstElementChild;
+    const ask=()=>{box.innerHTML=`<div style="font-size:2.2rem;text-align:center">🏫</div><h2>הכיתה שלך היא ${esc(me.cls)}?</h2>
+      <p class="why" style="text-align:center">הכיתה מופיעה ליד השם שלך בטבלת ההישגים, אז חשוב שתהיה נכונה.</p>
+      <button class="btn primary block" id="clsYes">כן, ${esc(me.cls)} נכון ✓</button><button class="btn ghost block" id="clsNo">לא, אני בכיתה אחרת</button>`;
+      box.querySelector("#clsYes").onclick=()=>{setRole("kid");done()};
+      box.querySelector("#clsNo").onclick=pick};
+    const pick=()=>{box.innerHTML=`<div style="font-size:2.2rem;text-align:center">🏫</div><h2>באיזו כיתה את/ה?</h2>
+      <div class="row" style="flex-wrap:nowrap"><select class="input" id="rg">${["ה","ד","ו"].map(g=>`<option ${me.cls.startsWith(g)?"selected":""}>${g}</option>`).join("")}</select>
+      <select class="input" id="rc">${[1,2,3,4,5,6,7,8].map(n=>`<option ${me.cls.endsWith(String(n))?"selected":""}>${n}</option>`).join("")}</select></div>
+      <button class="btn primary block" id="clsSave">שמירה והמשך ←</button>`;
+      box.querySelector("#clsSave").onclick=()=>{me.cls=box.querySelector("#rg").value+"׳"+box.querySelector("#rc").value;ls.set("profiles",profiles);setRole("kid");lastSent="";queueSync();done()}};
+    ask();
+  });
 }
 let FOLD={my:false,board:false};
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.fold)FOLD[d.dataset.fold]=d.open},true);
