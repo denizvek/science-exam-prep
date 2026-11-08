@@ -954,6 +954,37 @@ function confirmClass(){
       me.cls=box.querySelector("#rg").value+"׳"+n;lastSent="";queueSync();done()}};
   ask();
 }
+/* a question at every entry, for children and parents (not counted anywhere); wrong answers point to the lesson */
+const ENTRY_KID={t:"🧠 שאלת חימום",sub:"שאלה אחת מהחומר לפני שמתחילים – בואו נראה מה זוכרים!",ok:["נכון! 🎉 מוח מחומם ומוכן ללמידה.","בול! 🌟 ככה מתחילים יום."],bad:"לא בדיוק 🤔 לא נורא – התשובה נמצאת בשיעור:"};
+const ENTRY_PARENT={t:"👀 רגע, הורים…",sub:"הילדים שלכם לומדים את זה כבר שבוע. בואו נראה אם אתם יודעים את החומר – או שרק אומרים \"תלמד/י, תלמד/י\" 😏",
+  ok:["וואו, נכון! 😮 אולי בכל זאת הקשבתם בכיתה ה׳.","נכון! 👏 עכשיו מותר לכם לבקש מהילדים לחזור על החומר."],
+  bad:"אופס… 😅 אולי כדאי לבקש מהילד/ה הסבר. או לקרוא בשקט את השיעור, אף אחד לא יספר:"};
+let ENTRY_DONE=false;
+function entryQuestion(){
+  if(ENTRY_DONE||!me||document.querySelector(".role,.cheer"))return;
+  ENTRY_DONE=true;try{sessionStorage.setItem("entryQ",Date.now())}catch(e){}
+  const T=isParent()?ENTRY_PARENT:ENTRY_KID;
+  const q=buildQ(EXAM_BANK[Math.random()*EXAM_BANK.length|0]),ref=lessonRef(q.les);
+  const el=document.createElement("div");el.className="role";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");
+  el.innerHTML=`<div class="w-${q.w}"><h2>${T.t}</h2><p class="why" style="text-align:center">${T.sub}</p>
+    <span class="small" style="color:var(--c);font-weight:800;text-align:center">${W[q.w].name}</span>
+    <p class="qtext" style="text-align:center">${q.q}</p>${q.img?`<div class="qimg">${ill(q.img)}</div>`:""}
+    <div class="opts${q.tf?" two":""}">${q.opts.map((o,k)=>`<button class="opt" data-k="${k}"><span class="k">${q.tf?(k?"✗":"✓"):"אבגד"[k]}</span>${o.t}</button>`).join("")}</div>
+    <div id="eqfb"></div><button class="linkbtn" id="eqSkip">${isParent()?"דילוג (אנחנו לא נשפוט… הרבה) ←":"דילוג ←"}</button></div>`;
+  document.body.appendChild(el);
+  const close=()=>el.remove();el.querySelector("#eqSkip").onclick=close;
+  el.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    const o=q.opts[+b.dataset.k],fb=el.querySelector("#eqfb");
+    if(o.ok){el.querySelectorAll(".opt").forEach(x=>x.disabled=true);b.classList.add("right");
+      fb.innerHTML=`<div class="fb good">${T.ok[Math.random()*T.ok.length|0]}<span class="ex">${q.e}</span></div>`;
+      el.querySelector("#eqSkip").outerHTML=`<button class="btn primary block" id="eqGo">${isParent()?"סגירה – בהצלחה עם הילדים 😉":"יאללה ללמוד ←"}</button>`;
+      el.querySelector("#eqGo").onclick=close;if(!isParent())confetti()}
+    else{b.classList.add("wrong");b.disabled=true;
+      fb.innerHTML=`<div class="fb bad">${T.bad}<div class="actions">${ref?`<button class="btn ghost" id="eqLes">📖 ${ref.l.title}</button>`:""}<button class="btn ghost" id="eqAgain">לנסות שוב</button></div></div>`;
+      if(ref)fb.querySelector("#eqLes").onclick=()=>{close();lesson(ref.wid,ref.i);scrollTo(0,0)};
+      fb.querySelector("#eqAgain").onclick=()=>{fb.innerHTML=""}}
+  });
+}
 let FOLD={my:false,board:false};
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.fold)FOLD[d.dataset.fold]=d.open},true);
 function home(){
@@ -961,6 +992,8 @@ function home(){
   if(newVersion)reloadOnce();
   if(!me.role)setTimeout(askRole,0);
   else if(me.role==="kid"&&!me.clsOk)setTimeout(confirmClass,0);
+  else if(!ENTRY_DONE){let t=0;try{t=+sessionStorage.getItem("entryQ")||0}catch(e){}
+    if(Date.now()-t>30*60000)setTimeout(entryQuestion,700);else ENTRY_DONE=true}
   SCREEN="home";loadLive();queueSync();
   const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK||isParent();
   const rows=boardRows();
