@@ -896,7 +896,7 @@ function onboarding(){
         <select class="input" id="pg">${["ה","ד","ו"].map(g=>`<option ${me&&me.cls.startsWith(g)?"selected":""}>${g}</option>`).join("")}</select>
         <select class="input" id="pc">${me?"":`<option value="" selected>מספר כיתה</option>`}${[1,2,3,4,5,6,7,8].map(n=>`<option ${me&&me.cls.endsWith(String(n))?"selected":""}>${n}</option>`).join("")}</select></div></div>
       <div class="field"><label>הדמות שלי</label><div class="avs" id="avs">${AVATARS.map(a=>`<button type="button" aria-pressed="${a===av}" data-av="${a}">${a}</button>`).join("")}</div></div>
-      <div class="field"><label>מי משתמש/ת בפרופיל הזה?</label><p class="small muted">טבלת ההישגים מיועדת לילדים בלבד. הורים שנכנסים כדי להכיר את החומר לא מופיעים בה – לכן חשוב לבחור.</p><div class="stack" id="roles"><button type="button" class="pick" data-role="kid" aria-pressed="${!!me&&me.role==="kid"}">${ROLE_KID}</button><button type="button" class="pick" data-role="parent" aria-pressed="${!!me&&me.role==="parent"}">${ROLE_PARENT}</button></div></div>
+      <div class="field"><label>מי משתמש/ת בפרופיל הזה?</label><p class="small muted">טבלת ההישגים מיועדת לתלמידים בלבד. הורים שנכנסים כדי להכיר את החומר לא מופיעים בה – לכן חשוב לבחור.</p><div class="stack" id="roles"><button type="button" class="pick" data-role="kid" aria-pressed="${!!me&&me.role==="kid"}">${ROLE_KID}</button><button type="button" class="pick" data-role="parent" aria-pressed="${!!me&&me.role==="parent"}">${ROLE_PARENT}</button></div></div>
       <div id="perr"></div>
       <button class="btn primary block">${me?"שמירה":"יוצאים לדרך ←"}</button>
       ${profiles.length>(me?1:0)?`<div class="stack"><span class="small muted">או המשיכו כ:</span><div class="profiles">${profiles.filter(p=>!me||p.id!==me.id).map(p=>`<button type="button" data-pid="${p.id}"><span class="av">${p.av}</span>${esc(p.name)}</button>`).join("")}</div></div>`:""}
@@ -912,7 +912,7 @@ function onboarding(){
   document.getElementById("pf").onsubmit=e=>{e.preventDefault();
     const name=document.getElementById("pn").value.trim().replace(/\s+/g," ");
     if(name.length<2){document.getElementById("perr").innerHTML=`<div class="fb bad">כתבו שם כדי שנדע מי מתקדם.</div>`;return}
-    if(!role){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו אם אתם ילד/ה או הורה.</div>`;document.getElementById("roles").scrollIntoView({behavior:"smooth",block:"center"});return}
+    if(!role){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו אם אתם תלמיד/ה או הורה.</div>`;document.getElementById("roles").scrollIntoView({behavior:"smooth",block:"center"});return}
     if(!document.getElementById("pc").value){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו את מספר הכיתה.</div>`;document.getElementById("pc").focus();return}
     const cls=document.getElementById("pg").value+"׳"+document.getElementById("pc").value;
     if(me){Object.assign(me,{name,cls,av,clsOk:true});if(role!==me.role)setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av,role,clsOk:true};profiles.push(me);P=blank();{const pr=me;if(role==="parent")setParentOnServer(pr,true);else setTimeout(()=>setParentOnServer(pr,false),4000)}}
@@ -921,13 +921,13 @@ function onboarding(){
 function switchTo(id){me=profiles.find(p=>p.id===id);ls.set("active",id);P=ls.get("p:"+id,blank());home()}
 
 let SCREEN="";
-const ROLE_KID=`<span class="ic">🧒</span><span><b>אני ילד/ה</b>לומד/ת למבחן. ההתקדמות שלי נשמרת ומופיעה בטבלת ההישגים.</span>`;
+const ROLE_KID=`<span class="ic">🎒</span><span><b>אני תלמיד/ה</b>לומד/ת למבחן. ההתקדמות שלי נשמרת ומופיעה בטבלת ההישגים.</span>`;
 const ROLE_PARENT=`<span class="ic">👨‍👩‍👧</span><span><b>אני הורה</b>לא אופיע בטבלה. אוכל לראות את ההישגים של כולם ולעבור על כל השיעורים, הכרטיסיות והמבחן – בלי חובה להשלים קודם את הלמידה.</span>`;
 function askRole(){
   if(document.querySelector(".role"))return;
   const el=document.createElement("div");el.className="role";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");
   el.innerHTML=`<div><div style="font-size:2.2rem;text-align:center">👋</div><h2>מי משתמש/ת באפליקציה?</h2>
-    <p class="why">טבלת ההישגים מיועדת לילדים בלבד. הורים שנכנסים לאפליקציה כדי להכיר את החומר לא אמורים להופיע בה – ולכן אנחנו שואלים מי נכנס.</p>
+    <p class="why">טבלת ההישגים מיועדת לתלמידים בלבד. הורים שנכנסים לאפליקציה כדי להכיר את החומר לא אמורים להופיע בה – ולכן אנחנו שואלים מי נכנס.</p>
     ${profiles.length>1?`<p class="small" style="text-align:center;font-weight:800">הפרופיל: ${me.av} ${esc(me.name)}</p>`:""}
     <button class="pick" data-role="kid">${ROLE_KID}</button><button class="pick" data-role="parent">${ROLE_PARENT}</button>
     <p class="small muted" style="text-align:center">אפשר לשנות את הבחירה בכל רגע במסך הפרופיל ✎</p></div>`;
@@ -1045,7 +1045,7 @@ function home(){
   </section>
   ${IS_OWNER?`<button class="btn primary block" data-nav="admin">🔑 ניהול טבלת התוצאות${pending().length?` · ${pending().length} חדשים`:""}</button>`:""}
   ${profiles.length>1?`<div class="profiles">${profiles.filter(p=>p.id!==me.id).map(p=>`<button data-pid="${p.id}"><span class="av">${p.av}</span>להחליף ל${esc(p.name)}</button>`).join("")}</div>`:""}
-  <button class="btn ghost" id="addp" style="align-self:flex-start">+ ילד/ה נוסף/ת במכשיר הזה</button>
+  <button class="btn ghost" id="addp" style="align-self:flex-start">+ תלמיד/ה נוסף/ת במכשיר הזה</button>
   <section class="panel stack" style="border:2px solid var(--xp)">
     <h2>🌙 חזרה לפני המבחן</h2>
     <div class="row" style="flex-wrap:wrap"><button class="btn xp" data-nav="refresh" style="flex:1;min-width:150px">🎯 החזרה האישית שלי</button><button class="btn primary" data-nav="classlike:fill" style="flex:1;min-width:150px">📝 כמו במבחן בכיתה</button></div>
