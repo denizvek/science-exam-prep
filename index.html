@@ -1249,6 +1249,8 @@ function home(){
   const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK||isParent();
   const rows=boardRows();
   root.innerHTML=`${topbar()}
+  <div class="row" style="gap:8px;align-items:center;flex-wrap:nowrap"><span class="small" style="font-weight:800;white-space:nowrap">📚 חומר הלימוד:</span>
+    <div class="tabs" role="tablist" style="flex:1;margin:0">${["ה","ו"].map(g=>`<button role="tab" aria-selected="${g===GRADE}" data-grade="${g}" style="white-space:nowrap">${g===gradeOf(me.cls)?"🎒 ":""}כיתה ${g}׳</button>`).join("")}</div></div>
   <details class="fold" data-fold="my" ${FOLD.my?"open":""}><summary><span>📈 ההישגים שלי <span class="small muted">· מד הלמידה ${m}%${best!=null?` · ציון ${best}`:""}</span></span></summary>
   <div class="hero" style="padding-bottom:20px">
     <div class="ring" style="--p:${m}"><div><div><b class="num">${m}%</b><small>מד הלמידה</small></div></div></div>
@@ -1293,7 +1295,7 @@ function home(){
   </section>
   ${IS_OWNER?`<button class="btn primary block" data-nav="admin">🔑 ניהול טבלת התוצאות${pending().length?` · ${pending().length} חדשים`:""}</button>`:""}
   ${profiles.length>1?`<div class="profiles">${profiles.filter(p=>p.id!==me.id).map(p=>`<button data-pid="${p.id}"><span class="av">${p.av}</span>להחליף ל${esc(p.name)}</button>`).join("")}</div>`:""}
-  <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="addp">+ תלמיד/ה נוסף/ת במכשיר הזה</button>${VISITING()?"":`<button class="btn ghost" id="otherGrade">📚 להציץ בחומר של כיתה ${GRADE==="ו"?"ה":"ו"}׳</button>`}</div>
+  <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="addp">+ תלמיד/ה נוסף/ת במכשיר הזה</button></div>
   <section class="panel stack" style="border:2px solid var(--xp)">
     <h2>🌙 חזרה לפני המבחן</h2>
     <div class="row" style="flex-wrap:wrap"><button class="btn xp" data-nav="refresh" style="flex:1;min-width:150px">🎯 החזרה האישית שלי</button><button class="btn primary" data-nav="classlike:fill" style="flex:1;min-width:150px">📝 כמו במבחן בכיתה</button></div>
@@ -1304,7 +1306,9 @@ function home(){
   root.querySelectorAll("[data-redo]").forEach(b=>b.onclick=()=>{const [w,i]=b.dataset.redo.split(":");lesson(w,+i);scrollTo(0,0)});
   root.querySelectorAll("[data-pid]").forEach(b=>b.onclick=()=>switchTo(b.dataset.pid));
   document.getElementById("addp").onclick=()=>{me=null;P=blank();onboarding()};
-  const og=document.getElementById("otherGrade");if(og)og.onclick=()=>{if(!confirm(`לעבור לחומר של כיתה ${GRADE==="ו"?"ה":"ו"}׳?\nאפשר ללמוד ולתרגל, אבל זה לא נספר בציונים ובטבלאות. ההתקדמות שלך בכיתה ${GRADE}׳ נשמרת.`))return;clearTimeout(syncT);sendSync();setView(me.id,GRADE==="ו"?"ה":"ו",gradeOf(me.cls));location.reload()};
+  root.querySelectorAll("[data-grade]").forEach(b=>b.onclick=()=>{const g=b.dataset.grade,own=gradeOf(me.cls);if(g===GRADE)return;
+    if(g!==own&&!confirm(`לעבור לחומר של כיתה ${g}׳?\nאפשר לקרוא, ללמוד ולתרגל – אבל זה לא נספר: אין ציונים, לא מופיעים בטבלאות ואין קרבות.\nההתקדמות שלך בכיתה ${own}׳ נשמרת.`))return;
+    clearTimeout(syncT);sendSync();setView(me.id,g,own);location.reload()});
   const mg=document.getElementById("myGrade");if(mg)mg.onclick=()=>{setView(me.id,null);location.reload()};
 }
 
