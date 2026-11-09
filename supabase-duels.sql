@@ -421,3 +421,24 @@ begin
     'last_qid', d.last_qid,
     'winner', case when d.winner is null then null when d.winner = 'draw' then 'draw' when d.winner = side then 'me' else 'opp' end);
 end $$;
+
+-- Added later: a child's own duel history (wins, losses, draws, no-result, and against whom).
+-- Only the device holding the child's id can ask for it; losses are shown only there, never in the class table.
+create or replace function public.duel_history(p_me text) returns json
+language sql security definer set search_path = public as $$
+  select coalesce(json_agg(x order by x.at desc), '[]'::json) from (
+    select d.finished_at as at,
+      case when d.a_id = left(p_me, 40) then d.b_name else d.a_name end as opp_name,
+      case when d.a_id = left(p_me, 40) then d.b_cls else d.a_cls end as opp_cls,
+      case when d.a_id = left(p_me, 40) then d.b_av else d.a_av end as opp_av,
+      case when d.a_id = left(p_me, 40) then d.a_score else d.b_score end as my_score,
+      case when d.a_id = left(p_me, 40) then d.b_score else d.a_score end as opp_score,
+      case when d.status = 'abandoned' then 'none'
+           when d.winner = 'draw' then 'draw'
+           when (d.winner = 'a') = (d.a_id = left(p_me, 40)) then 'win' else 'loss' end as result
+    from duels d
+    where (d.a_id = left(p_me, 40) or d.b_id = left(p_me, 40)) and d.status in ('done', 'abandoned')
+    order by d.finished_at desc limit 50) x;
+$$;
+revoke all on function public.duel_history(text) from public;
+grant execute on function public.duel_history(text) to anon;

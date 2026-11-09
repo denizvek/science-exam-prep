@@ -728,7 +728,7 @@ function payload(){return {id:me.id,name:me.name,cls:me.cls,av:me.av,meter:meter
 const isParent=()=>!!me&&me.role==="parent";
 function setParentOnServer(pr,on){if(LIVE_ON)fetch(SUPA_URL+"/rest/v1/rpc/set_parent",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:pr.id,p_parent:on}),keepalive:true}).then(()=>{LIVE=null}).catch(()=>{})}
 function setRole(role){
-  const was=me.role;me.role=role;ls.set("profiles",profiles);
+  const was=me.role;me.role=role;me.roleSynced=true;ls.set("profiles",profiles);
   if(role==="parent")setParentOnServer(me,true);
   else{const pr=me;if(was==="parent")setParentOnServer(pr,false);lastSent="";queueSync();setTimeout(()=>setParentOnServer(pr,false),4000)}
   LIVE=null;
@@ -902,8 +902,10 @@ function onboarding(){
       ${profiles.length>(me?1:0)?`<div class="stack"><span class="small muted">או המשיכו כ:</span><div class="profiles">${profiles.filter(p=>!me||p.id!==me.id).map(p=>`<button type="button" data-pid="${p.id}"><span class="av">${p.av}</span>${esc(p.name)}</button>`).join("")}</div></div>`:""}
       <p class="small muted">ההתקדמות נשמרת במכשיר הזה. ${LIVE_ON?"השם, הכיתה וההתקדמות יופיעו אוטומטית בטבלת התוצאות שכולם רואים.":"השם והכיתה יופיעו בטבלת התוצאות אחרי שתשתפו תוצאה עם ההורה."}</p>
     </form>
-  </div>`;
+  </div>
+  ${me&&!isParent()&&LIVE_ON?`<section class="panel stack" id="dHist"><h2>⚔️ היסטוריית הקרבות שלי</h2><p class="muted">טוען…</p></section>`:""}`;
   bindNav();
+  if(document.getElementById("dHist"))loadDuelHistory();
   root.querySelectorAll("[data-av]").forEach(b=>b.onclick=()=>{av=b.dataset.av;root.querySelectorAll("[data-av]").forEach(x=>x.setAttribute("aria-pressed",x===b))});
   let role=me&&me.role?me.role:null;
   root.querySelectorAll("#roles [data-role]").forEach(b=>b.onclick=()=>{role=b.dataset.role;root.querySelectorAll("#roles [data-role]").forEach(x=>x.setAttribute("aria-pressed",x===b))});
@@ -915,7 +917,7 @@ function onboarding(){
     if(!role){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו אם אתם תלמיד/ה או הורה.</div>`;document.getElementById("roles").scrollIntoView({behavior:"smooth",block:"center"});return}
     if(!document.getElementById("pc").value){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו את מספר הכיתה.</div>`;document.getElementById("pc").focus();return}
     const cls=document.getElementById("pg").value+"׳"+document.getElementById("pc").value;
-    if(me){Object.assign(me,{name,cls,av,clsOk:true});if(role!==me.role)setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av,role,clsOk:true};profiles.push(me);P=blank();{const pr=me;if(role==="parent")setParentOnServer(pr,true);else setTimeout(()=>setParentOnServer(pr,false),4000)}}
+    if(me){Object.assign(me,{name,cls,av,clsOk:true});if(role!==me.role)setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av,role,clsOk:true,roleSynced:true};profiles.push(me);P=blank();{const pr=me;if(role==="parent")setParentOnServer(pr,true);else setTimeout(()=>setParentOnServer(pr,false),4000)}}
     ls.set("profiles",profiles);ls.set("active",me.id);save();home();};
 }
 function switchTo(id){me=profiles.find(p=>p.id===id);ls.set("active",id);P=ls.get("p:"+id,blank());home()}
@@ -992,11 +994,16 @@ function entryQuestion(){
       fb.querySelector("#eqAgain").onclick=()=>{fb.innerHTML=""}}
   });
 }
+let ROLE_SYNC=null;   // profile whose earlier choice is being sent to the server (once)
 let FOLD={my:false,board:false,duel:false};
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.fold)FOLD[d.dataset.fold]=d.open},true);
 function home(){
   if(!me)return onboarding();
   if(newVersion)reloadOnce();
+  if(me.role&&!me.roleSynced&&LIVE_ON&&ROLE_SYNC!==me.id){const pr=me;ROLE_SYNC=me.id;setTimeout(()=>{
+    setParentOnServer(pr,pr.role==="parent");
+    if(pr.role==="kid"&&pr.clsOk)fetch(SUPA_URL+"/rest/v1/rpc/confirm_class",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:pr.id,p_old:pr.cls,p_new:pr.cls}),keepalive:true}).catch(()=>{});
+    pr.roleSynced=true;ls.set("profiles",profiles)},5000)}
   if(!me.role)setTimeout(askRole,0);
   else if(me.role==="kid"&&!me.clsOk)setTimeout(confirmClass,0);
   else if(!ENTRY_DONE){let t=0;try{t=+sessionStorage.getItem("entryQ")||0}catch(e){}
@@ -1013,7 +1020,7 @@ function home(){
       <h2>${open?"למדת את כל החומר! המבחן פתוח 🎉":`עוד ${EXAM_UNLOCK-m}% והמבחן נפתח`}</h2>
       <div><div class="bar" style="--c:var(--xp)"><i style="width:${m}%"></i></div>
       <div class="milestones"><span>כל השיעורים 50%</span><span>כל הכרטיסיות 30%</span><span>כל שאלות התרגול 20%</span></div></div>
-      <div class="row"><button class="btn ghost" data-nav="profile">✎ פרופיל</button><button class="btn ghost" id="share">${WA_SVG} שליחת התקדמות להורה</button></div>
+      <div class="row"><button class="btn ghost" data-nav="profile">✎ פרופיל</button>${!isParent()&&LIVE_ON?`<button class="btn ghost" data-nav="profile">⚔️ הקרבות שלי</button>`:""}<button class="btn ghost" id="share">${WA_SVG} שליחת התקדמות להורה</button></div>
     </div>
   </div></details>
   ${isParent()?"":`<details class="fold" data-fold="duel" ${FOLD.duel?"open":""}><summary><span>⚔️ חדר קרבות <span class="small" style="color:#16a34a" id="duelN"></span></span></summary>
@@ -1498,6 +1505,21 @@ async function duelInvite(handle,btn){
   if(btn){btn.disabled=false;btn.textContent="⚔️ לקרב"}
   if(r&&r.ok)return duelScreen(r.id,handle);
   toast(({offline:"הילד/ה כבר לא אונליין 😕",busy:"הילד/ה באמצע קרב אחר – נסו עוד מעט",not_found:"לא מצאנו את הילד/ה"})[r&&r.reason]||"ההזמנה לא נשלחה, נסו שוב");
+}
+/* my duels: wins, losses and draws, against whom (shown only on my own profile screen) */
+async function loadDuelHistory(){
+  const box=document.getElementById("dHist");if(!box)return;
+  const list=await rpc("duel_history",{p_me:me.id});if(!document.getElementById("dHist"))return;
+  if(!Array.isArray(list)){box.innerHTML=`<h2>⚔️ היסטוריית הקרבות שלי</h2><p class="muted">לא הצלחנו לטעון כרגע. נסו שוב עוד מעט.</p>`;return}
+  const n=k=>list.filter(x=>x.result===k).length,w=n("win"),l=n("loss"),d=n("draw");
+  const tag={win:["🏆 ניצחון","var(--good)"],loss:["הפסד","var(--bad)"],draw:["🤝 תיקו","var(--muted)"],none:["בלי תוצאה","var(--muted)"]};
+  box.innerHTML=`<h2>⚔️ היסטוריית הקרבות שלי</h2>
+    ${list.length?`<div class="tiles" style="grid-template-columns:repeat(3,1fr)"><div class="tile"><b style="color:var(--good)">${w}</b><span>ניצחונות</span></div><div class="tile"><b style="color:var(--bad)">${l}</b><span>הפסדים</span></div><div class="tile"><b>${d}</b><span>תיקו</span></div></div>
+    <div class="stack" style="gap:8px">${list.map(x=>`<div class="row between" style="flex-wrap:nowrap;border:1px solid var(--line);border-radius:14px;padding:8px 10px;gap:8px">
+      <span style="display:flex;align-items:center;gap:8px;min-width:0"><span class="av">${esc(x.opp_av||"🙂")}</span><span class="nmt"><b>מול ${esc(x.opp_name||"")}</b> <span class="small muted">${esc(x.opp_cls||"")}</span><br><span class="small muted">${x.at?`${fmtDay(x.at)} · ${fmtTimeOfDay(x.at)}`:""}</span></span></span>
+      <span style="text-align:center;flex:none"><b class="num" style="font-size:1.1rem">${x.my_score}:${x.opp_score}</b><br><span class="small" style="font-weight:800;color:${tag[x.result][1]}">${tag[x.result][0]}</span></span></div>`).join("")}</div>
+    <p class="small muted">ההפסדים מופיעים רק כאן, אצלך. בטבלת ההישגים מופיעים רק ניצחונות.</p>`
+    :`<p class="muted">עוד לא השתתפת בקרבות. אפשר להזמין חבר/ה מ"חדר הקרבות" בדף הבית ⚔️</p>`}`;
 }
 /* invitations to me, checked every few seconds while the app is open */
 let DUEL_ID=null,DUEL_INVITE_SHOWN=null;
