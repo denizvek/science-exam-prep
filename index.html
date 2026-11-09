@@ -253,8 +253,10 @@ details.fold[open]>summary::after{transform:rotate(180deg)}
 .wrank{display:inline-block;white-space:nowrap;font-size:.72rem;font-weight:800;padding:1px 7px;border-radius:999px;background:color-mix(in srgb,#6b7f3a 22%,var(--surface));color:#4d5e22;border:1px solid color-mix(in srgb,#6b7f3a 45%,transparent);vertical-align:middle}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .wrank{color:#c9dc8e}}
 :root[data-theme="dark"] .wrank{color:#c9dc8e}
-.board .nmt .wrank{display:table;margin-top:3px;font-size:.66rem;padding:0 6px}
-@media (max-width:420px){.board td.num{white-space:normal}.board .cov{white-space:normal!important}details.fold{padding:0 12px}.more{padding:4px 6px}.rank{width:34px}.mname{font-size:.6rem}.board .medal{width:26px;height:26px;font-size:.8rem}}
+.board .nmt .wrank{display:table;margin-top:3px;font-size:.62rem;padding:0 5px}
+.board .nmt .wrank,.step .wrank{white-space:normal;max-width:100%;text-align:center;line-height:1.35}
+.step .wrank{font-size:.66rem;padding:1px 6px}
+@media (max-width:420px){.board td.num{white-space:normal}.board .cov{white-space:normal!important}details.fold{padding:0 12px}.more{padding:4px 6px}.rank{width:32px}.board .nm{gap:4px}.mname{font-size:.6rem}.board .medal{width:26px;height:26px;font-size:.8rem}}
 .more{border:1px solid var(--line);border-radius:16px;padding:4px 12px;background:var(--bg)}
 .more>summary{cursor:pointer;font-weight:800;padding:10px 0;list-style:none;display:flex;justify-content:space-between;gap:10px}
 .more>summary::-webkit-details-marker{display:none}
@@ -1076,10 +1078,9 @@ function medalCell(rk){
   return `<div class="medal" style="--m:${m[1]};--mi:${m[2]}">${rk}</div><span class="mname">${m[0]}</span>`;
 }
 /* duel wins -> IDF rank (only wins exist; losses are never stored) */
-const IDF_RANKS=[[1,"טוראי","טוראי"],[2,"רב\"ט","רב־טוראי"],[3,"סמל","סמל"],[5,"סמ\"ר","סמל ראשון"],[7,"סג\"ם","סגן־משנה"],[9,"סגן","סגן"],
-  [11,"סרן","סרן"],[14,"רס\"ן","רב־סרן"],[17,"סא\"ל","סגן־אלוף"],[21,"אל\"ם","אלוף־משנה"],[26,"תא\"ל","תת־אלוף"],[31,"אלוף","אלוף"],[41,"רא\"ל","רב־אלוף"]];
+const IDF_RANKS=[[1,"🗡️ לוחם/ת","לוחם/ת"],[3,"⚔️ אביר/ה","אביר/ה"],[6,"🛡️ גיבור/ה","גיבור/ה"],[10,"👑 אלוף/ת הקרבות","אלוף/ת הקרבות"]];
 const idfRank=w=>{let r=null;for(const x of IDF_RANKS)if(w>=x[0])r=x;return r};
-const rankBadge=w=>{const r=idfRank(w);return r?` <span class="wrank" title="${r[2]} · ${w} ניצחונות בקרבות">🎖️ ${r[1]} · ${w}</span>`:""};
+const rankBadge=w=>{const r=idfRank(w);return r?` <span class="wrank" title="${r[2]} · ${w} ניצחונות בקרבות">${r[1].replace(/ (?=[^ ]*$)/,"&nbsp;")}&nbsp;·&nbsp;${w}</span>`:""};
 const isMine=r=>!!me&&r.key===(me.name.trim()+"|"+me.cls).toLowerCase();
 /* the 3 leaders on a podium, the rest folded away */
 function podium(rows,today){
@@ -1136,7 +1137,7 @@ function boardTable(rows,compact,from=0){
     return `<tr class="r${mine(r)?" me":""}"><td class="rank">${medalCell(rk)}</td><td><span class="nm"><span class="av">${r.av}</span><span class="nmt">${esc(r.name)}${mine(r)?" (אני)":""}${rankBadge(r.wins)}</span><span class="dot" data-ok="${esc(r.key)}" ${r.online?"":"hidden"} title="לומד/ת עכשיו"></span></span></td><td>${esc(r.cls)}</td>
   <td><div class="row" style="flex-wrap:nowrap"><div class="bar mini" style="--c:var(--xp)"><i style="width:${r.meter}%"></i></div><b class="num small">${r.meter}%</b></div>${r.minutes?`<div class="small muted" style="white-space:nowrap">⏱ ${fmtTime(r.minutes)}</div>`:""}</td>
   <td class="num">${(i<SHOW_SCORES||mine(r))&&r.best==null?`<span class="small muted">עוד לא התחיל/ה מבחנים</span>`:i<SHOW_SCORES||mine(r)?`<b>${weighted(r)}</b> <span class="small muted">משוקלל</span><div class="small muted cov" style="white-space:nowrap">ציון ${r.best}${r.attempts&&!compact?` (${r.attempts})`:""}</div><div class="small muted cov" style="white-space:nowrap">על ${r.covered}/${EXAM_BANK.length}</div>`:`${r.covered?`<span class="small muted" style="white-space:nowrap">על ${r.covered}/${EXAM_BANK.length}</span>`:`<span class="small muted">עוד לא התחיל/ה מבחנים</span>`}`}</td>${compact?"":`<td class="wide"><span class="status ${stc}">${st}</span></td>`}</tr>`}).join("")}
-  </tbody></table></div>${rows.some(r=>r.covered)?`<p class="small muted">משוקלל = הציון הכי טוב × החלק מהחומר שנבחן/ה עליו: מי שקיבל/ה 98 על 70 מתוך ${EXAM_BANK.length} שאלות מקבל/ת 51; מי שקיבל/ה 100 על 24 שאלות מקבל/ת 18. הסדר נקבע לפי המשוקלל. "על 40/${EXAM_BANK.length}" = נבחן/ה עד היום על 40 שאלות שונות. הציונים מוצגים רק ל-${SHOW_SCORES} הראשונים.</p>`:""}${rows.some(r=>r.minutes)?`<p class="small muted">⏱ = זמן למידה פעיל באתר (שעות:דקות), נמדד מ-7.11.2026. 🟢 = לומד/ת באתר עכשיו.</p>${rows.some(r=>r.wins)?`<p class="small muted">🎖️ דרגה לפי ניצחונות בקרבות: ${IDF_RANKS.map(x=>`${x[1]} (${x[0]}+)`).join(" · ")}</p>`:""}`:""}`;
+  </tbody></table></div>${rows.some(r=>r.covered)?`<p class="small muted">משוקלל = הציון הכי טוב × החלק מהחומר שנבחן/ה עליו: מי שקיבל/ה 98 על 70 מתוך ${EXAM_BANK.length} שאלות מקבל/ת 51; מי שקיבל/ה 100 על 24 שאלות מקבל/ת 18. הסדר נקבע לפי המשוקלל. "על 40/${EXAM_BANK.length}" = נבחן/ה עד היום על 40 שאלות שונות. הציונים מוצגים רק ל-${SHOW_SCORES} הראשונים.</p>`:""}${rows.some(r=>r.minutes)?`<p class="small muted">⏱ = זמן למידה פעיל באתר (שעות:דקות), נמדד מ-7.11.2026. 🟢 = לומד/ת באתר עכשיו.</p>${rows.some(r=>r.wins)?`<p class="small muted">דרגה לפי ניצחונות בקרבות: ${IDF_RANKS.map((x,i)=>`${x[1]} (${IDF_RANKS[i+1]?`${x[0]}–${IDF_RANKS[i+1][0]-1}`:`${x[0]}+`})`).join(" · ")}. המספר ליד הדרגה = מספר הניצחונות.</p>`:""}`:""}`;
 }
 
 /* ---------- world ---------- */
@@ -1603,7 +1604,7 @@ async function duelPoll(){
 }
 function promoteText(){
   const mine=(LIVE||[]).find(isMine),before=mine?mine.wins:0,after=before+1,a=idfRank(before),b=idfRank(after);
-  return (!a||a[1]!==b[1])?`🎖️ קודמת לדרגת <b>${b[2]}</b>! (${after} ניצחונות)`:`הניצחון נוסף לטבלת ההישגים ⚔️ · עכשיו ${after} ניצחונות`;
+  return (!a||a[1]!==b[1])?`${b[1].split(" ")[0]} עלית לדרגת <b>${b[2]}</b>! (${after} ניצחונות)`:`הניצחון נוסף לטבלת ההישגים ⚔️ · עכשיו ${after} ניצחונות`;
 }
 const findHandle=o=>{const r=(LIVE||[]).find(x=>x.name===o.name&&x.cls===o.cls);return r&&r.handle};
 
