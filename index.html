@@ -863,7 +863,14 @@ const QB2_G6=[
    Every course has the same shape, so a new grade or subject is one more entry here.
    ============================================================ */
 const gradeOf=cls=>String(cls||"")[0]==="ו"?"ו":"ה";
-const GRADE=(()=>{try{const ps=JSON.parse(localStorage.getItem("sci1:profiles")||"[]"),a=JSON.parse(localStorage.getItem("sci1:active")||'""');const pr=ps.find(x=>x.id===a);return gradeOf(pr&&pr.cls)}catch(e){return "ה"}})();
+/* a child may open another grade's material to look and learn: no scores are sent and they never appear in that grade's tables */
+const viewOf=id=>{try{const v=JSON.parse(localStorage.getItem("sci1:view")||"{}")[id];return v==="ה"||v==="ו"?v:null}catch(e){return null}};
+const GRADE=(()=>{try{const ps=JSON.parse(localStorage.getItem("sci1:profiles")||"[]"),a=JSON.parse(localStorage.getItem("sci1:active")||'""');const pr=ps.find(x=>x.id===a);return viewOf(a)||gradeOf(pr&&pr.cls)}catch(e){return "ה"}})();
+function setView(id,g,own){let v={};try{v=JSON.parse(localStorage.getItem("sci1:view")||"{}")}catch(e){}if(!g||g===own)delete v[id];else v[id]=g;try{localStorage.setItem("sci1:view",JSON.stringify(v))}catch(e){}}
+const effGrade=pr=>viewOf(pr.id)||gradeOf(pr.cls);
+/* school year: from 1 September. A new year starts everyone from zero (progress, scores, duel wins in the tables) */
+const SEASON=(d=>d.getMonth()>=8?d.getFullYear():d.getFullYear()-1)(new Date());
+const SEASON_START=new Date(SEASON,8,1);
 const COURSES={
  "ה":{science:{subject:"מדעים",title:"מתכות, סלעים ומלחים",WORLDS:WORLDS_G5,LESSON_VER:LESSON_VER_G5,CARDS:CARDS_G5,QB:QB_G5,QB2:QB2_G5}},
  "ו":{science:{subject:"מדעים",title:"האנרגיה שסביבנו",WORLDS:WORLDS_G6,LESSON_VER:{},CARDS:CARDS_G6,QB:QB_G6,QB2:QB2_G6}}
@@ -882,9 +889,14 @@ const LS="sci1:";
 const ls={get(k,d){try{const v=localStorage.getItem(LS+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(LS+k,JSON.stringify(v))}catch(e){}}};
 let profiles=ls.get("profiles",[]);      // [{id,name,cls,av}]
 let me=profiles.find(p=>p.id===ls.get("active",""))||null;
-const blank=()=>({lessons:{},cards:{},mastered:{},exam:{best:null,attempts:0,last:null,history:[]},sent:null});
+const blank=()=>({lessons:{},cards:{},mastered:{},exam:{best:null,attempts:0,last:null,history:[]},sent:null,season:SEASON});
+let NEW_YEAR=false;
+function loadP(id){const x=ls.get(pkey(id),null);if(!x)return blank();if(x.season==null){x.season=SEASON;return x}
+  if(x.season!==SEASON){NEW_YEAR=true;return blank()}return x}
 const pkey=id=>GRADE==="ה"&&SUBJECT==="science"?"p:"+id:"p:"+id+":"+GRADE+":"+SUBJECT;
-let P=me?ls.get(pkey(me.id),blank()):blank();
+let P=me?loadP(me.id):blank();
+const VISITING=()=>!!me&&GRADE!==gradeOf(me.cls);
+if(me&&NEW_YEAR&&me.role==="kid"){me.clsOk=false;setView(me.id,null);ls.set("profiles",profiles)}   // new school year: ask the class again (they moved up a grade)
 const save=()=>{if(me){ls.set(pkey(me.id),P);queueSync()}};
 
 /* practice: a question is mastered once it is answered right on the first try; a topic is done only when all are */
@@ -955,9 +967,9 @@ function setRole(role){
   else{const pr=me;if(was==="parent")setParentOnServer(pr,false);lastSent="";queueSync();setTimeout(()=>setParentOnServer(pr,false),4000)}
   LIVE=null;
 }
-function queueSync(){if(!LIVE_ON||!me||isParent())return;clearTimeout(syncT);syncT=setTimeout(sendSync,2000)}
+function queueSync(){if(!LIVE_ON||!me||isParent()||VISITING())return;clearTimeout(syncT);syncT=setTimeout(sendSync,2000)}
 function sendSync(){
-  if(!LIVE_ON||!me||isParent())return;const d=payload(),body=JSON.stringify(d);if(body===lastSent)return;lastSent=body;
+  if(!LIVE_ON||!me||isParent()||VISITING())return;const d=payload(),body=JSON.stringify(d);if(body===lastSent)return;lastSent=body;
   const args={p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes,p_correct:d.correct,p_today_minutes:d.todayMin,p_today:d.today};
   try{fetch(SUPA_URL+"/rest/v1/rpc/save_result",{method:"POST",headers:SUPA_H,body:JSON.stringify(args),keepalive:true}).then(r=>{if(!r.ok)lastSent="";LIVE=null}).catch(()=>{lastSent=""})}catch(e){lastSent=""}
 }
@@ -1034,7 +1046,7 @@ const WA_SVG='<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"
 const LOGO='<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2h6v2h-1v5.2l5.6 9.4A2.2 2.2 0 0 1 17.7 22H6.3a2.2 2.2 0 0 1-1.9-3.4L10 9.2V4H9z" fill="#ffbe1a"/><circle cx="10" cy="17" r="1.6" fill="#3150f5"/><circle cx="14" cy="15" r="1.1" fill="#3150f5"/></svg>';
 
 function topbar(back){
-  return `<div class="top">${back?`<button class="back" data-nav="${back}">→ חזרה</button>`:`<div class="brand"><span class="logo">${LOGO}</span><span class="btxt">מבחן במדעים<span class="bsub"> · כיתה ${GRADE}׳</span></span></div>`}
+  return `<div class="top">${back?`<button class="back" data-nav="${back}">→ חזרה</button>`:`<div class="brand"><span class="logo">${LOGO}</span><span class="btxt">מבחן במדעים<span class="bsub"> · כיתה ${GRADE}׳${VISITING()?" 👀":""}</span></span></div>`}
   ${me?`<div class="who"><span class="small"><b>${esc(me.name)}</b> · ${isParent()?"👨‍👩‍👧 הורה":esc(me.cls)}</span><span class="av">${me.av}</span></div>`:""}</div>`;
 }
 function bindNav(){root.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>nav(b.dataset.nav))}
@@ -1143,9 +1155,9 @@ function onboarding(){
     if(!document.getElementById("pc").value){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו את מספר הכיתה.</div>`;document.getElementById("pc").focus();return}
     const cls=document.getElementById("pg").value+"׳"+document.getElementById("pc").value;
     if(me){Object.assign(me,{name,cls,av,clsOk:true});if(role!==me.role)setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av,role,clsOk:true,roleSynced:true};profiles.push(me);P=blank();{const pr=me;if(role==="parent")setParentOnServer(pr,true);else setTimeout(()=>setParentOnServer(pr,false),4000)}}
-    ls.set("profiles",profiles);ls.set("active",me.id);if(gradeOf(cls)!==GRADE){clearTimeout(syncT);return location.reload()}save();home();};
+    ls.set("profiles",profiles);ls.set("active",me.id);if(gradeOf(cls)!==GRADE){save();setView(me.id,null);clearTimeout(syncT);return location.reload()}save();home();};
 }
-function switchTo(id){const to=profiles.find(p=>p.id===id);ls.set("active",id);if(gradeOf(to.cls)!==GRADE)return location.reload();me=to;P=ls.get(pkey(id),blank());home()}
+function switchTo(id){const to=profiles.find(p=>p.id===id);ls.set("active",id);if(effGrade(to)!==GRADE)return location.reload();me=to;P=loadP(id);if(NEW_YEAR)return location.reload();home()}
 
 let SCREEN="";
 const ROLE_KID=`<span class="ic">🎒</span><span><b>אני תלמיד/ה</b>לומד/ת למבחן. ההתקדמות שלי נשמרת ומופיעה בטבלת ההישגים.</span>`;
@@ -1173,13 +1185,13 @@ function confirmClass(){
   const before=me.cls;
   const done=()=>{me.clsOk=true;ls.set("profiles",profiles);
     if(LIVE_ON)fetch(SUPA_URL+"/rest/v1/rpc/confirm_class",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:me.id,p_old:before,p_new:me.cls}),keepalive:true}).catch(()=>{});
-    el.remove();home()};
-  const ask=()=>{box.innerHTML=`<div style="font-size:2.2rem;text-align:center">🏫</div><h2>${esc(me.name)}, הכיתה שלך היא ${esc(me.cls)}?</h2>
+    el.remove();if(gradeOf(me.cls)!==GRADE){setView(me.id,null);return setTimeout(()=>location.reload(),300)}home()};
+  const ask=()=>{box.innerHTML=`<div style="font-size:2.2rem;text-align:center">🏫</div><h2>${NEW_YEAR?"🎒 שנת לימודים חדשה! ":""}${esc(me.name)}, הכיתה שלך היא ${esc(me.cls)}?</h2>${NEW_YEAR?`<p class="why" style="text-align:center">בתחילת כל שנה כולם מתחילים מאפס. אם עליתם כיתה – בחרו את הכיתה החדשה.</p>`:""}
     <p class="why" style="text-align:center">הכיתה מופיעה ליד השם שלך בטבלת ההישגים, אז חשוב שתהיה נכונה.</p>
     <button class="btn primary block" id="clsYes">כן, ${esc(me.cls)} נכון ✓</button><button class="btn ghost block" id="clsNo">לא, אני בכיתה אחרת</button>`;
     box.querySelector("#clsYes").onclick=done;box.querySelector("#clsNo").onclick=pick};
   const pick=()=>{box.innerHTML=`<div style="font-size:2.2rem;text-align:center">🏫</div><h2>באיזו כיתה את/ה?</h2>
-    <div class="row" style="flex-wrap:nowrap"><select class="input" id="rg">${["ה","ד","ו"].map(g=>`<option ${me.cls.startsWith(g)?"selected":""}>${g}</option>`).join("")}</select>
+    <div class="row" style="flex-wrap:nowrap"><select class="input" id="rg">${["ה","ו"].map(g=>`<option ${me.cls.startsWith(g)?"selected":""}>${g}</option>`).join("")}</select>
     <select class="input" id="rc"><option value="">בחרו</option>${[1,2,3,4,5,6,7,8].map(n=>`<option>${n}</option>`).join("")}</select></div>
     <div id="rcErr"></div><button class="btn primary block" id="clsSave">שמירה והמשך ←</button>`;
     box.querySelector("#rc").onchange=()=>{box.querySelector("#rcErr").innerHTML=""};
@@ -1248,13 +1260,17 @@ function home(){
       <div class="row"><button class="btn ghost" data-nav="profile">✎ פרופיל</button>${!isParent()&&LIVE_ON?`<button class="btn ghost" data-nav="profile">⚔️ הקרבות שלי</button>`:""}<button class="btn ghost" id="share">${WA_SVG} שליחת התקדמות להורה</button></div>
     </div>
   </div></details>
-  ${isParent()?"":`<details class="fold" data-fold="duel" ${FOLD.duel?"open":""}><summary><span>⚔️ חדר קרבות <span class="small" style="color:#16a34a" id="duelN"></span></span></summary>
-    <div class="stack" style="padding-bottom:20px"><p class="small muted">מזמינים ילד/ה שאונליין עכשיו לקרב: אותה שאלה מופיעה לשניכם, מי שעונה נכון ראשון מקבל נקודה, והראשון/ה ל-${DUEL_TARGET} מנצח/ת. תשובה לא נכונה נועלת אותך בשאלה הזו. בטבלה מופיעים רק ניצחונות.</p><div id="duelList" class="stack"></div></div></details>`}
+  ${isParent()||VISITING()?"":`<details class="fold" data-fold="duel" ${FOLD.duel?"open":""}><summary><span>⚔️ חדר קרבות <span class="small" style="color:#16a34a" id="duelN"></span></span></summary>
+    <div class="stack" style="padding-bottom:20px"><p class="small muted">מזמינים ילד/ה שאונליין עכשיו לקרב: אותה שאלה מופיעה לשניכם, מי שעונה נכון ראשון מקבל נקודה, והראשון/ה ל-${DUEL_TARGET} מנצח/ת. תשובה לא נכונה נועלת אותך בשאלה הזו. בטבלה מופיעים רק ניצחונות.</p>${meter()>=EXAM_UNLOCK?"":`<div class="fb ${P.duelTry?"bad":"good"}" style="margin:0">${P.duelTry?`🔒 קרב הניסיון שלך נוצל. הקרבות ייפתחו כשתסיימו ללמוד את כל החומר (מד הלמידה ${meter()}% מתוך 100%).`:"⚔️ הקרבות פתוחים למי שסיים/ה ללמוד את כל החומר. עד אז – יש לך קרב ניסיון אחד."}</div>`}<div id="duelList" class="stack"></div></div></details>`}
   <details class="fold" data-fold="board" ${FOLD.board?"open":""}><summary><span>🏆 טבלת ההישגים${rows.some(r=>r.online)?` <span class="small" style="color:#16a34a">· 🟢 ${rows.filter(r=>r.online).length} לומדים עכשיו</span>`:""}</span></summary>
   <div class="stack" style="padding-bottom:20px">
     <div class="row" style="justify-content:flex-end"><button class="btn ghost" data-nav="board">לכל הטבלה</button></div>
     ${rows.length?leaderboard(rows,true):`<p class="muted">${LIVE_ON?"הטבלה עוד ריקה. ברגע שמישהו יתחיל ללמוד, הוא יופיע כאן.":"הטבלה עוד ריקה. שלחו להורה את ההתקדמות, והיא תתווסף לטבלה שכולם רואים."}</p>`}
   </div></details>
+  ${VISITING()?`<section class="panel stack" style="border:2px solid var(--en2)">
+    <h2>👀 את/ה בחומר של כיתה ${GRADE}׳</h2>
+    <p class="muted">כאן אפשר לקרוא, ללמוד ולתרגל בחופשיות – אבל זה לא נספר: אין ציונים, לא מופיעים בטבלאות ואין קרבות.</p>
+    <button class="btn primary block" id="myGrade">← חזרה לחומר של כיתה ${gradeOf(me.cls)}׳ (הכיתה שלי)</button></section>`:""}
   ${ON_SITE?"":`<section class="panel stack" style="border:2px solid var(--primary)">
     <h2>📢 האפליקציה עברה לכתובת חדשה</h2>
     <p>כדי שתופיעו בטבלת התוצאות של כל הכיתות, לחצו על הכפתור. כל ההתקדמות שלכם תעבור איתכם${profiles.length>1?` – של כל ${profiles.length} הילדים במכשיר הזה`:""}.</p>
@@ -1272,12 +1288,12 @@ function home(){
     <div class="row between"><div class="bar" style="flex:1"><i style="width:${wm}%"></i></div><b class="num small">${wm}%</b></div></div></button>`}).join("")}</div>
   <section class="exam">
     <div class="stack"><span class="pill ${open?"xp":""}" style="align-self:flex-start">${open?"פתוח":"נעול"}</span><h2>המבחן המסכם</h2>
-      <p class="muted">24 שאלות מכל העולמות, עם תמונות. ציון בסוף ותיקון טעויות. ${P.exam.attempts?`ניסיונות: ${P.exam.attempts} · הציון הכי טוב: ${best} · נבחנת על ${covered()} מתוך ${EXAM_BANK.length} השאלות`:"אפשר לגשת שוב ולשפר."}</p></div>
+      <p class="muted">${VISITING()?"<b>תרגול בלבד – הציון לא נשמר בטבלה.</b> ":""}24 שאלות מכל העולמות, עם תמונות. ציון בסוף ותיקון טעויות. ${P.exam.attempts?`ניסיונות: ${P.exam.attempts} · הציון הכי טוב: ${best} · נבחנת על ${covered()} מתוך ${EXAM_BANK.length} השאלות`:"אפשר לגשת שוב ולשפר."}</p></div>
     ${open?`<button class="btn xp" data-nav="exam">${P.exam.attempts?"מבחן חוזר ←":"להתחיל ←"}</button>`:`<div class="lock" aria-hidden="true">🔒</div>`}
   </section>
   ${IS_OWNER?`<button class="btn primary block" data-nav="admin">🔑 ניהול טבלת התוצאות${pending().length?` · ${pending().length} חדשים`:""}</button>`:""}
   ${profiles.length>1?`<div class="profiles">${profiles.filter(p=>p.id!==me.id).map(p=>`<button data-pid="${p.id}"><span class="av">${p.av}</span>להחליף ל${esc(p.name)}</button>`).join("")}</div>`:""}
-  <button class="btn ghost" id="addp" style="align-self:flex-start">+ תלמיד/ה נוסף/ת במכשיר הזה</button>
+  <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="addp">+ תלמיד/ה נוסף/ת במכשיר הזה</button>${VISITING()?"":`<button class="btn ghost" id="otherGrade">📚 להציץ בחומר של כיתה ${GRADE==="ו"?"ה":"ו"}׳</button>`}</div>
   <section class="panel stack" style="border:2px solid var(--xp)">
     <h2>🌙 חזרה לפני המבחן</h2>
     <div class="row" style="flex-wrap:wrap"><button class="btn xp" data-nav="refresh" style="flex:1;min-width:150px">🎯 החזרה האישית שלי</button><button class="btn primary" data-nav="classlike:fill" style="flex:1;min-width:150px">📝 כמו במבחן בכיתה</button></div>
@@ -1288,6 +1304,8 @@ function home(){
   root.querySelectorAll("[data-redo]").forEach(b=>b.onclick=()=>{const [w,i]=b.dataset.redo.split(":");lesson(w,+i);scrollTo(0,0)});
   root.querySelectorAll("[data-pid]").forEach(b=>b.onclick=()=>switchTo(b.dataset.pid));
   document.getElementById("addp").onclick=()=>{me=null;P=blank();onboarding()};
+  const og=document.getElementById("otherGrade");if(og)og.onclick=()=>{if(!confirm(`לעבור לחומר של כיתה ${GRADE==="ו"?"ה":"ו"}׳?\nאפשר ללמוד ולתרגל, אבל זה לא נספר בציונים ובטבלאות. ההתקדמות שלך בכיתה ${GRADE}׳ נשמרת.`))return;clearTimeout(syncT);sendSync();setView(me.id,GRADE==="ו"?"ה":"ו",gradeOf(me.cls));location.reload()};
+  const mg=document.getElementById("myGrade");if(mg)mg.onclick=()=>{setView(me.id,null);location.reload()};
 }
 
 /* places: same exam score and learning % share a place; the next group takes the next place (1, 1, 2 …) */
@@ -1771,7 +1789,7 @@ function clMistake(body){
    ============================================================ */
 const DUEL_TARGET=5,DUEL_Q_SECONDS=20;
 const rpc=(fn,body)=>fetch(SUPA_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:SUPA_H,body:JSON.stringify(body)}).then(r=>r.ok?r.json().catch(()=>null):null).catch(()=>null);
-const canDuel=()=>LIVE_ON&&!!me&&!isParent();
+const canDuel=()=>LIVE_ON&&!!me&&!isParent()&&!VISITING();
 function drawDuelList(){
   const box=document.getElementById("duelList"),n=document.getElementById("duelN");if(!box)return;
   const others=(LIVE||[]).filter(r=>r.online&&r.handle&&!isMine(r));
@@ -1783,7 +1801,7 @@ function drawDuelList(){
   box.querySelectorAll("[data-duel]").forEach(b=>b.onclick=()=>duelInvite(b.dataset.duel,b));
 }
 async function duelInvite(handle,btn){
-  if(!canDuel())return;if(btn){btn.disabled=true;btn.textContent="שולח…"}
+  if(!canDuel())return;if(!duelOk())return duelLocked();if(btn){btn.disabled=true;btn.textContent="שולח…"}
   const r=await rpc("duel_invite",{p_me:me.id,p_handle:handle});
   if(btn){btn.disabled=false;btn.textContent="⚔️ לקרב"}
   if(r&&r.ok)return duelScreen(r.id,handle);
@@ -1793,6 +1811,7 @@ async function duelInvite(handle,btn){
 async function loadDuelHistory(){
   const box=document.getElementById("dHist");if(!box)return;
   const list=await rpc("duel_history",{p_me:me.id});if(!document.getElementById("dHist"))return;
+  if(Array.isArray(list))list=list.filter(x=>!x.at||new Date(x.at)>=SEASON_START);
   if(!Array.isArray(list)){box.innerHTML=`<h2>⚔️ היסטוריית הקרבות שלי</h2><p class="muted">לא הצלחנו לטעון כרגע. נסו שוב עוד מעט.</p>`;return}
   const n=k=>list.filter(x=>x.result===k).length,w=n("win"),l=n("loss"),d=n("draw");
   const tag={win:["🏆 ניצחון","var(--good)"],loss:["הפסד","var(--bad)"],draw:["🤝 תיקו","var(--muted)"],none:["בלי תוצאה","var(--muted)"]};
@@ -1804,6 +1823,18 @@ async function loadDuelHistory(){
     <p class="small muted">ההפסדים מופיעים רק כאן, אצלך. בטבלת ההישגים מופיעים רק ניצחונות.</p>`
     :`<p class="muted">עוד לא השתתפת בקרבות. אפשר להזמין חבר/ה מ"חדר הקרבות" בדף הבית ⚔️</p>`}`;
 }
+/* duels are for children who finished learning all the material (meter 100%); before that, one duel to try it out */
+const duelOk=()=>meter()>=EXAM_UNLOCK||!P.duelTry;
+function duelLocked(inviter){
+  if(document.querySelector(".role"))return;
+  const el=document.createElement("div");el.className="role";el.setAttribute("role","alertdialog");
+  el.innerHTML=`<div style="text-align:center"><div style="font-size:2.6rem">🔒⚔️</div><h2>הקרבות מחכים לך!</h2>
+    ${inviter?`<p><b>${esc(inviter)}</b> הזמין/ה אותך לקרב.</p>`:""}
+    <p class="why">את קרב הניסיון כבר עשית 💪 אפשר להמשיך בקרבות רק אחרי שמסיימים ללמוד את כל החומר – כשמד הלמידה מגיע ל-100%.</p>
+    <div class="bar" style="--c:var(--xp)"><i style="width:${meter()}%"></i></div><p class="small" style="font-weight:800">מד הלמידה שלך: ${meter()}%</p>
+    <button class="btn primary block" id="dlGo">להמשיך ללמוד ←</button></div>`;
+  document.body.appendChild(el);el.querySelector("#dlGo").onclick=()=>el.remove();
+}
 /* invitations to me, checked every few seconds while the app is open */
 let DUEL_ID=null,DUEL_INVITE_SHOWN=null;
 async function duelInbox(){
@@ -1814,7 +1845,7 @@ async function duelInbox(){
 }
 setInterval(duelInbox,4000);
 function showInvite(inv){
-  DUEL_INVITE_SHOWN=inv.id;document.querySelectorAll(".cheer").forEach(e=>e.remove());
+  DUEL_INVITE_SHOWN=inv.id;if(!duelOk()){rpc("duel_respond",{p_me:me.id,p_duel:inv.id,p_accept:false});return duelLocked(inv.name)}document.querySelectorAll(".cheer").forEach(e=>e.remove());
   const el=document.createElement("div");el.className="role";el.setAttribute("role","alertdialog");
   el.innerHTML=`<div style="text-align:center"><div style="font-size:2.6rem">⚔️</div><h2>הזמנה לקרב!</h2>
     <p style="font-size:1.15rem"><span class="av" style="display:inline-grid;vertical-align:middle">${inv.av}</span> <b>${esc(inv.name)}</b> (${esc(inv.cls)}) מזמין/ה אותך לקרב ידע</p>
@@ -1842,6 +1873,7 @@ async function duelPoll(){
   const box=document.getElementById("duelBox");if(!box)return;
   if(st.status==="gone"){box.innerHTML=`<p>הקרב לא נמצא.</p><button class="btn primary" id="dHome">לדף הבית</button>`;box.querySelector("#dHome").onclick=duelExit;clearInterval(duelTimer);return}
   const o=st.opp,m=st.me;
+  if(st.status!=="invited"&&!P.duelTry&&meter()<EXAM_UNLOCK){P.duelTry=DUEL_ID;save()}
   if(st.status==="invited"){
     if(duelView.shownFor!=="wait"){duelView.shownFor="wait";box.innerHTML=`<div style="text-align:center;font-size:2.4rem">⏳</div><h2 style="text-align:center">מחכים ש${esc(o.name)} יאשר/תאשר…</h2>
       <p class="muted" style="text-align:center">ההזמנה נשלחה. אם לא יאשרו תוך כחצי דקה, היא תפוג.</p><div id="dWaitInfo"></div><button class="btn ghost block" id="dCancel">ביטול ההזמנה</button>`;

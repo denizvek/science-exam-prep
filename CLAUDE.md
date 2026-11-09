@@ -18,4 +18,7 @@ A copy is also published as a Claude artifact: https://claude.ai/artifact/DpNcqm
 - Final exam opens only at 100% learning meter.
 - Practice: a topic is done only when every question was answered right on the first try (3 rounds per topic).
 - Wrong practice answers never reveal the answer; they link to the lesson and return to the question.
-- Results table shows all classes. No admin screen.
+- Results table shows all classes of the child's own grade. No admin screen.
+- Duels only for children whose learning meter is 100%; before that, one trial duel (`P.duelTry`), then a popup asks them to finish the material.
+- Any child may look at and study another grade's material (`sci1:view`), but nothing is sent: no scores, not in tables, no duels.
+- New school year (1 September): progress resets on the device (`P.season`), kids re-confirm their class; the view `results_public` shows only rows active since `season_start()` and counts duel wins from this school year only.

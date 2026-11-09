@@ -327,3 +327,31 @@ language sql security definer set search_path = public as $$
 $$;
 revoke all on function public.confirm_class(text, text, text) from public;
 grant execute on function public.confirm_class(text, text, text) to anon;
+-- School year: from 1 September (Israel time). The public table shows only children active this school year,
+-- and duel wins count only duels finished this school year; a new year starts everyone from zero.
+create or replace function public.season_start() returns timestamptz
+language sql stable set search_path = public as $$
+  select make_timestamptz(
+    case when extract(month from now() at time zone 'Asia/Jerusalem') >= 9
+         then extract(year from now() at time zone 'Asia/Jerusalem')::int
+         else extract(year from now() at time zone 'Asia/Jerusalem')::int - 1 end,
+    9, 1, 0, 0, 0, 'Asia/Jerusalem')
+$$;
+
+create or replace view public.results_public as
+ SELECT name, cls, av, meter, lessons, best, attempts, updated,
+    CASE WHEN attempts > 0 THEN GREATEST(covered, 24) ELSE 0 END AS covered,
+    minutes,
+    CASE WHEN attempts > 0 THEN GREATEST(correct, round(COALESCE(best, 0)::numeric * 0.24)::integer) ELSE 0 END AS correct,
+    COALESCE(last_seen > (now() - '00:02:00'::interval), false) AS online,
+    GREATEST(updated, COALESCE(last_seen, updated)) AS active_at,
+    GREATEST(
+        CASE WHEN today_date = (now() AT TIME ZONE 'Asia/Jerusalem')::date THEN today_minutes ELSE 0 END,
+        CASE WHEN day_base_date = (now() AT TIME ZONE 'Asia/Jerusalem')::date THEN GREATEST(minutes - day_base_minutes, 0) ELSE 0 END) AS today_minutes,
+    (SELECT count(*)::integer FROM public.duels d
+      WHERE d.status = 'done' AND d.finished_at >= public.season_start()
+        AND ((d.winner = 'a' AND d.a_id = results.id) OR (d.winner = 'b' AND d.b_id = results.id))) AS wins,
+    substr(md5('duel:'::text || id), 1, 12) AS handle
+   FROM public.results
+  WHERE NOT hidden AND NOT is_parent
+    AND GREATEST(updated, COALESCE(last_seen, updated)) >= public.season_start();
