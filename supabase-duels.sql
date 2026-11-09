@@ -442,3 +442,139 @@ language sql security definer set search_path = public as $$
 $$;
 revoke all on function public.duel_history(text) from public;
 grant execute on function public.duel_history(text) to anon;
+-- Grades: each grade sees only its own material and its own classmates.
+-- The answer key knows which course each question belongs to (grade:subject); duels are only within one grade
+-- and draw their questions from that grade's course.
+alter table public.duel_key add column if not exists course text not null default 'ה:science';
+
+create or replace function public.duel_invite(p_me text, p_handle text) returns json
+language plpgsql security definer set search_path = public as $$
+declare me results%rowtype; them results%rowtype; new_id uuid; my_course text;
+begin
+  select * into me from results where id = left(p_me, 40);
+  if not found or me.is_parent then return json_build_object('ok', false, 'reason', 'not_kid'); end if;
+  select * into them from results where substr(md5('duel:' || id), 1, 12) = p_handle and not hidden and not is_parent;
+  if not found or them.id = me.id then return json_build_object('ok', false, 'reason', 'not_found'); end if;
+  if (case when left(me.cls, 1) = 'ו' then 'ו' else 'ה' end) <> (case when left(them.cls, 1) = 'ו' then 'ו' else 'ה' end) then
+    return json_build_object('ok', false, 'reason', 'other_grade');
+  end if;
+  my_course := (case when left(me.cls, 1) = 'ו' then 'ו' else 'ה' end) || ':science';
+  if them.last_seen is null or them.last_seen < now() - interval '2 minutes' then return json_build_object('ok', false, 'reason', 'offline'); end if;
+  update duels set status = 'expired' where status = 'invited' and created_at < now() - interval '40 seconds' and (a_id in (me.id, them.id) or b_id in (me.id, them.id));
+  if exists (select 1 from duels where status in ('invited', 'active') and (a_id in (me.id, them.id) or b_id in (me.id, them.id))
+             and (status = 'invited' or greatest(coalesce(a_seen, created_at), coalesce(b_seen, created_at)) > now() - interval '30 seconds')) then
+    return json_build_object('ok', false, 'reason', 'busy');
+  end if;
+  insert into duels (a_id, b_id, a_name, b_name, a_av, b_av, a_cls, b_cls, qs, a_seen)
+    values (me.id, them.id, me.name, them.name, me.av, them.av, me.cls, them.cls,
+            array(select qid from duel_key where course = my_course order by random() limit 30), now())
+    returning id into new_id;
+  return json_build_object('ok', true, 'id', new_id);
+end $$;
+insert into public.duel_key (qid, answer, course) values
+(1000, 'מהתרחשות של תופעות', 'ו:science'),
+(1001, 'ברק בזמן סערה', 'ו:science'),
+(1002, 'טיסה של חללית', 'ו:science'),
+(1003, 'נכון', 'ו:science'),
+(1004, 'משהו שקורה – תהליך, תופעה או פעולה', 'ו:science'),
+(1005, 'מאנרגיית האור של השמש', 'ו:science'),
+(1006, 'משרידי גוף של בעלי חיים ששקעו לקרקעית הים לפני שנים רבות', 'ו:science'),
+(1007, 'כל היצורים החיים – צמחים, בעלי חיים ובני אדם', 'ו:science'),
+(1008, 'תנועה ממקום למקום', 'ו:science'),
+(1009, 'הזנה', 'ו:science'),
+(1010, 'לא נכון', 'ו:science'),
+(1011, 'לגדול ולהתפתח', 'ו:science'),
+(1012, 'בכל התחומים – רפואה, תחבורה, חקלאות, תקשורת ותעשייה', 'ו:science'),
+(1013, 'פטיש', 'ו:science'),
+(1014, 'טענה ונימוקים', 'ו:science'),
+(1015, 'נימוק', 'ו:science'),
+(1016, 'האנרגיה שמספק הזרם החשמלי', 'ו:science'),
+(1017, 'גורם להם להתחמם – לעלות בטמפרטורה', 'ו:science'),
+(1018, 'השמש', 'ו:science'),
+(1019, 'במעמקי האדמה – הרי געש ונביעות מים חמים', 'ו:science'),
+(1020, 'אנרגיה חשמלית', 'ו:science'),
+(1021, 'האנרגיה שיש בכל סוגי האור', 'ו:science'),
+(1022, 'צמחים ירוקים', 'ו:science'),
+(1023, 'בחומרים – במזון ובחומרי דלק', 'ו:science'),
+(1024, 'פחם אבן', 'ו:science'),
+(1025, 'נכון', 'ו:science'),
+(1026, 'נכון', 'ו:science'),
+(1027, 'אנרגיית תנועה', 'ו:science'),
+(1028, 'אנרגיית קול', 'ו:science'),
+(1029, 'אנרגיית תנועה', 'ו:science'),
+(1030, 'חום', 'ו:science'),
+(1031, 'נכון', 'ו:science'),
+(1032, 'אנרגיה עוברת מגוף לגוף, וסוג האנרגיה לא משתנה', 'ו:science'),
+(1033, 'המשטח חם – חום עבר מהכוס לשולחן', 'ו:science'),
+(1034, 'לא נכון', 'ו:science'),
+(1035, 'אנרגיית התנועה של הרוח עוברת לשבשבת', 'ו:science'),
+(1036, 'אנרגיה הופכת מסוג אחד לסוג אחר', 'ו:science'),
+(1037, 'לאור ולחום', 'ו:science'),
+(1038, 'האנרגיה הכימית בשרירים הופכת לאנרגיית התנועה של הגלגלים', 'ו:science'),
+(1039, 'אנרגיית התנועה של המנוע', 'ו:science'),
+(1040, 'נכון', 'ו:science'),
+(1041, 'אנרגיה כימית הופכת לחום ולאור', 'ו:science'),
+(1042, 'אנרגיה חשמלית הופכת לאנרגיית תנועה', 'ו:science'),
+(1043, 'אנרגיית האור של השמש הופכת לחום שמחמם את המים', 'ו:science'),
+(1044, 'מעבר – אנרגיית התנועה של הרוח עוברת לסירה', 'ו:science'),
+(1045, 'אנרגיית תנועה (וגם לחום)', 'ו:science'),
+(1046, 'אנרגיה חשמלית הופכת לחום', 'ו:science'),
+(1047, 'נר דולק', 'ו:science'),
+(1048, 'משאבי טבע שמהם מפיקים את סוגי האנרגיה שצריך', 'ו:science'),
+(1049, 'מאנרגיית האור של השמש', 'ו:science'),
+(1050, 'מאנרגיית התנועה של המים', 'ו:science'),
+(1051, 'מהאנרגיה הכימית שבהם', 'ו:science'),
+(1052, 'שרירים', 'ו:science'),
+(1053, 'רוח', 'ו:science'),
+(1054, 'מקור שאפשר להשתמש בו בלי הגבלה – הוא לא נגמר', 'ו:science'),
+(1055, 'פחם אבן', 'ו:science'),
+(1056, 'שמש, רוח ומים זורמים', 'ו:science'),
+(1057, 'נכון', 'ו:science'),
+(1058, 'נפט גולמי – בשנת 2050', 'ו:science'),
+(1059, 'השמש', 'ו:science'),
+(1060, 'דוד שמש, תאים סולריים וייבוש כביסה', 'ו:science'),
+(1061, 'השימוש בה אינו מזהם את הסביבה', 'ו:science'),
+(1062, 'כי בעלי חיים מתרבים מדור לדור', 'ו:science'),
+(1063, 'הפקת חשמל', 'ו:science'),
+(1064, 'הם נגמרים בעקבות השימוש בהם', 'ו:science'),
+(1065, 'היא הופכת לחום ולאנרגיית אור', 'ו:science'),
+(1066, 'הטבעית', 'ו:science'),
+(1067, 'אי אפשר לראות אנרגיה – מסיקים עליה מתופעות', 'ו:science'),
+(1068, 'משריפה של פחם או נפט', 'ו:science'),
+(1069, 'נשימה, הזנה ורבייה', 'ו:science'),
+(1070, 'תהליכי החיים שמאפשרים גדילה דורשים אנרגיה', 'ו:science'),
+(1071, 'האנרגיה משפרת את איכות החיים בתחומים רבים', 'ו:science'),
+(1072, 'נימוקים שמוכיחים אותה', 'ו:science'),
+(1073, 'כולם צריכים אנרגיה כדי לפעול', 'ו:science'),
+(1074, 'מההפעלה של מכשיר החשמל', 'ו:science'),
+(1075, 'אנרגיה חשמלית', 'ו:science'),
+(1076, 'נכון', 'ו:science'),
+(1077, 'לבעור', 'ו:science'),
+(1078, 'האנרגיה הכימית שבמזון', 'ו:science'),
+(1079, 'אור, חום, קול ותנועה', 'ו:science'),
+(1080, 'אנרגיית תנועה', 'ו:science'),
+(1081, 'גוף 1 – הכוס עם המים החמים; גוף 2 – השולחן', 'ו:science'),
+(1082, 'מעבר אנרגיה – חום עבר מהיד לידית', 'ו:science'),
+(1083, 'לא – היא עוברת לגוף אחר או הופכת לסוג אחר', 'ו:science'),
+(1084, 'המרת אנרגיה', 'ו:science'),
+(1085, 'מעבר אנרגיה', 'ו:science'),
+(1086, 'האנרגיה הכימית בעצים הופכת לחום ולאור', 'ו:science'),
+(1087, 'חום עובר אל הקרח', 'ו:science'),
+(1088, 'אנרגיית תנועה', 'ו:science'),
+(1089, 'אנרגיית תנועה', 'ו:science'),
+(1090, 'חשמלית', 'ו:science'),
+(1091, 'שרירים', 'ו:science'),
+(1092, 'חומרי דלק', 'ו:science'),
+(1093, 'רוח', 'ו:science'),
+(1094, 'מתכלה', 'ו:science'),
+(1095, 'כי המקורות המתכלים ייגמרו, והם גם מזהמים', 'ו:science'),
+(1096, 'היא זמינה רק בשעות היום, ויש מעט אמצעים טכנולוגיים לניצולה', 'ו:science'),
+(1097, 'מקור: שרירים; סוג: כימית', 'ו:science'),
+(1098, 'מקור: רוח; סוג: תנועה', 'ו:science'),
+(1099, 'אדי מים חמים מאוד שפורצים מפתח צר', 'ו:science'),
+(1100, 'מהמאה ה-18', 'ו:science'),
+(1101, 'מחזור המים בטבע', 'ו:science'),
+(1102, 'חומרי דלק', 'ו:science'),
+(1103, 'מים זורמים', 'ו:science'),
+(1104, 'כי לא בכל מקום יש נהרות ומפלים חזקים', 'ו:science')
+on conflict (qid) do update set answer = excluded.answer, course = excluded.course;
