@@ -1539,13 +1539,16 @@ async function duelPoll(){
   const o=st.opp,m=st.me;
   if(st.status==="invited"){
     if(duelView.shownFor!=="wait"){duelView.shownFor="wait";box.innerHTML=`<div style="text-align:center;font-size:2.4rem">⏳</div><h2 style="text-align:center">מחכים ש${esc(o.name)} יאשר/תאשר…</h2>
-      <p class="muted" style="text-align:center">ההזמנה נשלחה. אם לא יאשרו תוך כחצי דקה, היא תפוג.</p><button class="btn ghost block" id="dCancel">ביטול ההזמנה</button>`;
+      <p class="muted" style="text-align:center">ההזמנה נשלחה. אם לא יאשרו תוך כחצי דקה, היא תפוג.</p><div id="dWaitInfo"></div><button class="btn ghost block" id="dCancel">ביטול ההזמנה</button>`;
       box.querySelector("#dCancel").onclick=()=>{rpc("duel_leave",{p_me:me.id,p_duel:DUEL_ID});duelExit()}}
+    const info=document.getElementById("dWaitInfo"),age=+st.invite_age||0;
+    if(info)info.innerHTML=!st.invite_seen&&age>8?`<div class="fb bad">😕 ${esc(o.name)} לא זמין/ה כרגע – נראה שההזמנה לא מגיעה אליו/ה (אולי האתר אצלו/ה פתוח בגרסה ישנה וצריך לרענן).</div>`
+      :st.invite_seen&&age>12?`<div class="fb good">👀 ${esc(o.name)} ראה/תה את ההזמנה ועוד לא ענה/תה…</div>`:"";
     return;
   }
-  if(st.status==="declined"||st.status==="expired"||st.status==="cancelled"){
-    clearInterval(duelTimer);box.innerHTML=`<div style="text-align:center;font-size:2.4rem">${st.status==="declined"?"🙅":"⌛"}</div><h2 style="text-align:center">${st.status==="declined"?`${esc(o.name)} לא יכול/ה עכשיו`:st.status==="cancelled"?"ההזמנה בוטלה":`${esc(o.name)} לא הספיק/ה לאשר`}</h2>
-      <p class="muted" style="text-align:center">אפשר לנסות שוב עוד מעט, או להזמין מישהו אחר.</p><button class="btn primary block" id="dHome">חזרה לדף הבית</button>`;
+  if(st.status==="declined"||st.status==="expired"||st.status==="cancelled"||st.status==="abandoned"){
+    clearInterval(duelTimer);SCREEN="duelEnd";box.innerHTML=`<div style="text-align:center;font-size:2.4rem">${st.status==="declined"?"🙅":st.status==="abandoned"?"🚪":"⌛"}</div><h2 style="text-align:center">${st.status==="declined"?`${esc(o.name)} לא יכול/ה עכשיו`:st.status==="cancelled"?"ההזמנה בוטלה":st.status==="abandoned"?"הקרב הסתיים בלי תוצאה":`${esc(o.name)} לא זמין/ה כרגע`}</h2>
+      <p class="muted" style="text-align:center">${st.status==="abandoned"?"מישהו יצא מהקרב לפני שנצברה נקודה – אף אחד לא מקבל ניצחון.":st.status==="expired"?`${esc(o.name)} לא ענה/תה להזמנה. אפשר לנסות שוב עוד מעט, או להזמין מישהו אחר.`:"אפשר לנסות שוב עוד מעט, או להזמין מישהו אחר."}</p><button class="btn primary block" id="dHome">חזרה לדף הבית</button>`;
     box.querySelector("#dHome").onclick=duelExit;return;
   }
   const score=`<div class="row between" style="flex-wrap:nowrap;gap:8px">
@@ -1590,7 +1593,7 @@ async function duelPoll(){
       else{fb.innerHTML=`<div class="fb bad">מאוחר מדי – ${esc(o.name)} כבר ענה/תה.</div>`}
       duelPoll();
     });
-    box.querySelector("#dLeave").onclick=()=>{if(confirm("לצאת מהקרב? הניצחון יעבור ל"+o.name)){rpc("duel_leave",{p_me:me.id,p_duel:DUEL_ID});duelExit()}};
+    box.querySelector("#dLeave").onclick=()=>{if(confirm(m.score+o.score>0?"לצאת מהקרב? הניצחון יעבור ל"+o.name:"לצאת מהקרב? הוא יסתיים בלי תוצאה.")){rpc("duel_leave",{p_me:me.id,p_duel:DUEL_ID});duelExit()}};
   }else{const sc=document.getElementById("dScore");if(sc)sc.innerHTML=score}
   const bar=document.getElementById("dBar");if(bar)bar.style.width=(age<0?100:Math.max(0,100-age/DUEL_Q_SECONDS*100))+"%";
   const wait=document.getElementById("dWait");

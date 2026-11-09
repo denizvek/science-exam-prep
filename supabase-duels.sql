@@ -348,3 +348,76 @@ insert into public.duel_key (qid, answer) values
 (133, 'ישראל מוכרת דשנים לארצות רבות'),
 (134, 'שלדי דגים וכרישים ששקעו בו יצרו את הסלעים')
 on conflict (qid) do update set answer = excluded.answer;
+
+-- Added later: leaving before any point ends the duel with no result (no win);
+-- the invite reaching the invited child is recorded so the inviter can be told.
+alter table public.duels add column if not exists invite_seen_at timestamptz;
+
+create or replace function public.duel_forfeit(p_duel uuid, p_winner text) returns void
+language plpgsql security definer set search_path = public as $$
+declare d duels%rowtype;
+begin
+  select * into d from duels where id = p_duel for update;
+  if d.status <> 'active' then return; end if;
+  if d.a_score + d.b_score > 0 then perform duel_finish(p_duel, p_winner);
+  else update duels set status = 'abandoned', finished_at = now() where id = p_duel; end if;
+end $$;
+revoke all on function public.duel_forfeit(uuid, text) from public;
+
+create or replace function public.duel_inbox(p_me text) returns json
+language plpgsql security definer set search_path = public as $$
+declare d duels%rowtype;
+begin
+  select * into d from duels where b_id = left(p_me, 40) and status = 'invited' and created_at > now() - interval '40 seconds' order by created_at desc limit 1;
+  if found then
+    update duels set invite_seen_at = coalesce(invite_seen_at, now()) where id = d.id;
+    return json_build_object('invite', json_build_object('id', d.id, 'name', d.a_name, 'av', d.a_av, 'cls', d.a_cls));
+  end if;
+  select * into d from duels where (a_id = left(p_me, 40) or b_id = left(p_me, 40)) and status = 'active'
+    and greatest(coalesce(a_seen, created_at), coalesce(b_seen, created_at)) > now() - interval '30 seconds' order by created_at desc limit 1;
+  if found then return json_build_object('active', d.id); end if;
+  return '{}'::json;
+end $$;
+
+create or replace function public.duel_leave(p_me text, p_duel uuid) returns void
+language plpgsql security definer set search_path = public as $$
+declare d duels%rowtype;
+begin
+  select * into d from duels where id = p_duel for update;
+  if not found then return; end if;
+  if d.status = 'invited' and d.a_id = left(p_me, 40) then update duels set status = 'cancelled' where id = p_duel;
+  elsif d.status = 'active' and d.a_id = left(p_me, 40) then perform duel_forfeit(p_duel, 'b');
+  elsif d.status = 'active' and d.b_id = left(p_me, 40) then perform duel_forfeit(p_duel, 'a');
+  end if;
+end $$;
+
+create or replace function public.duel_state(p_me text, p_duel uuid) returns json
+language plpgsql security definer set search_path = public as $$
+declare d duels%rowtype; side text; me_id text := left(p_me, 40);
+begin
+  select * into d from duels where id = p_duel for update;
+  if not found then return json_build_object('status', 'gone'); end if;
+  if d.a_id = me_id then side := 'a'; elsif d.b_id = me_id then side := 'b'; else return json_build_object('status', 'gone'); end if;
+  if side = 'a' then update duels set a_seen = now() where id = p_duel; else update duels set b_seen = now() where id = p_duel; end if;
+  if d.status = 'invited' and d.created_at < now() - interval '40 seconds' then update duels set status = 'expired' where id = p_duel; end if;
+  if d.status = 'active' then
+    if side = 'a' and d.b_seen < now() - interval '20 seconds' then perform duel_forfeit(p_duel, 'a');
+    elsif side = 'b' and d.a_seen < now() - interval '20 seconds' then perform duel_forfeit(p_duel, 'b');
+    elsif d.q_started_at < now() - interval '20 seconds' then perform duel_next(p_duel, 'none');
+    end if;
+  end if;
+  select * into d from duels where id = p_duel;
+  return json_build_object(
+    'status', d.status, 'side', side,
+    'invite_age', extract(epoch from (now() - d.created_at)), 'invite_seen', d.invite_seen_at is not null,
+    'me', json_build_object('name', case when side = 'a' then d.a_name else d.b_name end, 'av', case when side = 'a' then d.a_av else d.b_av end,
+                            'score', case when side = 'a' then d.a_score else d.b_score end, 'locked', case when side = 'a' then d.locked_a else d.locked_b end),
+    'opp', json_build_object('name', case when side = 'a' then d.b_name else d.a_name end, 'av', case when side = 'a' then d.b_av else d.a_av end,
+                             'cls', case when side = 'a' then d.b_cls else d.a_cls end,
+                             'score', case when side = 'a' then d.b_score else d.a_score end, 'locked', case when side = 'a' then d.locked_b else d.locked_a end),
+    'q_index', d.q_index, 'qid', case when d.status = 'active' then d.qs[d.q_index + 1] end,
+    'q_age', extract(epoch from (now() - d.q_started_at)),
+    'last_point', case when d.last_point is null then null when d.last_point = 'none' then 'none' when d.last_point = side then 'me' else 'opp' end,
+    'last_qid', d.last_qid,
+    'winner', case when d.winner is null then null when d.winner = 'draw' then 'draw' when d.winner = side then 'me' else 'opp' end);
+end $$;
