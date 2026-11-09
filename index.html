@@ -1207,7 +1207,7 @@ const ENTRY_PARENT={t:"👀 רגע, הורים…",sub:"הילדים שלכם ל
   bad:"אופס… 😅 אולי כדאי לבקש מהילד/ה הסבר. או לקרוא בשקט את השיעור, אף אחד לא יספר:"};
 let ENTRY_DONE=false;
 function entryQuestion(){
-  if(ENTRY_DONE||!me||SCREEN==="duel"||document.querySelector(".role,.cheer"))return;
+  if(ENTRY_DONE||!me||isParent()||SCREEN==="duel"||document.querySelector(".role,.cheer"))return;   // parents are not asked
   ENTRY_DONE=true;try{sessionStorage.setItem("entryQ",Date.now())}catch(e){}
   const T=isParent()?ENTRY_PARENT:ENTRY_KID;
   const q=buildQ(EXAM_BANK[Math.random()*EXAM_BANK.length|0]),ref=lessonRef(q.les);
