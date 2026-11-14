@@ -1694,10 +1694,12 @@ function lesson(wid,i,back){
     <span class="small" style="color:var(--c);font-weight:800">${w.name} · שיעור ${i+1} מתוך ${w.lessons.length}</span>
     <h1>${l.title}</h1>
     ${lessonStale(l.id)?`<div class="fb bad">🆕 לשיעור הזה נוסף חומר חדש מדפי המידע. קראו אותו שוב וענו על שאלת הבדיקה למטה כדי לסיים אותו מחדש.</div>`:""}
+    ${GRADE==="ב"?`<details class="passage"><summary>💡 צריכים הסבר? לחצו כאן</summary>`:""}
     <div class="figure">${ILL[l.img]()}</div>
     <ul class="points">${l.pts.map(p=>`<li><span>${p}</span></li>`).join("")}</ul>
     ${l.table?SOIL_TABLE:""}
     ${l.img2?`<div class="figure">${ILL[l.img2]()}</div>`:""}
+    ${GRADE==="ב"?`</details>`:""}
     <div class="check"><span class="lbl">✔ בדקו את עצמכם כדי לסיים את השיעור</span><b>${l.check.q}</b>
       <div class="opts">${opts.map((o,k)=>`<button class="opt" data-k="${k}"><span class="k">${"אבגד"[k]}</span>${o.t}</button>`).join("")}</div><div id="cfb"></div></div>
     <div class="row between"><button class="btn ghost" ${i===0?"disabled":""} id="prev">→ הקודם</button><button class="btn primary" id="next">${i<w.lessons.length-1?"לשיעור הבא ←":"לכרטיסיות ←"}</button></div>
@@ -1709,7 +1711,7 @@ function lesson(wid,i,back){
       const first=!lessonDone(l.id);P.lessons[l.id]=LESSON_VER[l.id]||1;save();
       document.getElementById("cfb").innerHTML=`<div class="fb good">נכון! השיעור הושלם ✓ ${first?"· מד הלמידה עלה":""}</div>`;if(first)confetti();}
     else{b.classList.add("wrong");b.disabled=true;document.getElementById("cfb").innerHTML=`<div class="fb bad">לא בדיוק. התשובה נמצאת בשיעור – קראו אותו שוב ונסו תשובה אחרת.<div class="actions"><button class="btn ghost" id="reread">📖 לקרוא שוב את השיעור</button></div></div>`;
-      document.getElementById("reread").onclick=()=>document.getElementById("lessonTop").scrollIntoView({behavior:"smooth"})}
+      document.getElementById("reread").onclick=()=>{const d=document.querySelector("#lessonTop details.passage");if(d)d.open=true;document.getElementById("lessonTop").scrollIntoView({behavior:"smooth"})}}
   });
   document.getElementById("prev").onclick=()=>lesson(wid,i-1);
   document.getElementById("next").onclick=()=>i<w.lessons.length-1?(lesson(wid,i+1),scrollTo(0,0)):world(wid,"cards");
