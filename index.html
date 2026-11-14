@@ -121,6 +121,10 @@ button{cursor:pointer}
 .w-info{--c:var(--primary);--cs:var(--primary-soft)}
 .w-calc{--c:var(--en2);--cs:var(--en2-soft)}
 .w-word{--c:var(--en4);--cs:var(--en4-soft)}
+.typed{display:flex;gap:10px;align-items:center}
+.typed .input{flex:1;text-align:center;font-size:1.4rem;font-weight:800;direction:ltr}
+.typed .input.ok{border-color:var(--good);background:var(--good-soft)}
+.typed .input.no{border-color:var(--bad);background:var(--bad-soft)}
 .passage{border:1px solid var(--line);border-radius:16px;padding:10px 14px;background:var(--bg)}
 .passage summary{font-weight:800;cursor:pointer}
 .passage ol{margin:8px 0 2px;padding-inline-start:30px;line-height:1.85}
@@ -1123,6 +1127,215 @@ const MISTAKES_G2=[
  ["5▲ − ▲▲ = 30, ולכן ▲ = 5",["55−55=0. ▲=2: 52−22=30","אין טעות","▲ = 3"]]
 ];
 
+/* generated, original math items (checked by the generator): practice and exam-only */
+const GEN_P_G2=[
+{"id": 2200, "w": "calc", "q": "90 − 32 = ?", "o": ["58", "68", "48", "59"], "e": "58 + 32 = 90, ולכן 90 − 32 = 58.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2201, "w": "calc", "q": "52 − 28 = ?", "o": ["24", "34", "14", "25"], "e": "24 + 28 = 52, ולכן 52 − 28 = 24.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2202, "w": "calc", "q": "82 − 33 = ?", "o": ["49", "59", "39", "50"], "e": "49 + 33 = 82, ולכן 82 − 33 = 49.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2203, "w": "calc", "q": "38 + 28 = ?", "o": ["66", "56", "76", "67"], "e": "50 + 16 = 66.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2204, "w": "calc", "q": "61 − 26 = ?", "o": ["35", "45", "25", "36"], "e": "35 + 26 = 61, ולכן 61 − 26 = 35.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2205, "w": "calc", "q": "83 − 34 = ?", "o": ["49", "59", "39", "50"], "e": "49 + 34 = 83, ולכן 83 − 34 = 49.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2206, "w": "calc", "q": "31 + 39 = ?", "o": ["70", "60", "80", "71"], "e": "60 + 10 = 70.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2207, "w": "calc", "q": "39 + 18 = ?", "o": ["57", "47", "67", "58"], "e": "40 + 17 = 57.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2208, "w": "calc", "q": "6 × 7 = ?", "o": ["42", "36", "49", "43"], "e": "6 × 7 = 42.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2209, "w": "calc", "q": "8 × 9 = ?", "o": ["72", "64", "81", "73"], "e": "8 × 9 = 72.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2210, "w": "calc", "q": "7 × 7 = ?", "o": ["49", "42", "56", "50"], "e": "7 × 7 = 49.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2211, "w": "calc", "q": "9 × 9 = ?", "o": ["81", "72", "90", "82"], "e": "9 × 9 = 81.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2212, "w": "calc", "q": "12 × 5 = ?", "o": ["60", "48", "65", "61"], "e": "12 × 5 = 60.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2213, "w": "calc", "q": "9 × 4 = ?", "o": ["36", "27", "40", "37"], "e": "9 × 4 = 36.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2214, "w": "calc", "q": "8 × 8 = ?", "o": ["64", "56", "72", "65"], "e": "8 × 8 = 64.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2215, "w": "calc", "q": "12 × 3 = ?", "o": ["36", "24", "39", "37"], "e": "12 × 3 = 36.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2216, "w": "calc", "q": "מה המספר החסר?<br>16 + ▢ = 43", "o": ["27", "37", "17", "28"], "e": "16 + 27 = 43.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2217, "w": "calc", "q": "מה המספר החסר?<br>74 − ▢ = 39", "o": ["35", "45", "25", "36"], "e": "74 − 35 = 39.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2218, "w": "calc", "q": "מה המספר החסר?<br>7 × ▢ = 63", "o": ["9", "19", "10", "8"], "e": "7 × 9 = 63.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2219, "w": "calc", "q": "מה המספר החסר?<br>54 : ▢ = 9", "o": ["6", "16", "7", "5"], "e": "54 : 6 = 9.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2220, "w": "calc", "q": "מה המספר החסר?<br>45 + ▢ = 90", "o": ["45", "55", "35", "46"], "e": "45 + 45 = 90.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2221, "w": "calc", "q": "מה המספר החסר?<br>6 × ▢ = 42", "o": ["7", "17", "8", "6"], "e": "6 × 7 = 42.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2222, "w": "calc", "q": "מה המספר החסר?<br>100 − ▢ = 57", "o": ["43", "53", "33", "44"], "e": "100 − 43 = 57.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2223, "w": "calc", "q": "מה המספר החסר?<br>9 × ▢ = 81", "o": ["9", "19", "10", "8"], "e": "9 × 9 = 81.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2224, "w": "calc", "q": "מה המספר החסר?<br>5 × 4 = 18 + ▢", "o": ["2", "20", "3", "4"], "e": "5 × 4 = 18 + 2.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2225, "w": "calc", "q": "מה המספר החסר?<br>7 × 8 = 27 + ▢", "o": ["29", "56", "30", "31"], "e": "7 × 8 = 27 + 29.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2226, "w": "calc", "q": "מה המספר החסר?<br>4 × 6 = 39 − ▢", "o": ["15", "24", "16", "17"], "e": "4 × 6 = 39 − 15.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2227, "w": "calc", "q": "מה המספר החסר?<br>4 × 9 = 7 + ▢", "o": ["29", "36", "30", "31"], "e": "4 × 9 = 7 + 29.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2228, "w": "calc", "q": "מה המספר החסר?<br>6 × 9 = 20 + ▢", "o": ["34", "54", "35", "36"], "e": "6 × 9 = 20 + 34.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2229, "w": "calc", "q": "מה המספר החסר?<br>4 × 8 = 16 + ▢", "o": ["16", "32", "17", "18"], "e": "4 × 8 = 16 + 16.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2230, "w": "calc", "q": "מה המספר החסר?<br>9 × 9 = 24 + ▢", "o": ["57", "81", "58", "59"], "e": "9 × 9 = 24 + 57.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2231, "w": "calc", "q": "מה המספר החסר?<br>6 × 7 = 5 + ▢", "o": ["37", "42", "38", "39"], "e": "6 × 7 = 5 + 37.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2232, "w": "calc", "q": "מה המספר החסר?<br>2 × 7 = 33 − ▢", "o": ["19", "14", "20", "21"], "e": "2 × 7 = 33 − 19.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2233, "w": "calc", "q": "מה המספר החסר?<br>8 × 3 = 18 + ▢", "o": ["6", "24", "7", "8"], "e": "8 × 3 = 18 + 6.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2234, "w": "calc", "q": "מה המספר החסר?<br>5 × 9 = 38 + ▢", "o": ["7", "45", "8", "9"], "e": "5 × 9 = 38 + 7.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2235, "w": "calc", "q": "מה המספר החסר?<br>6 × 7 = 19 + ▢", "o": ["23", "42", "24", "25"], "e": "6 × 7 = 19 + 23.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2236, "w": "calc", "q": "מה המספר החסר?<br>8 × 7 = 33 + ▢", "o": ["23", "56", "24", "25"], "e": "8 × 7 = 33 + 23.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2237, "w": "calc", "q": "מה המספר החסר?<br>5 × 4 = ▢ × 10", "o": ["2", "20", "3", "4"], "e": "5 × 4 = 2 × 10.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2238, "w": "calc", "q": "מה המספר החסר?<br>16 − 4 = ▢ × 4", "o": ["3", "12", "4", "5"], "e": "16 − 4 = 3 × 4.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2239, "w": "calc", "q": "מה המספר החסר?<br>4 × 8 = 36 − ▢", "o": ["4", "32", "5", "6"], "e": "4 × 8 = 36 − 4.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2240, "w": "calc", "q": "מה המספר החסר?<br>2 × 3 = 15 − ▢", "o": ["9", "6", "10", "11"], "e": "2 × 3 = 15 − 9.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2241, "w": "calc", "q": "מה המספר החסר?<br>7 + 7 + 14 = ▢ × 7", "o": ["4", "28", "5", "6"], "e": "7 + 7 + 14 = 4 × 7.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2242, "w": "calc", "q": "מה המספר החסר?<br>30 + 12 = ▢ × 6", "o": ["7", "42", "8", "9"], "e": "30 + 12 = 7 × 6.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2243, "w": "calc", "q": "מה המספר החסר?<br>10 + 10 + 4 = ▢ × 4", "o": ["6", "24", "7", "8"], "e": "10 + 10 + 4 = 6 × 4.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2244, "w": "calc", "q": "איזו ספרה היא ▲?<br>4▲ + ▲ = 48", "o": ["4", "5", "3", "6"], "e": "44 + 4 = 48.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2245, "w": "calc", "q": "איזו ספרה היא ◆?<br>◆ × ◆ = 3◆", "o": ["6", "7", "5", "8"], "e": "6 × 6 = 36.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2246, "w": "calc", "q": "איזו ספרה היא ▲?<br>▲ × 3 = 1▲", "o": ["5", "6", "4", "7"], "e": "5 × 3 = 15.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2247, "w": "calc", "q": "איזו ספרה היא ◆?<br>◆7 + ◆7 = 94", "o": ["4", "5", "3", "6"], "e": "47 + 47 = 94.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2248, "w": "calc", "q": "איזו ספרה היא ▲?<br>▲1 + 1▲ = 66", "o": ["5", "6", "4", "7"], "e": "51 + 15 = 66.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2249, "w": "calc", "q": "איזו ספרה היא ◆?<br>2◆ + ◆2 = 77", "o": ["5", "6", "4", "7"], "e": "25 + 52 = 77.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2250, "w": "calc", "q": "איזו ספרה היא ▲?<br>▲ × ▲ × ▲ = 27", "o": ["3", "4", "2", "5"], "e": "3 × 3 × 3 = 27.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2251, "w": "calc", "q": "איזו ספרה היא ◆?<br>7◆ − ◆◆ = 40", "o": ["3", "4", "2", "5"], "e": "73 − 33 = 40.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2252, "w": "calc", "q": "איזו ספרה היא ▲?<br>▲ + 1▲ + 2▲ = 48", "o": ["6", "7", "5", "8"], "e": "6 + 16 + 26 = 48.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2253, "w": "calc", "q": "איזו ספרה היא ◆?<br>◆ × 6 = 3◆", "o": ["6", "7", "5", "8"], "e": "6 × 6 = 36.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2254, "w": "calc", "q": "◆ × 5 = ●<br>◆ + 8 = ●<br>איזה מספר הוא ●?", "o": ["10", "2", "8", "15"], "e": "◆ = 2, ולכן ● = 10.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2255, "w": "calc", "q": "◆ × 3 = ●<br>◆ + 10 = ●<br>איזה מספר הוא ●?", "o": ["15", "5", "10", "18"], "e": "◆ = 5, ולכן ● = 15.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2256, "w": "word", "q": "מה המספר הבא?<br>3, 7, 11, 15, 19, ?", "o": ["23", "24", "22", "19"], "e": "+4 כל פעם.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": true},
+{"id": 2257, "w": "word", "q": "אילו מספרים חסרים בסדרה?<br>60, 57, ▢, 51, 48, ▢", "o": ["54 ו-45", "55 ו-46", "54 ו-46", "53 ו-45"], "e": "−3 כל פעם.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": false},
+{"id": 2258, "w": "word", "q": "מה הכלל בסדרה?<br>90, 84, 78, 72, 66, 60", "o": ["−6 כל פעם", "+3 כל פעם", "−4 כל פעם", "כל פעם כפול 2"], "e": "−6 כל פעם.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": false},
+{"id": 2259, "w": "word", "q": "אילו מספרים חסרים בסדרה?<br>10, 15, ▢, 18, 16, ▢", "o": ["13 ו-21", "14 ו-22", "13 ו-22", "12 ו-21"], "e": "+5, −2 לסירוגין.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": false},
+{"id": 2260, "w": "word", "q": "מה המספר החסר?<br>1, 2, 4, ▢, 11, 16", "o": ["7", "8", "6", "4"], "e": "ההפרש גדל ב-1 כל פעם.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": true},
+{"id": 2261, "w": "word", "q": "אילו מספרים חסרים בסדרה?<br>3, 5, ▢, 12, 17, ▢", "o": ["8 ו-23", "9 ו-24", "8 ו-24", "7 ו-23"], "e": "ההפרש גדל ב-1 כל פעם.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": false},
+{"id": 2262, "w": "word", "q": "מה המספר החסר?<br>3, 6, 12, ▢, 48, 96", "o": ["24", "25", "23", "12"], "e": "כל פעם כפול 2.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": true},
+{"id": 2263, "w": "word", "q": "מה הכלל בסדרה?<br>1, 2, 4, 8, 16, 32", "o": ["כל פעם כפול 2", "+3 כל פעם", "−4 כל פעם", "ההפרש גדל ב-1 כל פעם"], "e": "כל פעם כפול 2.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": false},
+{"id": 2264, "w": "word", "q": "מה המספר החסר?<br>5, 15, 10, ▢, 15, 25", "o": ["20", "21", "19", "10"], "e": "+10, −5 לסירוגין.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": true},
+{"id": 2265, "w": "word", "q": "בספרייה 5 מדפים, ובכל מדף 9 ספרים. השאילו 17 ספרים. כמה ספרים נשארו בספרייה?", "o": ["28", "38", "18", "30"], "e": "5 × 9 = 45, ו-45 − 17 = 28.", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null, "typed": true},
+{"id": 2266, "w": "word", "q": "לרון 18 קלפים. לאחיו יש פי 3. כמה קלפים יש לשניהם ביחד?", "o": ["72", "82", "62", "74"], "e": "18 × 3 = 54, ו-18 + 54 = 72.", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null, "typed": true},
+{"id": 2267, "w": "word", "q": "סבתא אפתה 40 עוגיות. היא נתנה חצי לשכנים, ואת השאר חילקה שווה ל-4 נכדים. כמה עוגיות קיבל כל נכד?", "o": ["5", "15", "7", "6"], "e": "חצי = 20, ו-20 : 4 = 5.", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null, "typed": true},
+{"id": 2268, "w": "word", "q": "במגרש 28 ילדים. 9 הלכו הביתה, ואחר כך הגיעו עוד 14. כמה ילדים יש עכשיו במגרש?", "o": ["33", "43", "23", "35"], "e": "28 − 9 = 19, ו-19 + 14 = 33.", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null, "typed": true},
+{"id": 2269, "w": "word", "q": "מחברת עולה 7 ₪ ועיפרון עולה 3 ₪. כמה נשלם על 3 מחברות ו-2 עפרונות?", "o": ["27", "37", "17", "29"], "e": "21 + 6 = 27.", "img": null, "tf": false, "a": 0, "les": "w1", "ctx": null, "typed": true},
+{"id": 2270, "w": "word", "q": "שילמתי בשטר של 100 ₪ על 2 כדורים שעולים 35 ₪ כל אחד. כמה עודף קיבלתי?", "o": ["30", "40", "20", "32"], "e": "2 × 35 = 70, ו-100 − 70 = 30.", "img": null, "tf": false, "a": 0, "les": "w1", "ctx": null, "typed": true}
+];
+const GEN_E_G2=[
+{"id": 2271, "w": "calc", "q": "55 + 38 = ?", "o": ["93", "83", "103", "94"], "e": "80 + 13 = 93.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2272, "w": "calc", "q": "65 − 27 = ?", "o": ["38", "48", "28", "39"], "e": "38 + 27 = 65, ולכן 65 − 27 = 38.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2273, "w": "calc", "q": "57 + 26 = ?", "o": ["83", "73", "93", "84"], "e": "70 + 13 = 83.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2274, "w": "calc", "q": "61 − 25 = ?", "o": ["36", "46", "26", "37"], "e": "36 + 25 = 61, ולכן 61 − 25 = 36.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2275, "w": "calc", "q": "45 + 19 = ?", "o": ["64", "54", "74", "65"], "e": "50 + 14 = 64.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2276, "w": "calc", "q": "34 + 17 = ?", "o": ["51", "41", "61", "52"], "e": "40 + 11 = 51.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2277, "w": "calc", "q": "34 + 18 = ?", "o": ["52", "42", "62", "53"], "e": "40 + 12 = 52.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2278, "w": "calc", "q": "26 + 18 = ?", "o": ["44", "34", "54", "45"], "e": "30 + 14 = 44.", "img": null, "tf": false, "a": 0, "les": "c1", "ctx": null, "typed": true},
+{"id": 2279, "w": "calc", "q": "56 : 7 = ?", "o": ["8", "9", "7", "10"], "e": "7 × 8 = 56.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2280, "w": "calc", "q": "54 : 9 = ?", "o": ["6", "7", "5", "9"], "e": "9 × 6 = 54.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2281, "w": "calc", "q": "48 : 8 = ?", "o": ["6", "7", "5", "8"], "e": "8 × 6 = 48.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2282, "w": "calc", "q": "24 : 6 = ?", "o": ["4", "5", "3", "6"], "e": "6 × 4 = 24.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2283, "w": "calc", "q": "77 : 11 = ?", "o": ["7", "8", "6", "11"], "e": "11 × 7 = 77.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2284, "w": "calc", "q": "63 : 7 = ?", "o": ["9", "10", "8", "7"], "e": "7 × 9 = 63.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2285, "w": "calc", "q": "60 : 15 = ?", "o": ["4", "5", "3", "15"], "e": "15 × 4 = 60.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2286, "w": "calc", "q": "90 : 30 = ?", "o": ["3", "4", "2", "30"], "e": "30 × 3 = 90.", "img": null, "tf": false, "a": 0, "les": "c2", "ctx": null, "typed": true},
+{"id": 2287, "w": "calc", "q": "מה המספר החסר?<br>▢ + 28 = 61", "o": ["33", "43", "23", "34"], "e": "33 + 28 = 61.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2288, "w": "calc", "q": "מה המספר החסר?<br>▢ − 26 = 45", "o": ["71", "81", "61", "72"], "e": "71 − 26 = 45.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2289, "w": "calc", "q": "מה המספר החסר?<br>▢ × 8 = 48", "o": ["6", "16", "7", "5"], "e": "6 × 8 = 48.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2290, "w": "calc", "q": "מה המספר החסר?<br>▢ : 4 = 7", "o": ["28", "38", "18", "29"], "e": "28 : 4 = 7.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2291, "w": "calc", "q": "מה המספר החסר?<br>▢ − 38 = 38", "o": ["76", "86", "66", "77"], "e": "76 − 38 = 38.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2292, "w": "calc", "q": "מה המספר החסר?<br>▢ : 5 = 8", "o": ["40", "50", "30", "41"], "e": "40 : 5 = 8.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2293, "w": "calc", "q": "מה המספר החסר?<br>▢ + ▢ = 64", "o": ["32", "42", "22", "33"], "e": "32 + 32 = 64.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2294, "w": "calc", "q": "מה המספר החסר?<br>3 × 8 = 6 + ▢", "o": ["18", "24", "19", "20"], "e": "3 × 8 = 6 + 18.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2295, "w": "calc", "q": "מה המספר החסר?<br>5 × 8 = 27 + ▢", "o": ["13", "40", "14", "15"], "e": "5 × 8 = 27 + 13.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2296, "w": "calc", "q": "מה המספר החסר?<br>6 × 5 = 39 − ▢", "o": ["9", "30", "10", "11"], "e": "6 × 5 = 39 − 9.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2297, "w": "calc", "q": "מה המספר החסר?<br>6 × 5 = 37 − ▢", "o": ["7", "30", "8", "9"], "e": "6 × 5 = 37 − 7.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2298, "w": "calc", "q": "מה המספר החסר?<br>9 × 2 = 38 − ▢", "o": ["20", "18", "21", "22"], "e": "9 × 2 = 38 − 20.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2299, "w": "calc", "q": "מה המספר החסר?<br>8 × 8 = 36 + ▢", "o": ["28", "64", "29", "30"], "e": "8 × 8 = 36 + 28.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2300, "w": "calc", "q": "מה המספר החסר?<br>2 × 3 = 38 − ▢", "o": ["32", "6", "33", "34"], "e": "2 × 3 = 38 − 32.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2301, "w": "calc", "q": "מה המספר החסר?<br>8 × 2 = 13 + ▢", "o": ["3", "16", "4", "5"], "e": "8 × 2 = 13 + 3.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2302, "w": "calc", "q": "מה המספר החסר?<br>56 − 7 = ▢ × 7", "o": ["7", "49", "8", "9"], "e": "56 − 7 = 7 × 7.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2303, "w": "calc", "q": "מה המספר החסר?<br>9 × 7 = 26 + ▢", "o": ["37", "63", "38", "39"], "e": "9 × 7 = 26 + 37.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2304, "w": "calc", "q": "מה המספר החסר?<br>3 × 5 = 22 − ▢", "o": ["7", "15", "8", "9"], "e": "3 × 5 = 22 − 7.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2305, "w": "calc", "q": "מה המספר החסר?<br>6 × 4 = 7 + ▢", "o": ["17", "24", "18", "19"], "e": "6 × 4 = 7 + 17.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2306, "w": "calc", "q": "מה המספר החסר?<br>56 − 16 = ▢ × 2", "o": ["20", "40", "21", "22"], "e": "56 − 16 = 20 × 2.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2307, "w": "calc", "q": "מה המספר החסר?<br>4 × 9 = 20 + ▢", "o": ["16", "36", "17", "18"], "e": "4 × 9 = 20 + 16.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2308, "w": "calc", "q": "מה המספר החסר?<br>6 × 8 = 25 + ▢", "o": ["23", "48", "24", "25"], "e": "6 × 8 = 25 + 23.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2309, "w": "calc", "q": "מה המספר החסר?<br>7 × 4 = 30 − ▢", "o": ["2", "28", "3", "4"], "e": "7 × 4 = 30 − 2.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2310, "w": "calc", "q": "מה המספר החסר?<br>9 × 2 = 7 + ▢", "o": ["11", "18", "12", "13"], "e": "9 × 2 = 7 + 11.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2311, "w": "calc", "q": "מה המספר החסר?<br>9 × 6 = 3 + ▢", "o": ["51", "54", "52", "53"], "e": "9 × 6 = 3 + 51.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2312, "w": "calc", "q": "מה המספר החסר?<br>9 + 9 + 27 = ▢ × 9", "o": ["5", "45", "6", "7"], "e": "9 + 9 + 27 = 5 × 9.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2313, "w": "calc", "q": "מה המספר החסר?<br>50 + 20 = ▢ × 10", "o": ["7", "70", "8", "9"], "e": "50 + 20 = 7 × 10.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2314, "w": "calc", "q": "איזו ספרה היא ■?<br>3■ + 3■ = 74", "o": ["7", "8", "6", "9"], "e": "37 + 37 = 74.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2315, "w": "calc", "q": "איזו ספרה היא ●?<br>●● − ● = 50", "o": ["5", "6", "4", "7"], "e": "55 − 5 = 50.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2316, "w": "calc", "q": "איזו ספרה היא ■?<br>■ + ■ + ■ + ■ = 28", "o": ["7", "8", "6", "9"], "e": "7 + 7 + 7 + 7 = 28.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2317, "w": "calc", "q": "איזו ספרה היא ●?<br>6● − ●6 = 27", "o": ["3", "4", "2", "5"], "e": "63 − 36 = 27.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2318, "w": "calc", "q": "איזו ספרה היא ■?<br>■ × 5 = ■ + 20", "o": ["5", "6", "4", "7"], "e": "5 × 5 = 5 + 20.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2319, "w": "calc", "q": "איזו ספרה היא ●?<br>●● + ●● = 88", "o": ["4", "5", "3", "6"], "e": "44 + 44 = 88.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2320, "w": "calc", "q": "איזו ספרה היא ■?<br>9■ − ■9 = 45", "o": ["4", "5", "3", "6"], "e": "94 − 49 = 45.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2321, "w": "calc", "q": "איזו ספרה היא ●?<br>● × 4 = ● + ● + 12", "o": ["6", "7", "5", "8"], "e": "6 × 4 = 6 + 6 + 12.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2322, "w": "calc", "q": "איזו ספרה היא ■?<br>■8 − ■ = 71", "o": ["7", "8", "6", "9"], "e": "78 − 7 = 71.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2323, "w": "calc", "q": "איזו ספרה היא ●?<br>●0 + ●0 = 80", "o": ["4", "5", "3", "6"], "e": "40 + 40 = 80.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": false},
+{"id": 2324, "w": "calc", "q": "◆ × 4 = ●<br>◆ + 9 = ●<br>איזה מספר הוא ●?", "o": ["12", "3", "9", "16"], "e": "◆ = 3, ולכן ● = 12.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2325, "w": "calc", "q": "◆ × 2 = ●<br>◆ + 7 = ●<br>איזה מספר הוא ●?", "o": ["14", "7", "16", "15"], "e": "◆ = 7, ולכן ● = 14.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2326, "w": "calc", "q": "◆ × 6 = ●<br>◆ + 15 = ●<br>איזה מספר הוא ●?", "o": ["18", "3", "15", "24"], "e": "◆ = 3, ולכן ● = 18.", "img": null, "tf": false, "a": 0, "les": "c3", "ctx": null, "typed": true},
+{"id": 2327, "w": "word", "q": "מה המספר החסר?<br>5, 12, 19, ▢, 33, 40", "o": ["26", "27", "25", "19"], "e": "+7 כל פעם.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": true},
+{"id": 2328, "w": "word", "q": "מה המספר הבא?<br>90, 84, 78, 72, 66, ?", "o": ["60", "61", "59", "66"], "e": "−6 כל פעם.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": true},
+{"id": 2329, "w": "word", "q": "מה המספר החסר?<br>2, 5, 4, ▢, 6, 9", "o": ["7", "8", "6", "4"], "e": "+3, −1 לסירוגין.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": true},
+{"id": 2330, "w": "word", "q": "מה המספר הבא?<br>40, 36, 38, 34, 36, ?", "o": ["32", "33", "31", "36"], "e": "−4, +2 לסירוגין.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": true},
+{"id": 2331, "w": "word", "q": "מה הכלל בסדרה?<br>1, 2, 4, 7, 11, 16", "o": ["ההפרש גדל ב-1 כל פעם", "+3 כל פעם", "−4 כל פעם", "כל פעם כפול 2"], "e": "ההפרש גדל ב-1 כל פעם.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": false},
+{"id": 2332, "w": "word", "q": "מה המספר הבא?<br>2, 5, 9, 14, 20, ?", "o": ["27", "28", "26", "20"], "e": "ההפרש גדל ב-1 כל פעם.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": true},
+{"id": 2333, "w": "word", "q": "אילו מספרים חסרים בסדרה?<br>1, 2, ▢, 8, 16, ▢", "o": ["4 ו-32", "5 ו-33", "4 ו-33", "3 ו-32"], "e": "כל פעם כפול 2.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": false},
+{"id": 2334, "w": "word", "q": "מה המספר הבא?<br>95, 86, 78, 71, 65, ?", "o": ["60", "61", "59", "65"], "e": "ההפרש קטן ב-1 כל פעם.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": true},
+{"id": 2335, "w": "word", "q": "אילו מספרים חסרים בסדרה?<br>8, 17, ▢, 35, 44, ▢", "o": ["26 ו-53", "27 ו-54", "26 ו-54", "25 ו-53"], "e": "+9 כל פעם.", "img": null, "tf": false, "a": 0, "les": "w3", "ctx": null, "typed": false},
+{"id": 2336, "w": "word", "q": "לגן הגיעו 36 ילדים. הגננת חילקה אותם ל-4 קבוצות שוות. כמה ילדים בכל קבוצה?", "o": ["9", "19", "11", "10"], "e": "36 : 4 = 9.", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null, "typed": true},
+{"id": 2337, "w": "word", "q": "בחנייה 6 מכוניות ו-3 אופנועים. כמה גלגלים יש בחנייה?", "o": ["30", "40", "20", "32"], "e": "24 + 6 = 30.", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null, "typed": true},
+{"id": 2338, "w": "word", "q": "השיעור התחיל ב-8:15 ונמשך 45 דקות. בכמה דקות אחרי 8:00 הוא נגמר?", "o": ["60", "70", "50", "62"], "e": "15 + 45 = 60 דקות – בשעה 9:00.", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null, "typed": true},
+{"id": 2339, "w": "word", "q": "לנועה 3 שקיות, ובכל שקית 8 סוכריות. היא נתנה 7 סוכריות לחברה. כמה סוכריות נשארו לה?", "o": ["17", "27", "7", "19"], "e": "24 − 7 = 17.", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null, "typed": true},
+{"id": 2340, "w": "word", "q": "לדנה 50 ₪. היא קנתה 4 גלידות ב-8 ₪ כל אחת. כמה כסף נשאר לה?", "o": ["18", "28", "8", "20"], "e": "4 × 8 = 32, ו-50 − 32 = 18.", "img": null, "tf": false, "a": 0, "les": "w1", "ctx": null, "typed": true},
+{"id": 2341, "w": "word", "q": "חבילת מדבקות עולה 4 ₪. כמה חבילות אפשר לקנות ב-30 ₪, לכל היותר?", "o": ["7", "17", "9", "8"], "e": "7 × 4 = 28, ו-8 × 4 = 32 – יותר מ-30.", "img": null, "tf": false, "a": 0, "les": "w1", "ctx": null, "typed": true}
+];
+/* more reading: three original passages (a story, an information text, a notice) */
+Object.assign(PASSAGES_G2,{
+bottle:{t:"המכתב שבבקבוק",lines:[
+"בחופשת הקיץ טיילה מאיה עם הוריה לאורך חוף הים.",
+"בין האצות והצדפים היא הבחינה בבקבוק זכוכית ירקרק, סגור בפקק שעם.",
+"בתוך הבקבוק היה מגולגל דף נייר.",
+"מאיה ניסתה לשלוף את הפקק בידיים, אך הוא היה תקוע היטב.",
+"אבא הוציא מהתיק אולר קטן, ובעזרתו חילץ את הפקק בזהירות.",
+"על הדף היה כתוב: \"שלום! שמי עומר, ואני בן שמונה. מי שמוצא את המכתב – אנא כתבו לי!\"",
+"בתחתית הדף הייתה כתובת של בית ספר בעיר רחוקה בצפון.",
+"\"איך הבקבוק הגיע עד לכאן?\" תהתה מאיה.",
+"\"כנראה הזרמים בים נשאו אותו מרחק רב\", הסבירה אמא.",
+"באותו ערב התיישבה מאיה ליד השולחן וכתבה לעומר מכתב ארוך.",
+"היא סיפרה לו על החוף, על הצדפים ועל האולר של אבא.",
+"כעבור שבועיים הגיעה תשובה: עומר שמח מאוד, וצירף ציור של סירה.",
+"מאז מאיה ועומר מתכתבים, ומתכננים להיפגש בחופשה הבאה."]},
+leaves:{t:"למה העלים משנים צבע בסתיו?",lines:[
+"בסתיו עצים רבים מחליפים את צבע העלים מירוק לצהוב, לכתום ולאדום.",
+"הצבע הירוק של העלה בא מחומר שנקרא כלורופיל.",
+"בעזרת הכלורופיל ואור השמש העץ מכין לעצמו מזון.",
+"בסתיו הימים מתקצרים, ויש פחות אור שמש.",
+"לכן העץ מפסיק לייצר כלורופיל, והצבע הירוק נעלם מהעלה.",
+"עכשיו רואים צבעים אחרים, צהובים וכתומים, שהיו בעלה כל הזמן, אבל הסתתרו מתחת לירוק.",
+"אחרי זמן מה העלים מתייבשים ונושרים. עצים כאלה נקראים \"עצים נשירים\".",
+"יש עצים שהעלים שלהם נשארים ירוקים כל השנה, כמו האורן. הם נקראים \"ירוקי עד\"."]},
+trip:{t:"הודעה: טיול שנתי",lines:[
+"לתלמידי כיתות ב׳ ולהורים,",
+"ביום רביעי, 3 במאי, נצא לטיול שנתי לשמורת טבע.",
+"נתכנס בחצר בית הספר בשעה 7:30. האוטובוסים ייצאו בשעה 8:00 בדיוק.",
+"נחזור לבית הספר בשעה 15:00 בערך.",
+"מה להביא: שני בקבוקי מים, כובע, ארוחת בוקר וארוחת צהריים, ובגד ים.",
+"אין להביא: משחקים אלקטרוניים ודברי ערך.",
+"עלות הטיול: 60 ₪ לתלמיד. את התשלום יש להעביר למחנכת עד יום ראשון, 30 באפריל.",
+"תלמיד שלא יביא כובע לא יוכל לצאת למסלול.",
+"בברכת טיול נעים, צוות כיתות ב׳"]}
+});
+const READ_G2=[
+["story","s2","מה פירוש \"חילץ\" (שורה 5)?",["הוציא בזהירות משהו תקוע","שבר","זרק","החביא"],"אבא הוציא את הפקק התקוע.","bottle"],
+["story","s3","למה מאיה לא הצליחה לפתוח את הבקבוק בעצמה?",["כי הפקק היה תקוע היטב","כי הבקבוק היה שבור","כי פחדה מהזכוכית","כי אבא אסר עליה"],"שורה 4.","bottle"],
+["story","s1","מה ביקש עומר במכתב שלו?",["שמי שמוצא את המכתב יכתוב לו","שיחזירו לו את הבקבוק","שיבואו לבקר אותו בים","שישלחו לו צדפים"],"שורה 6.","bottle"],
+["story","s1","לפי אמא, איך הגיע הבקבוק לחוף?",["הזרמים בים נשאו אותו","עומר זרק אותו בחוף הזה","דייג הביא אותו","הרוח העיפה אותו באוויר"],"שורה 9.","bottle"],
+["story","s2","מה פירוש \"תהתה\" (שורה 8)?",["שאלה את עצמה ותמהה","צחקה","כעסה","בכתה"],"\"איך הבקבוק הגיע עד לכאן?\"","bottle"],
+["story","s1","מה צירף עומר לתשובה שלו?",["ציור של סירה","צדף","בקבוק חדש","תמונה של בית הספר"],"שורה 12.","bottle"],
+["story","s3","איזו כותרת מתאימה לכל הסיפור?",["חברות שהתחילה בבקבוק","יום בחוף","האולר של אבא","העיר שבצפון"],"הכותרת מספרת על כל הסיפור.","bottle"],
+["story","s3","מה אפשר להבין על מאיה?",["היא סקרנית ואוהבת להכיר חברים חדשים","היא מפחדת מהים","היא לא אוהבת לכתוב","היא עצלנית"],"היא כתבה לעומר מכתב ארוך.","bottle"],
+["info","i1","מאיפה בא הצבע הירוק של העלה?",["מחומר שנקרא כלורופיל","מהמים","מהאדמה","מהגשם"],"שורה 2.","leaves"],
+["info","i1","למה העץ מפסיק לייצר כלורופיל בסתיו?",["כי הימים מתקצרים ויש פחות אור","כי קר מאוד בקיץ","כי העלים כבר צהובים","כי אין לו מים"],"שורות 4–5.","leaves"],
+["info","i1","לפי הקטע, מאיפה מגיע הצבע הצהוב בסתיו?",["הוא היה בעלה כל הזמן, והסתתר מתחת לירוק","העץ צובע את העלים","השמש צובעת אותם","הגשם מביא אותו"],"שורה 6.","leaves"],
+["info","i1","מהם \"עצים נשירים\"?",["עצים שהעלים שלהם נושרים","עצים שנופלים ברוח","עצים בלי עלים בכלל","עצים שגדלים במים"],"שורה 7.","leaves"],
+["info","i1","איזה עץ הוא \"ירוק עד\", לפי הקטע?",["האורן","כל עץ בסתיו","עץ שהעלים שלו נושרים","אף עץ"],"שורה 8.","leaves"],
+["info","i1","בשביל מה משמש הכלורופיל לעץ?",["להכין מזון בעזרת אור השמש","לשתות מים","להחזיק את העלים","להגן מפני הקור"],"שורה 3.","leaves"],
+["info","i1","מה פירוש \"הסתתרו\" (שורה 6)?",["היו מוסתרים, ולא ראו אותם","נעלמו לתמיד","נצבעו","נשברו"],"הצבעים היו שם, אבל לא ראו אותם.","leaves"],
+["info","i2","כמה זמן לפני יציאת האוטובוסים צריך להגיע?",["חצי שעה","שעה","רבע שעה","שעתיים"],"7:30 עד 8:00.","trip"],
+["info","i2","כמה שעות יעברו מיציאת האוטובוסים ועד החזרה?",["7 שעות","8 שעות","6 שעות","15 שעות"],"8:00 עד 15:00.","trip"],
+["info","i2","מה אסור להביא לטיול?",["משחקים אלקטרוניים","בגד ים","כובע","ארוחת צהריים"],"שורה 6.","trip"],
+["info","i2","למה חשוב במיוחד לא לשכוח כובע?",["כי בלי כובע אי אפשר לצאת למסלול","כי יירד גשם","כי זה חלק מהתלבושת","כי המחנכת אוהבת כובעים"],"שורה 8.","trip"],
+["info","i2","עד מתי צריך לשלם על הטיול?",["עד יום ראשון, 30 באפריל","עד יום הטיול","עד 15:00","אין צורך לשלם"],"שורה 7.","trip"],
+["info","i2","שני אחים בכיתה ב׳ יוצאים לטיול. כמה ישלמו ההורים בסך הכול?",["120 ₪","60 ₪","100 ₪","130 ₪"],"60 + 60 = 120.","trip"],
+["info","i2","מה אפשר להבין מכך שצריך להביא בגד ים?",["שבטיול יהיו מים שאפשר להיכנס אליהם","שהטיול בבריכה בעיר","שיירד גשם","שהטיול בחורף"],"מבינים מהרמז.","trip"]
+].map(([w,les,q,o,e,ctx],i)=>({id:2400+i,w,q,o,e,img:null,tf:false,a:0,les,ctx}));
+const READ_P_G2=READ_G2.filter((_,i)=>i%2===0),READ_E_G2=READ_G2.filter((_,i)=>i%2===1);
+
 /* ============================================================
    COURSES — what this device shows is chosen by the active profile's grade (and, later, the subject).
    Every course has the same shape, so a new grade or subject is one more entry here.
@@ -1140,7 +1353,7 @@ const SEASON_START=new Date(SEASON,8,1);
 const COURSES={
  "ה":{science:{subject:"מדעים",title:"מתכות, סלעים ומלחים",WORLDS:WORLDS_G5,LESSON_VER:LESSON_VER_G5,CARDS:CARDS_G5,QB:QB_G5,QB2:QB2_G5}},
  "ו":{science:{subject:"מדעים",title:"האנרגיה שסביבנו",WORLDS:WORLDS_G6,LESSON_VER:{},CARDS:CARDS_G6,QB:QB_G6,QB2:QB2_G6}},
- "ב":{gifted:{subject:"מחוננים",brand:"הכנה למבחן מחוננים",title:"הכנה למבחן מחוננים – שלב א׳",WORLDS:WORLDS_G2,LESSON_VER:{},CARDS:CARDS_G2,QB:QB_G2,QB2:QB2_G2,PASSAGES:PASSAGES_G2}}
+ "ב":{gifted:{subject:"מחוננים",brand:"הכנה למבחן מחוננים",title:"הכנה למבחן מחוננים – שלב א׳",WORLDS:WORLDS_G2,LESSON_VER:{},CARDS:CARDS_G2,QB:[...QB_G2,...READ_P_G2,...GEN_P_G2],QB2:[...QB2_G2,...READ_E_G2,...GEN_E_G2],PASSAGES:PASSAGES_G2}}
 };
 const courseTitle=g=>Object.values(COURSES[g])[0].title;
 const SUBJECT=Object.keys(COURSES[GRADE])[0];   // one subject per grade so far; progress of any other subject is stored under its own key (see pkey)
@@ -1784,6 +1997,8 @@ function examIntro(){
 function runQuiz(st){
   const {mode,qs}=st;const ans=qs.map(()=>null);let i=0;const exam=mode==="exam";
   const solved=qs.map(()=>false),tried=qs.map(()=>new Set());   // practice: first answer is scored, retries until right
+  const typedVal=qs.map(()=>"");   // questions answered by writing the number
+  const normNum=t=>String(t).replace(/[^0-9]/g,"");
   const pfb=()=>{const q=qs[i],ref=lessonRef(q.les);
     if(solved[i])return `<div class="fb good">${ans[i]>=0&&q.opts[ans[i]].ok?"נכון!":"עכשיו זה נכון! 👏"}<span class="ex">${q.e}</span></div>`;
     if(tried[i].size)return `<div class="fb bad">לא בדיוק – נסו תשובה אחרת. לא בטוחים? התשובה נמצאת בשיעור, קראו וחזרו לענות.<div class="actions"><button class="btn ghost" id="toLes">📖 לשיעור: ${ref?ref.l.title:""}</button></div></div>`;
@@ -1799,7 +2014,8 @@ function runQuiz(st){
       ${exam?`<div class="dots">${qs.map((_,k)=>`<i class="${k===i?"cur":ans[k]!=null?"ans":""}"></i>`).join("")}</div>`:`<div class="bar"><i style="width:${i/qs.length*100}%"></i></div>`}
       ${q.ctx&&PASSAGES[q.ctx]?passageBox(q.ctx):""}<p class="qtext">${q.q}</p>
       ${q.img?`<div class="qimg">${ill(q.img)}</div>`:""}
-      <div class="opts${q.tf?" two":""}">${q.opts.map((o,k)=>{const cls=exam?(ans[i]===k?" sel":""):solved[i]&&o.ok?" right":tried[i].has(k)?" wrong":"";
+      ${q.typed?`<div class="typed"><input class="input${!exam&&solved[i]?" ok":!exam&&tried[i].size&&typedVal[i]?" no":""}" id="tin" inputmode="numeric" autocomplete="off" placeholder="כתבו את התשובה" value="${esc(typedVal[i])}" ${!exam&&solved[i]?"disabled":""}><button class="btn primary" id="tgo" ${!exam&&solved[i]?"disabled":""}>${exam?"שמירה":"בדיקה ✓"}</button></div>`:""}
+      <div class="opts${q.tf?" two":""}" ${q.typed?"hidden":""}>${q.opts.map((o,k)=>{const cls=exam?(ans[i]===k?" sel":""):solved[i]&&o.ok?" right":tried[i].has(k)?" wrong":"";
         return `<button class="opt${cls}" data-k="${k}" ${!exam&&(solved[i]||tried[i].has(k))?"disabled":""}><span class="k">${q.tf?(k?"✗":"✓"):"אבגד"[k]}</span>${o.t}</button>`}).join("")}</div>
       ${!exam&&!solved[i]&&!tried[i].size?`<button class="idk" id="idk">🤔 לא יודע/ת – לקרוא בשיעור</button>`:""}
       ${exam&&!helped?`<button class="idk" id="help">${askHelp===i?"בטוח/ה? השאלה תיחשב כתשובה לא נכונה – לפתוח את החומר 📖":"💡 לא יודע/ת – עזרה: החומר לשאלה (תיחשב כטעות)"}</button>`:""}
@@ -1820,6 +2036,12 @@ function runQuiz(st){
       if(q.opts[k].ok)solved[i]=true;else tried[i].add(k);
       draw();
     });
+    const tin=document.getElementById("tin");
+    if(tin){const submit=()=>{const v=normNum(tin.value);if(!v){tin.focus();return}
+        const ok=v===normNum(q.o[q.a]),k=ok?q.opts.findIndex(o=>o.ok):q.opts.findIndex(o=>!o.ok);typedVal[i]=tin.value.trim();
+        if(exam){ans[i]=k;draw();return}
+        if(solved[i])return;if(ans[i]==null)ans[i]=k;if(ok)solved[i]=true;else tried[i].add("t"+tried[i].size);draw()};
+      document.getElementById("tgo").onclick=submit;tin.onkeydown=e=>{if(e.key==="Enter")submit()}}
     const goLesson=()=>{const ref=lessonRef(q.les);if(!ref)return;if(ans[i]==null)ans[i]=-1;lesson(ref.wid,ref.i,draw)};
     if(document.getElementById("idk"))document.getElementById("idk").onclick=goLesson;
     if(document.getElementById("help"))document.getElementById("help").onclick=()=>{if(askHelp!==i){askHelp=i;draw();return}askHelp=-1;helpSet.add(i);draw()};
