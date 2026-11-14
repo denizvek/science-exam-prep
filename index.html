@@ -1738,16 +1738,17 @@ function cards(wid,body){
 }
 
 /* ---------- quiz engine (practice + exam) ---------- */
-/* grade ב: exercises inside Hebrew text are shown left to right, as in a math book (47 + 28 = 75, not reversed) */
+/* exercises inside Hebrew text are shown left to right, as in a math book (47 + 28 = 75, not reversed) */
 const MATH_RE=/[0-9▢■▲◆●](?:[0-9▢■▲◆●]|\s*[+−×:=]\s*)*[0-9▢■▲◆●?]/g;
 function fixMath(node){
   const w=document.createTreeWalker(node,NodeFilter.SHOW_TEXT),list=[];
   while(w.nextNode()){const t=w.currentNode,el=t.parentElement;if(el&&!el.closest('[dir="ltr"],option,select,textarea,script,style,svg')&&/[+−×:=]/.test(t.nodeValue)&&/[0-9▢■▲◆●]/.test(t.nodeValue))list.push(t)}
   list.forEach(t=>{const s=t.nodeValue,frag=document.createDocumentFragment();let last=0,hit=false;
+    if(!/[\u05D0-\u05EA]/.test(s)){const sp=document.createElement("span");sp.dir="ltr";sp.style.unicodeBidi="isolate";sp.textContent=s;t.replaceWith(sp);return}   // only an exercise: the whole line left to right
     s.replace(MATH_RE,(m,off)=>{if(/[+−×:=]/.test(m)){hit=true;frag.append(s.slice(last,off));const sp=document.createElement("span");sp.dir="ltr";sp.style.unicodeBidi="isolate";sp.textContent=m;frag.append(sp);last=off+m.length}return m});
     if(hit){frag.append(s.slice(last));t.replaceWith(frag)}});
 }
-if(GRADE==="ב")new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1)fixMath(n)}))).observe(document.body,{childList:true,subtree:true});
+fixMath(document.body);new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1)fixMath(n)}))).observe(document.body,{childList:true,subtree:true});
 function passageBox(k){const ps=PASSAGES[k];return `<details class="passage" open><summary>📖 ${ps.t}</summary><ol>${ps.lines.map(l=>`<li>${esc(l)}</li>`).join("")}</ol></details>`}
 function buildQ(q){return {...q,opts:q.tf?q.o.map((t,k)=>({t,ok:k===q.a})):shuffle(q.o.map((t,k)=>({t,ok:k===q.a})))}}
 function practiceIntro(wid,body){
