@@ -118,6 +118,10 @@ button{cursor:pointer}
 .w-change{--c:var(--en3);--cs:var(--en3-soft)}
 .w-sources{--c:var(--en4);--cs:var(--en4-soft)}
 .w-story{--c:var(--en1);--cs:var(--en1-soft)}
+.w-vocab{--c:var(--primary);--cs:var(--primary-soft)}
+.w-grammar{--c:var(--en2);--cs:var(--en2-soft)}
+.w-reading{--c:var(--en1);--cs:var(--en1-soft)}
+.w-writing{--c:var(--en4);--cs:var(--en4-soft)}
 .w-info{--c:var(--primary);--cs:var(--primary-soft)}
 .w-calc{--c:var(--en2);--cs:var(--en2-soft)}
 .w-word{--c:var(--en4);--cs:var(--en4-soft)}
@@ -1337,6 +1341,308 @@ const READ_G2=[
 const READ_P_G2=READ_G2.filter((_,i)=>i%2===0),READ_E_G2=READ_G2.filter((_,i)=>i%2===1);
 
 /* ============================================================
+   GRADE 6 · ENGLISH — Unit 1 (words of parts 1–5, to be, have/has, present simple, capital letters, reading)
+   original sentences and passages
+   ============================================================ */
+const EN_WORDS=[["about", "על / בערך"], ["afraid", "מפחד"], ["anything", "כל דבר / משהו"], ["arrive", "להגיע"], ["catch (a train)", "לתפוס (רכבת)"], ["clever", "חכם, פיקח"], ["comfortable", "נוח"], ["cost", "לעלות (מחיר)"], ["Dear ...", "... יקר/ה (בפתיחת מכתב)"], ["decide", "להחליט"], ["directly", "ישירות"], ["famous", "מפורסם"], ["get off", "לרדת (מאוטובוס, מרכבת)"], ["get on", "לעלות (על אוטובוס, רכבת)"], ["glad", "שמח"], ["hit", "להכות, לפגוע"], ["island", "אי"], ["leave", "לעזוב, לצאת"], ["love", "לאהוב"], ["million", "מיליון"], ["mountain", "הר"], ["nature", "טבע"], ["order", "להזמין (אוכל)"], ["pick", "לבחור, לקטוף"], ["popular", "פופולרי, אהוב"], ["reason", "סיבה"], ["return", "לחזור"], ["saw", "ראה (עבר של see)"], ["several", "כמה, מספר"], ["still", "עדיין"], ["take (something) away", "לקחת (משהו) איתך"], ["take (something) off", "להוריד (בגד, נעליים)"], ["take a picture", "לצלם"], ["take a train", "לנסוע ברכבת"], ["Take care!", "שמור/שמרי על עצמך!"], ["team", "קבוצה"], ["the cold", "הקור"], ["thousand", "אלף"], ["visitor", "מבקר, אורח"], ["welcome", "ברוך הבא"], ["a while", "זמן מה"], ["against", "נגד"], ["all the time", "כל הזמן"], ["almost", "כמעט"], ["believe", "להאמין"], ["both", "שניהם"], ["collect", "לאסוף"], ["come home", "לחזור הביתה"], ["competition", "תחרות"], ["could", "יכול היה"], ["date", "תאריך"], ["excellent", "מצוין"], ["feel well", "להרגיש טוב"], ["full", "מלא"], ["get better", "להחלים, להשתפר"], ["get the flu", "לחלות בשפעת"], ["if", "אם"], ["instead", "במקום"], ["invite", "להזמין (אורח)"], ["keep", "לשמור"], ["kiss", "נשיקה, לנשק"], ["make a mistake", "לטעות"], ["mean", "להתכוון, פירושו"], ["medical", "רפואי"], ["message", "הודעה"], ["miss", "להחמיץ, להתגעגע"], ["much", "הרבה"], ["nurse", "אח/ות (רפואי)"], ["only", "רק"], ["perfect", "מושלם"], ["pocket", "כיס"], ["really", "באמת"], ["see", "לראות"], ["should", "צריך, כדאי"], ["so", "אז, לכן, כל כך"], ["sorry", "מצטער"], ["tasty", "טעים"], ["tell a story", "לספר סיפור"]];
+const PASSAGES_EN={"eilat": {"t": "Email: A visit to Eilat", "ltr": true, "lines": ["To: Ken", "Subject: Your visit to Israel", "Dear Ken,", "I'm so glad you are coming to visit me in Israel! I live in Eilat, a city near the Red Sea.", "There are a lot of things to do here. First, we can go to the Coral Beach.", "The water is warm and clear, and you can see beautiful fish.", "You can also take a boat with a glass floor. It costs 60 shekels, but it's perfect for visitors.", "In the evening, we can order ice cream at my favorite place. They have 30 tasty flavors!", "Please bring a hat. It's very hot here in the summer.", "Take care,", "Noa"]}, "penguins": {"t": "Emperor Penguins", "ltr": true, "lines": ["Emperor penguins are the biggest penguins in the world.", "They live in Antarctica, one of the coldest places on Earth.", "Penguins are birds, but they can't fly. They are excellent swimmers.", "They eat fish and other small sea animals.", "In the winter, the cold is terrible. Thousands of penguins stand very close together.", "They move all the time, so every penguin can spend a while in the warm middle.", "The father penguin keeps the egg on his feet for about two months.", "During this time, he doesn't eat anything!", "When the baby penguin comes out, the mother returns with food."]}, "flu": {"t": "Dan's Big Day", "ltr": true, "lines": ["Dan is 12 years old, and he is on the school basketball team.", "On Monday, his team had an important competition against another school.", "But on Sunday night, Dan didn't feel well. He had a fever.", "\"You have the flu,\" said the school nurse. \"You should stay in bed.\"", "Dan was very sad. \"I can't miss the competition!\" he said.", "Instead of playing, Dan watched the game on his tablet at home.", "His friends sent him messages all the time: \"We miss you, Dan!\"", "The team almost lost, but in the last minute they won.", "A week later, Dan got better and came back to school.", "The team gave him the ball from the game. \"It's for you,\" they said."]}, "blog": {"t": "Maya's Blog", "ltr": true, "lines": ["Hi! My name is Maya, and I'm 11 years old. I live in Haifa.", "My birthday is on March 9th. I have one sister and two dogs.", "I'm very busy in the afternoons.", "On Sundays, I have piano lessons. On Tuesdays, I go to a drawing class.", "I also collect shells. I have almost 200 shells!", "My favorite place is the beach. I go there with my family every Saturday.", "I'm looking for a pen pal from another country. Do you want to write to me?"]}};
+const QB_EN=[
+{"id": 3000, "w": "vocab", "q": "מה הפירוש של <b>about</b>?", "o": ["על / בערך", "כיס", "שניהם", "לאהוב"], "e": "about = על / בערך", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3001, "w": "vocab", "q": "איך אומרים באנגלית: <b>מפחד</b>?", "o": ["afraid", "kiss", "reason", "medical"], "e": "מפחד = afraid", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3002, "w": "vocab", "q": "מה הפירוש של <b>arrive</b>?", "o": ["להגיע", "עדיין", "מצטער", "לאהוב"], "e": "arrive = להגיע", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3003, "w": "vocab", "q": "איך אומרים באנגלית: <b>לתפוס (רכבת)</b>?", "o": ["catch (a train)", "cost", "about", "could"], "e": "לתפוס (רכבת) = catch (a train)", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3004, "w": "vocab", "q": "מה הפירוש של <b>comfortable</b>?", "o": ["נוח", "להגיע", "עדיין", "ראה (עבר של see)"], "e": "comfortable = נוח", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3005, "w": "vocab", "q": "איך אומרים באנגלית: <b>לעלות (מחיר)</b>?", "o": ["cost", "directly", "order", "competition"], "e": "לעלות (מחיר) = cost", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3006, "w": "vocab", "q": "מה הפירוש של <b>decide</b>?", "o": ["להחליט", "מיליון", "רק", "להגיע"], "e": "decide = להחליט", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3007, "w": "vocab", "q": "איך אומרים באנגלית: <b>ישירות</b>?", "o": ["directly", "much", "full", "Take care!"], "e": "ישירות = directly", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3008, "w": "vocab", "q": "מה הפירוש של <b>get off</b>?", "o": ["לרדת (מאוטובוס, מרכבת)", "להחליט", "להוריד (בגד, נעליים)", "תחרות"], "e": "get off = לרדת (מאוטובוס, מרכבת)", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3009, "w": "vocab", "q": "איך אומרים באנגלית: <b>לעלות (על אוטובוס, רכבת)</b>?", "o": ["get on", "pocket", "saw", "feel well"], "e": "לעלות (על אוטובוס, רכבת) = get on", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3010, "w": "vocab", "q": "מה הפירוש של <b>hit</b>?", "o": ["להכות, לפגוע", "תאריך", "נגד", "הודעה"], "e": "hit = להכות, לפגוע", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3011, "w": "vocab", "q": "איך אומרים באנגלית: <b>אי</b>?", "o": ["island", "famous", "mean", "the cold"], "e": "אי = island", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3012, "w": "vocab", "q": "מה הפירוש של <b>love</b>?", "o": ["לאהוב", "שניהם", "אלף", "לספר סיפור"], "e": "love = לאהוב", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3013, "w": "vocab", "q": "איך אומרים באנגלית: <b>מיליון</b>?", "o": ["million", "arrive", "glad", "medical"], "e": "מיליון = million", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3014, "w": "vocab", "q": "Choose the right word: The train is late, so we can't ___ it.", "o": ["catch", "cost", "hit", "decide"], "e": "catch a train = לתפוס רכבת", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3015, "w": "vocab", "q": "Choose the right word: My new chair is soft and ___.", "o": ["comfortable", "clever", "directly", "famous"], "e": "comfortable = נוח", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3016, "w": "vocab", "q": "Choose the right word: Please ___ the bus at the next stop. Our house is there.", "o": ["get off", "get on", "catch", "decide"], "e": "get off = לרדת מהאוטובוס", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3017, "w": "vocab", "q": "מה הפירוש של <b>mountain</b>?", "o": ["הר", "טעים", "לעזוב, לצאת", "לשמור"], "e": "mountain = הר", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3018, "w": "vocab", "q": "איך אומרים באנגלית: <b>טבע</b>?", "o": ["nature", "medical", "leave", "take (something) off"], "e": "טבע = nature", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3019, "w": "vocab", "q": "מה הפירוש של <b>pick</b>?", "o": ["לבחור, לקטוף", "להוריד (בגד, נעליים)", "להכות, לפגוע", "לחזור"], "e": "pick = לבחור, לקטוף", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3020, "w": "vocab", "q": "איך אומרים באנגלית: <b>פופולרי, אהוב</b>?", "o": ["popular", "the cold", "Dear ...", "order"], "e": "פופולרי, אהוב = popular", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3021, "w": "vocab", "q": "מה הפירוש של <b>return</b>?", "o": ["לחזור", "אלף", "לבחור, לקטוף", "לשמור"], "e": "return = לחזור", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3022, "w": "vocab", "q": "איך אומרים באנגלית: <b>ראה (עבר של see)</b>?", "o": ["saw", "invite", "tell a story", "return"], "e": "ראה (עבר של see) = saw", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3023, "w": "vocab", "q": "מה הפירוש של <b>still</b>?", "o": ["עדיין", "לבחור, לקטוף", "להזמין (אוכל)", "אלף"], "e": "still = עדיין", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3024, "w": "vocab", "q": "איך אומרים באנגלית: <b>לקחת (משהו) איתך</b>?", "o": ["take (something) away", "million", "tell a story", "come home"], "e": "לקחת (משהו) איתך = take (something) away", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3025, "w": "vocab", "q": "מה הפירוש של <b>take a picture</b>?", "o": ["לצלם", "אם", "במקום", "נוח"], "e": "take a picture = לצלם", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3026, "w": "vocab", "q": "איך אומרים באנגלית: <b>לנסוע ברכבת</b>?", "o": ["take a train", "welcome", "could", "perfect"], "e": "לנסוע ברכבת = take a train", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3027, "w": "vocab", "q": "מה הפירוש של <b>team</b>?", "o": ["קבוצה", "לספר סיפור", "נגד", "לחזור"], "e": "team = קבוצה", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3028, "w": "vocab", "q": "איך אומרים באנגלית: <b>הקור</b>?", "o": ["the cold", "get the flu", "should", "famous"], "e": "הקור = the cold", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3029, "w": "vocab", "q": "מה הפירוש של <b>visitor</b>?", "o": ["מבקר, אורח", "מפורסם", "הר", "שמח"], "e": "visitor = מבקר, אורח", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3030, "w": "vocab", "q": "איך אומרים באנגלית: <b>ברוך הבא</b>?", "o": ["welcome", "thousand", "love", "collect"], "e": "ברוך הבא = welcome", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3031, "w": "vocab", "q": "Choose the right word: There are many trees and flowers here. I love ___.", "o": ["nature", "reason", "order", "team"], "e": "nature = טבע", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3032, "w": "vocab", "q": "Choose the right word: A ___ is 1,000.", "o": ["thousand", "million", "several", "still"], "e": "thousand = אלף", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3033, "w": "vocab", "q": "Choose the right word: I want to ___ a pizza with cheese, please.", "o": ["order", "pick", "return", "welcome"], "e": "order = להזמין (אוכל)", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3034, "w": "vocab", "q": "Which word goes with <b>hundred</b>?", "o": ["thousand", "team", "reason", "welcome"], "e": "hundred → thousand, million", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3035, "w": "vocab", "q": "מה הפירוש של <b>a while</b>?", "o": ["זמן מה", "ראה (עבר של see)", "אם", "אי"], "e": "a while = זמן מה", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3036, "w": "vocab", "q": "איך אומרים באנגלית: <b>נגד</b>?", "o": ["against", "pick", "invite", "make a mistake"], "e": "נגד = against", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3037, "w": "vocab", "q": "מה הפירוש של <b>almost</b>?", "o": ["כמעט", "לטעות", "במקום", "כמה, מספר"], "e": "almost = כמעט", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3038, "w": "vocab", "q": "איך אומרים באנגלית: <b>להאמין</b>?", "o": ["believe", "anything", "pocket", "afraid"], "e": "להאמין = believe", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3039, "w": "vocab", "q": "מה הפירוש של <b>collect</b>?", "o": ["לאסוף", "עדיין", "סיבה", "לחזור"], "e": "collect = לאסוף", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3040, "w": "vocab", "q": "איך אומרים באנגלית: <b>לחזור הביתה</b>?", "o": ["come home", "island", "take (something) away", "still"], "e": "לחזור הביתה = come home", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3041, "w": "vocab", "q": "מה הפירוש של <b>could</b>?", "o": ["יכול היה", "כמעט", "לנסוע ברכבת", "לשמור"], "e": "could = יכול היה", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3042, "w": "vocab", "q": "איך אומרים באנגלית: <b>תאריך</b>?", "o": ["date", "mountain", "directly", "much"], "e": "תאריך = date", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3043, "w": "vocab", "q": "מה הפירוש של <b>feel well</b>?", "o": ["להרגיש טוב", "כמה, מספר", "שניהם", "מבקר, אורח"], "e": "feel well = להרגיש טוב", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3044, "w": "vocab", "q": "איך אומרים באנגלית: <b>מלא</b>?", "o": ["full", "could", "collect", "date"], "e": "מלא = full", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3045, "w": "vocab", "q": "מה הפירוש של <b>get the flu</b>?", "o": ["לחלות בשפעת", "לקחת (משהו) איתך", "... יקר/ה (בפתיחת מכתב)", "מפחד"], "e": "get the flu = לחלות בשפעת", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3046, "w": "vocab", "q": "איך אומרים באנגלית: <b>אם</b>?", "o": ["if", "much", "all the time", "visitor"], "e": "אם = if", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3047, "w": "vocab", "q": "מה הפירוש של <b>invite</b>?", "o": ["להזמין (אורח)", "אלף", "כמעט", "לאהוב"], "e": "invite = להזמין (אורח)", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3048, "w": "vocab", "q": "Choose the right word: My little brother ___ the flu. He has a fever.", "o": ["got", "kept", "invited", "believed"], "e": "get the flu = לחלות בשפעת", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3049, "w": "vocab", "q": "Choose the right word: ___ Dana and Tom are 12. They are twins.", "o": ["Both", "Almost", "Instead", "If"], "e": "both = שניהם", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3050, "w": "vocab", "q": "Choose the right word: Let's play outside ___ of watching TV.", "o": ["instead", "against", "if", "almost"], "e": "instead (of) = במקום", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3051, "w": "vocab", "q": "מה הפירוש של <b>keep</b>?", "o": ["לשמור", "באמת", "רק", "לרדת (מאוטובוס, מרכבת)"], "e": "keep = לשמור", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3052, "w": "vocab", "q": "איך אומרים באנגלית: <b>נשיקה, לנשק</b>?", "o": ["kiss", "only", "date", "competition"], "e": "נשיקה, לנשק = kiss", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3053, "w": "vocab", "q": "מה הפירוש של <b>mean</b>?", "o": ["להתכוון, פירושו", "להזמין (אורח)", "לספר סיפור", "אלף"], "e": "mean = להתכוון, פירושו", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3054, "w": "vocab", "q": "איך אומרים באנגלית: <b>רפואי</b>?", "o": ["medical", "leave", "visitor", "should"], "e": "רפואי = medical", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3055, "w": "vocab", "q": "מה הפירוש של <b>miss</b>?", "o": ["להחמיץ, להתגעגע", "להכות, לפגוע", "לקחת (משהו) איתך", "כל הזמן"], "e": "miss = להחמיץ, להתגעגע", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3056, "w": "vocab", "q": "איך אומרים באנגלית: <b>הרבה</b>?", "o": ["much", "tasty", "nurse", "mountain"], "e": "הרבה = much", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3057, "w": "vocab", "q": "מה הפירוש של <b>only</b>?", "o": ["רק", "לנסוע ברכבת", "אח/ות (רפואי)", "להאמין"], "e": "only = רק", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3058, "w": "vocab", "q": "איך אומרים באנגלית: <b>מושלם</b>?", "o": ["perfect", "Dear ...", "decide", "nature"], "e": "מושלם = perfect", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3059, "w": "vocab", "q": "מה הפירוש של <b>really</b>?", "o": ["באמת", "לאסוף", "לטעות", "לחזור"], "e": "really = באמת", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3060, "w": "vocab", "q": "איך אומרים באנגלית: <b>לראות</b>?", "o": ["see", "almost", "glad", "date"], "e": "לראות = see", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3061, "w": "vocab", "q": "מה הפירוש של <b>so</b>?", "o": ["אז, לכן, כל כך", "שמח", "להזמין (אורח)", "לחלות בשפעת"], "e": "so = אז, לכן, כל כך", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3062, "w": "vocab", "q": "איך אומרים באנגלית: <b>מצטער</b>?", "o": ["sorry", "directly", "take (something) away", "pocket"], "e": "מצטער = sorry", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3063, "w": "vocab", "q": "מה הפירוש של <b>tell a story</b>?", "o": ["לספר סיפור", "לבחור, לקטוף", "עדיין", "טעים"], "e": "tell a story = לספר סיפור", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3064, "w": "vocab", "q": "Choose the right word: I ___ you, Grandma! When are you coming to visit?", "o": ["miss", "keep", "mean", "kiss"], "e": "miss = להתגעגע", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3065, "w": "vocab", "q": "Choose the right word: The cake is very ___. Can I have more?", "o": ["tasty", "medical", "sorry", "perfect"], "e": "tasty = טעים", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3066, "w": "vocab", "q": "Choose the right word: Before bed, Dad always ___ a story.", "o": ["tells", "makes", "keeps", "means"], "e": "tell a story = לספר סיפור", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3067, "w": "vocab", "q": "Which word goes with <b>hospital</b>?", "o": ["nurse", "pocket", "message", "date"], "e": "hospital → nurse, medical", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3068, "w": "grammar", "q": "I ___ in the sixth grade.", "o": ["am", "is", "are"], "e": "I am", "img": null, "tf": false, "a": 0, "les": "g1", "ctx": null},
+{"id": 3069, "w": "grammar", "q": "Yoni and Tal ___ in the same class.", "o": ["are", "is", "am"], "e": "two people → are", "img": null, "tf": false, "a": 0, "les": "g1", "ctx": null},
+{"id": 3070, "w": "grammar", "q": "We ___ late for school. (שלילה)", "o": ["aren't", "isn't", "am not"], "e": "we → aren't", "img": null, "tf": false, "a": 0, "les": "g1", "ctx": null},
+{"id": 3071, "w": "grammar", "q": "You ___ my best friend.", "o": ["are", "is", "am"], "e": "you → are", "img": null, "tf": false, "a": 0, "les": "g1", "ctx": null},
+{"id": 3072, "w": "grammar", "q": "Is the shop open? – No, it ___ .", "o": ["isn't", "aren't", "doesn't"], "e": "short answer: No, it isn't.", "img": null, "tf": false, "a": 0, "les": "g1", "ctx": null},
+{"id": 3073, "w": "grammar", "q": "___ your sister at home? – Yes, she is.", "o": ["Is", "Are", "Am"], "e": "she → Is", "img": null, "tf": false, "a": 0, "les": "g1", "ctx": null},
+{"id": 3074, "w": "grammar", "q": "The car ___ four doors.", "o": ["has", "have"], "e": "it → has", "img": null, "tf": false, "a": 0, "les": "g2", "ctx": null},
+{"id": 3075, "w": "grammar", "q": "Shira ___ a good idea.", "o": ["has", "have"], "e": "she → has", "img": null, "tf": false, "a": 0, "les": "g2", "ctx": null},
+{"id": 3076, "w": "grammar", "q": "My dog ___ a long tail.", "o": ["has", "have"], "e": "it → has", "img": null, "tf": false, "a": 0, "les": "g2", "ctx": null},
+{"id": 3077, "w": "grammar", "q": "Tom and Lee ___ new bikes.", "o": ["have", "has"], "e": "they → have", "img": null, "tf": false, "a": 0, "les": "g2", "ctx": null},
+{"id": 3078, "w": "grammar", "q": "Gal often ___ the first lesson. (miss)", "o": ["misses", "miss", "missies"], "e": "ss → es", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3079, "w": "grammar", "q": "Lior ___ cartoons after school. (watch)", "o": ["watches", "watchs", "watch"], "e": "ch → es", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3080, "w": "grammar", "q": "We ___ bread at the bakery. (buy)", "o": ["buy", "buys", "buies"], "e": "we → בלי s", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3081, "w": "grammar", "q": "My cousins ___ puzzles on Fridays. (do)", "o": ["do", "does", "dos"], "e": "they → בלי s", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3082, "w": "grammar", "q": "The baby ___ a lot. (cry)", "o": ["cries", "crys", "cry"], "e": "y אחרי עיצור → ies", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3083, "w": "grammar", "q": "My friend ___ games with me. (play)", "o": ["plays", "plaies", "play"], "e": "y אחרי תנועה → s", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3084, "w": "grammar", "q": "Which verb is written correctly with he/she/it?", "o": ["fixes", "fixs", "fixies"], "e": "x → es", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3085, "w": "grammar", "q": "What is <b>competition</b>?", "o": ["noun – שם עצם", "verb – פועל", "adjective – שם תואר"], "e": "competition = תחרות (שם עצם)", "img": null, "tf": false, "a": 0, "les": "g4", "ctx": null},
+{"id": 3086, "w": "grammar", "q": "What is <b>clever</b>?", "o": ["adjective – שם תואר", "verb – פועל", "noun – שם עצם"], "e": "clever = חכם (שם תואר)", "img": null, "tf": false, "a": 0, "les": "g4", "ctx": null},
+{"id": 3087, "w": "grammar", "q": "What is <b>invite</b>?", "o": ["verb – פועל", "noun – שם עצם", "adjective – שם תואר"], "e": "invite = להזמין (פועל)", "img": null, "tf": false, "a": 0, "les": "g4", "ctx": null},
+{"id": 3088, "w": "grammar", "q": "Which word is an <b>adjective</b> (שם תואר)?", "o": ["excellent", "message", "collect"], "e": "excellent = מצוין", "img": null, "tf": false, "a": 0, "les": "g4", "ctx": null},
+{"id": 3089, "w": "grammar", "q": "Which word is a <b>noun</b> (שם עצם)?", "o": ["date", "perfect", "hit"], "e": "date = תאריך", "img": null, "tf": false, "a": 0, "les": "g4", "ctx": null},
+{"id": 3090, "w": "writing", "q": "Which sentence is written correctly?", "o": ["My name is Ron. I live in Ashdod.", "my name is ron. I live in ashdod.", "My name is Ron. i live in Ashdod."], "e": "אות גדולה: תחילת משפט, I, שמות ומקומות", "img": null, "tf": false, "a": 0, "les": "w1", "ctx": null},
+{"id": 3091, "w": "writing", "q": "Which sentence is written correctly?", "o": ["My birthday is in August.", "My birthday is in august.", "my Birthday is in August."], "e": "חודשים באות גדולה", "img": null, "tf": false, "a": 0, "les": "w1", "ctx": null},
+{"id": 3092, "w": "writing", "q": "Which word always starts with a capital letter?", "o": ["I", "you", "we", "they"], "e": "I תמיד באות גדולה", "img": null, "tf": false, "a": 0, "les": "w1", "ctx": null},
+{"id": 3093, "w": "writing", "q": "Put the words in order: <i>school / I / to / go / by bus</i>", "o": ["I go to school by bus.", "I to school go by bus.", "Go I to school by bus."], "e": "מי? ← עושה מה? ← לאן?", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null},
+{"id": 3094, "w": "writing", "q": "Translate: <b>My uncle takes pictures of birds.</b>", "o": ["הדוד שלי מצלם ציפורים.", "הדוד שלי לוקח ציפורים הביתה.", "הדוד שלי אוהב ציפורים."], "e": "take pictures = לצלם", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null},
+{"id": 3095, "w": "writing", "q": "Translate: <b>The bus is full of children.</b>", "o": ["האוטובוס מלא בילדים.", "באוטובוס אין ילדים.", "הילדים מחכים לאוטובוס."], "e": "full = מלא", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null},
+{"id": 3096, "w": "writing", "q": "Translate: <b>The new bike costs 900 shekels.</b>", "o": ["האופניים החדשים עולים 900 שקלים.", "יש לי 900 שקלים.", "האופניים החדשים מהירים מאוד."], "e": "cost = לעלות (מחיר)", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null},
+{"id": 3097, "w": "writing", "q": "Choose the right answer: <b>What is your dog's name?</b>", "o": ["His name is Rex.", "Yes, it is.", "He is in the garden."], "e": "What is … name → שם", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null},
+{"id": 3098, "w": "reading", "q": "Who is writing the email?", "o": ["Noa", "Ken", "Maya"], "e": "היא חותמת: Noa", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "eilat"},
+{"id": 3099, "w": "reading", "q": "What can you see in the water?", "o": ["beautiful fish", "big mountains", "a train"], "e": "you can see beautiful fish", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "eilat"},
+{"id": 3100, "w": "reading", "q": "Where do emperor penguins live?", "o": ["In Antarctica", "In Eilat", "In Japan"], "e": "They live in Antarctica", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "penguins"},
+{"id": 3101, "w": "reading", "q": "What does the father eat for two months?", "o": ["Nothing", "Only fish", "A lot"], "e": "he doesn't eat anything", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "penguins"},
+{"id": 3102, "w": "reading", "q": "Who told Dan he has the flu?", "o": ["the school nurse", "his mom", "his friend"], "e": "said the school nurse", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "flu"},
+{"id": 3103, "w": "reading", "q": "How old is Maya?", "o": ["11", "9", "12"], "e": "I'm 11 years old", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "blog"},
+{"id": 3104, "w": "reading", "q": "What does Maya collect?", "o": ["shells", "stamps", "cards"], "e": "I also collect shells", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "blog"},
+{"id": 3105, "w": "reading", "q": "How much does the boat cost?", "o": ["60 shekels", "30 shekels", "16 shekels"], "e": "It costs 60 shekels", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "eilat"},
+{"id": 3106, "w": "reading", "q": "The ice cream place has …", "o": ["30 flavors", "3 flavors", "13 flavors"], "e": "30 tasty flavors", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "eilat"},
+{"id": 3107, "w": "reading", "q": "Why do the penguins move all the time?", "o": ["So every penguin can be in the warm middle", "Because they are afraid", "Because they are hungry"], "e": "line 6", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "penguins"},
+{"id": 3108, "w": "reading", "q": "The word <b>excellent</b> in line 3 means …", "o": ["מצוין", "גדול", "קר"], "e": "excellent = מצוין", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "penguins"},
+{"id": 3109, "w": "reading", "q": "What did Dan do instead of playing?", "o": ["He watched the game at home", "He went to school", "He played football"], "e": "Instead of playing, Dan watched", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "flu"},
+{"id": 3110, "w": "reading", "q": "The words <b>got better</b> in line 9 mean …", "o": ["החלים", "חלה", "שיחק"], "e": "get better = להחלים", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "flu"},
+{"id": 3111, "w": "reading", "q": "How many shells does Maya have?", "o": ["almost 200", "exactly 200", "more than 200"], "e": "almost = כמעט", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "blog"}
+];
+const QB2_EN=[
+{"id": 3112, "w": "vocab", "q": "מה הפירוש של <b>afraid</b>?", "o": ["מפחד", "להאמין", "לראות", "נוח"], "e": "afraid = מפחד", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3113, "w": "vocab", "q": "מה הפירוש של <b>anything</b>?", "o": ["כל דבר / משהו", "לראות", "באמת", "להזמין (אוכל)"], "e": "anything = כל דבר / משהו", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3114, "w": "vocab", "q": "מה הפירוש של <b>catch (a train)</b>?", "o": ["לתפוס (רכבת)", "לרדת (מאוטובוס, מרכבת)", "לצלם", "להחליט"], "e": "catch (a train) = לתפוס (רכבת)", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3115, "w": "vocab", "q": "מה הפירוש של <b>clever</b>?", "o": ["חכם, פיקח", "הודעה", "שניהם", "טבע"], "e": "clever = חכם, פיקח", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3116, "w": "vocab", "q": "מה הפירוש של <b>cost</b>?", "o": ["לעלות (מחיר)", "להגיע", "לצלם", "הקור"], "e": "cost = לעלות (מחיר)", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3117, "w": "vocab", "q": "מה הפירוש של <b>Dear ...</b>?", "o": ["... יקר/ה (בפתיחת מכתב)", "שניהם", "טעים", "להחלים, להשתפר"], "e": "Dear ... = ... יקר/ה (בפתיחת מכתב)", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3118, "w": "vocab", "q": "מה הפירוש של <b>directly</b>?", "o": ["ישירות", "להוריד (בגד, נעליים)", "להכות, לפגוע", "זמן מה"], "e": "directly = ישירות", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3119, "w": "vocab", "q": "מה הפירוש של <b>famous</b>?", "o": ["מפורסם", "כיס", "סיבה", "כל דבר / משהו"], "e": "famous = מפורסם", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3120, "w": "vocab", "q": "מה הפירוש של <b>get on</b>?", "o": ["לעלות (על אוטובוס, רכבת)", "להזמין (אוכל)", "לעלות (מחיר)", "לחלות בשפעת"], "e": "get on = לעלות (על אוטובוס, רכבת)", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3121, "w": "vocab", "q": "מה הפירוש של <b>glad</b>?", "o": ["שמח", "לאסוף", "להכות, לפגוע", "מצטער"], "e": "glad = שמח", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3122, "w": "vocab", "q": "מה הפירוש של <b>island</b>?", "o": ["אי", "לאהוב", "להחליט", "לעלות (על אוטובוס, רכבת)"], "e": "island = אי", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3123, "w": "vocab", "q": "מה הפירוש של <b>leave</b>?", "o": ["לעזוב, לצאת", "באמת", "אם", "לקחת (משהו) איתך"], "e": "leave = לעזוב, לצאת", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3124, "w": "vocab", "q": "מה הפירוש של <b>million</b>?", "o": ["מיליון", "מבקר, אורח", "תחרות", "כל הזמן"], "e": "million = מיליון", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3125, "w": "vocab", "q": "We <u>arrive</u> at school at 8:00. What does <b>arrive</b> mean here?", "o": ["מגיעים", "יוצאים", "חוזרים", "מחליטים"], "e": "arrive = להגיע", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3126, "w": "vocab", "q": "Choose the right word: Messi is a very ___ football player. Everybody knows him.", "o": ["famous", "afraid", "comfortable", "glad"], "e": "famous = מפורסם", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3127, "w": "vocab", "q": "Choose the right word: How much does this book ___? – 30 shekels.", "o": ["cost", "leave", "arrive", "love"], "e": "cost = לעלות (מחיר)", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3128, "w": "vocab", "q": "Which two words go together: special – ?", "o": ["famous", "island", "hit", "leave"], "e": "special / famous / popular", "img": null, "tf": false, "a": 0, "les": "v1", "ctx": null},
+{"id": 3129, "w": "vocab", "q": "מה הפירוש של <b>nature</b>?", "o": ["טבע", "לרדת (מאוטובוס, מרכבת)", "לאסוף", "לאהוב"], "e": "nature = טבע", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3130, "w": "vocab", "q": "מה הפירוש של <b>order</b>?", "o": ["להזמין (אוכל)", "להתכוון, פירושו", "לאהוב", "על / בערך"], "e": "order = להזמין (אוכל)", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3131, "w": "vocab", "q": "מה הפירוש של <b>popular</b>?", "o": ["פופולרי, אהוב", "לאהוב", "טבע", "מושלם"], "e": "popular = פופולרי, אהוב", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3132, "w": "vocab", "q": "מה הפירוש של <b>reason</b>?", "o": ["סיבה", "להחלים, להשתפר", "מושלם", "לטעות"], "e": "reason = סיבה", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3133, "w": "vocab", "q": "מה הפירוש של <b>saw</b>?", "o": ["ראה (עבר של see)", "להוריד (בגד, נעליים)", "להחלים, להשתפר", "מושלם"], "e": "saw = ראה (עבר של see)", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3134, "w": "vocab", "q": "מה הפירוש של <b>several</b>?", "o": ["כמה, מספר", "על / בערך", "לראות", "להחמיץ, להתגעגע"], "e": "several = כמה, מספר", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3135, "w": "vocab", "q": "מה הפירוש של <b>take (something) away</b>?", "o": ["לקחת (משהו) איתך", "הרבה", "רפואי", "... יקר/ה (בפתיחת מכתב)"], "e": "take (something) away = לקחת (משהו) איתך", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3136, "w": "vocab", "q": "מה הפירוש של <b>take (something) off</b>?", "o": ["להוריד (בגד, נעליים)", "כיס", "סיבה", "נוח"], "e": "take (something) off = להוריד (בגד, נעליים)", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3137, "w": "vocab", "q": "מה הפירוש של <b>take a train</b>?", "o": ["לנסוע ברכבת", "זמן מה", "נגד", "טעים"], "e": "take a train = לנסוע ברכבת", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3138, "w": "vocab", "q": "מה הפירוש של <b>Take care!</b>?", "o": ["שמור/שמרי על עצמך!", "הרבה", "לעלות (מחיר)", "מצוין"], "e": "Take care! = שמור/שמרי על עצמך!", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3139, "w": "vocab", "q": "מה הפירוש של <b>the cold</b>?", "o": ["הקור", "מצוין", "להחלים, להשתפר", "נשיקה, לנשק"], "e": "the cold = הקור", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3140, "w": "vocab", "q": "מה הפירוש של <b>thousand</b>?", "o": ["אלף", "רק", "הקור", "רפואי"], "e": "thousand = אלף", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3141, "w": "vocab", "q": "מה הפירוש של <b>welcome</b>?", "o": ["ברוך הבא", "לראות", "כיס", "מצוין"], "e": "welcome = ברוך הבא", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3142, "w": "vocab", "q": "Choose the right word: Before you go into the house, ___ your shoes.", "o": ["take off", "take away", "take a picture", "take care"], "e": "take (something) off = להוריד", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3143, "w": "vocab", "q": "Choose the right word: My brother plays in the school basketball ___.", "o": ["team", "visitor", "mountain", "island"], "e": "team = קבוצה", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3144, "w": "vocab", "q": "Choose the right word: Is your brother ___ at school? – Yes, he comes home at 4:00.", "o": ["still", "several", "popular", "return"], "e": "still = עדיין", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3145, "w": "vocab", "q": "Which word goes with <b>forest</b>?", "o": ["nature", "thousand", "visitor", "order"], "e": "forest → nature, mountain, island", "img": null, "tf": false, "a": 0, "les": "v2", "ctx": null},
+{"id": 3146, "w": "vocab", "q": "מה הפירוש של <b>against</b>?", "o": ["נגד", "סיבה", "כמה, מספר", "יכול היה"], "e": "against = נגד", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3147, "w": "vocab", "q": "מה הפירוש של <b>all the time</b>?", "o": ["כל הזמן", "נשיקה, לנשק", "להזמין (אוכל)", "על / בערך"], "e": "all the time = כל הזמן", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3148, "w": "vocab", "q": "מה הפירוש של <b>believe</b>?", "o": ["להאמין", "קבוצה", "לקחת (משהו) איתך", "אם"], "e": "believe = להאמין", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3149, "w": "vocab", "q": "מה הפירוש של <b>both</b>?", "o": ["שניהם", "במקום", "לקחת (משהו) איתך", "ברוך הבא"], "e": "both = שניהם", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3150, "w": "vocab", "q": "מה הפירוש של <b>come home</b>?", "o": ["לחזור הביתה", "לשמור", "מבקר, אורח", "להחמיץ, להתגעגע"], "e": "come home = לחזור הביתה", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3151, "w": "vocab", "q": "מה הפירוש של <b>competition</b>?", "o": ["תחרות", "להכות, לפגוע", "ברוך הבא", "לראות"], "e": "competition = תחרות", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3152, "w": "vocab", "q": "מה הפירוש של <b>date</b>?", "o": ["תאריך", "חכם, פיקח", "מבקר, אורח", "לחזור"], "e": "date = תאריך", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3153, "w": "vocab", "q": "מה הפירוש של <b>excellent</b>?", "o": ["מצוין", "זמן מה", "לשמור", "יכול היה"], "e": "excellent = מצוין", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3154, "w": "vocab", "q": "מה הפירוש של <b>full</b>?", "o": ["מלא", "מבקר, אורח", "נגד", "קבוצה"], "e": "full = מלא", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3155, "w": "vocab", "q": "מה הפירוש של <b>get better</b>?", "o": ["להחלים, להשתפר", "ראה (עבר של see)", "לאהוב", "לאסוף"], "e": "get better = להחלים, להשתפר", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3156, "w": "vocab", "q": "מה הפירוש של <b>if</b>?", "o": ["אם", "מצטער", "פופולרי, אהוב", "לאסוף"], "e": "if = אם", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3157, "w": "vocab", "q": "מה הפירוש של <b>instead</b>?", "o": ["במקום", "טעים", "לראות", "מצוין"], "e": "instead = במקום", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3158, "w": "vocab", "q": "Choose the right word: Don't go to school. You don't ___ well.", "o": ["feel", "get", "keep", "collect"], "e": "feel well = להרגיש טוב", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3159, "w": "vocab", "q": "Choose the right word: I ___ stamps. I have 300 stamps!", "o": ["collect", "invite", "believe", "date"], "e": "collect = לאסוף", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3160, "w": "vocab", "q": "Choose the right word: The bottle is ___ of water. You can't add more.", "o": ["full", "excellent", "almost", "against"], "e": "full = מלא", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3161, "w": "vocab", "q": "Which word is the opposite of <b>empty</b> (ריק)?", "o": ["full", "perfect", "tasty", "both"], "e": "full = מלא", "img": null, "tf": false, "a": 0, "les": "v3", "ctx": null},
+{"id": 3162, "w": "vocab", "q": "מה הפירוש של <b>kiss</b>?", "o": ["נשיקה, לנשק", "כמה, מספר", "כמעט", "מושלם"], "e": "kiss = נשיקה, לנשק", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3163, "w": "vocab", "q": "מה הפירוש של <b>make a mistake</b>?", "o": ["לטעות", "אז, לכן, כל כך", "באמת", "רפואי"], "e": "make a mistake = לטעות", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3164, "w": "vocab", "q": "מה הפירוש של <b>medical</b>?", "o": ["רפואי", "לספר סיפור", "כל דבר / משהו", "לקחת (משהו) איתך"], "e": "medical = רפואי", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3165, "w": "vocab", "q": "מה הפירוש של <b>message</b>?", "o": ["הודעה", "כמעט", "להחמיץ, להתגעגע", "מצוין"], "e": "message = הודעה", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3166, "w": "vocab", "q": "מה הפירוש של <b>much</b>?", "o": ["הרבה", "שמח", "יכול היה", "אי"], "e": "much = הרבה", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3167, "w": "vocab", "q": "מה הפירוש של <b>nurse</b>?", "o": ["אח/ות (רפואי)", "הר", "ראה (עבר של see)", "להחליט"], "e": "nurse = אח/ות (רפואי)", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3168, "w": "vocab", "q": "מה הפירוש של <b>perfect</b>?", "o": ["מושלם", "אז, לכן, כל כך", "לקחת (משהו) איתך", "... יקר/ה (בפתיחת מכתב)"], "e": "perfect = מושלם", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3169, "w": "vocab", "q": "מה הפירוש של <b>pocket</b>?", "o": ["כיס", "לבחור, לקטוף", "נשיקה, לנשק", "הקור"], "e": "pocket = כיס", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3170, "w": "vocab", "q": "מה הפירוש של <b>see</b>?", "o": ["לראות", "להחליט", "נוח", "טעים"], "e": "see = לראות", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3171, "w": "vocab", "q": "מה הפירוש של <b>should</b>?", "o": ["צריך, כדאי", "מלא", "לעזוב, לצאת", "ברוך הבא"], "e": "should = צריך, כדאי", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3172, "w": "vocab", "q": "מה הפירוש של <b>sorry</b>?", "o": ["מצטער", "לשמור", "הר", "כיס"], "e": "sorry = מצטער", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3173, "w": "vocab", "q": "מה הפירוש של <b>tasty</b>?", "o": ["טעים", "במקום", "נוח", "לחזור"], "e": "tasty = טעים", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3174, "w": "vocab", "q": "Choose the right word: You ___ wear a hat. It's very sunny.", "o": ["should", "could", "so", "only"], "e": "should = כדאי, צריך", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3175, "w": "vocab", "q": "Choose the right word: My pants have two ___.", "o": ["pockets", "messages", "nurses", "stories"], "e": "pocket = כיס", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3176, "w": "vocab", "q": "Choose the right word: I'm ___ I'm late. The bus didn't come.", "o": ["sorry", "perfect", "only", "really"], "e": "sorry = מצטער", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3177, "w": "vocab", "q": "Choose the right word: Everybody can ___ a mistake. It's OK!", "o": ["make", "tell", "take", "keep"], "e": "make a mistake = לטעות", "img": null, "tf": false, "a": 0, "les": "v4", "ctx": null},
+{"id": 3178, "w": "grammar", "q": "My grandparents ___ in the garden.", "o": ["are", "is", "am"], "e": "they → are", "img": null, "tf": false, "a": 0, "les": "g1", "ctx": null},
+{"id": 3179, "w": "grammar", "q": "Omer ___ at home now. (שלילה)", "o": ["isn't", "aren't", "am not"], "e": "he → isn't", "img": null, "tf": false, "a": 0, "les": "g1", "ctx": null},
+{"id": 3180, "w": "grammar", "q": "The cat ___ on the sofa.", "o": ["is", "are", "am"], "e": "it → is", "img": null, "tf": false, "a": 0, "les": "g1", "ctx": null},
+{"id": 3181, "w": "grammar", "q": "It ___ cold today. Take a coat!", "o": ["is", "are", "am"], "e": "it → is", "img": null, "tf": false, "a": 0, "les": "g1", "ctx": null},
+{"id": 3182, "w": "grammar", "q": "Are they at the beach? – Yes, they ___ .", "o": ["are", "is", "do"], "e": "short answer: Yes, they are.", "img": null, "tf": false, "a": 0, "les": "g1", "ctx": null},
+{"id": 3183, "w": "grammar", "q": "I ___ hungry. I just ate. (שלילה)", "o": ["am not", "isn't", "aren't"], "e": "I → am not", "img": null, "tf": false, "a": 0, "les": "g1", "ctx": null},
+{"id": 3184, "w": "grammar", "q": "I ___ a new phone.", "o": ["have", "has"], "e": "I → have", "img": null, "tf": false, "a": 0, "les": "g2", "ctx": null},
+{"id": 3185, "w": "grammar", "q": "The students ___ a test tomorrow.", "o": ["have", "has"], "e": "they → have", "img": null, "tf": false, "a": 0, "les": "g2", "ctx": null},
+{"id": 3186, "w": "grammar", "q": "We ___ English on Sundays.", "o": ["have", "has"], "e": "we → have", "img": null, "tf": false, "a": 0, "les": "g2", "ctx": null},
+{"id": 3187, "w": "grammar", "q": "Our teacher ___ a red car.", "o": ["has", "have"], "e": "she/he → has", "img": null, "tf": false, "a": 0, "les": "g2", "ctx": null},
+{"id": 3188, "w": "grammar", "q": "My uncle ___ to work by train. (go)", "o": ["goes", "gos", "go"], "e": "go → goes", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3189, "w": "grammar", "q": "Mia ___ English every evening. (study)", "o": ["studies", "studys", "study"], "e": "y אחרי עיצור → ies", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3190, "w": "grammar", "q": "I ___ my scooter to school. (ride)", "o": ["ride", "rides", "rids"], "e": "I → בלי s", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3191, "w": "grammar", "q": "My mom ___ coffee every morning. (drink)", "o": ["drinks", "drink", "drinkes"], "e": "she → s", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3192, "w": "grammar", "q": "He ___ his teeth twice a day. (brush)", "o": ["brushes", "brushs", "brush"], "e": "sh → es", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3193, "w": "grammar", "q": "Noa ___ a story to her little brother. (tell)", "o": ["tells", "tell", "telles"], "e": "she → s", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3194, "w": "grammar", "q": "Which sentence is correct?", "o": ["She plays the guitar.", "She play the guitar.", "She playes the guitar."], "e": "she → plays", "img": null, "tf": false, "a": 0, "les": "g3", "ctx": null},
+{"id": 3195, "w": "grammar", "q": "What is <b>believe</b>?", "o": ["verb – פועל", "noun – שם עצם", "adjective – שם תואר"], "e": "believe = להאמין (פועל)", "img": null, "tf": false, "a": 0, "les": "g4", "ctx": null},
+{"id": 3196, "w": "grammar", "q": "What is <b>island</b>?", "o": ["noun – שם עצם", "adjective – שם תואר", "verb – פועל"], "e": "island = אי (שם עצם)", "img": null, "tf": false, "a": 0, "les": "g4", "ctx": null},
+{"id": 3197, "w": "grammar", "q": "What is <b>tasty</b>?", "o": ["adjective – שם תואר", "noun – שם עצם", "verb – פועל"], "e": "tasty = טעים (שם תואר)", "img": null, "tf": false, "a": 0, "les": "g4", "ctx": null},
+{"id": 3198, "w": "grammar", "q": "Which word is a <b>verb</b> (פועל)?", "o": ["leave", "reason", "glad"], "e": "leave = לעזוב", "img": null, "tf": false, "a": 0, "les": "g4", "ctx": null},
+{"id": 3199, "w": "grammar", "q": "Which word is NOT an adjective?", "o": ["miss", "afraid", "glad"], "e": "miss = פועל", "img": null, "tf": false, "a": 0, "les": "g4", "ctx": null},
+{"id": 3200, "w": "writing", "q": "Which sentence is written correctly?", "o": ["I have a dance class on Wednesdays.", "I have a dance class on wednesdays.", "i have a dance class on Wednesdays."], "e": "ימי השבוע באות גדולה", "img": null, "tf": false, "a": 0, "les": "w1", "ctx": null},
+{"id": 3201, "w": "writing", "q": "Which word should start with a capital letter?", "o": ["tel aviv", "house", "friend", "morning"], "e": "שם של מקום → Tel Aviv", "img": null, "tf": false, "a": 0, "les": "w1", "ctx": null},
+{"id": 3202, "w": "writing", "q": "Which sentence is written correctly?", "o": ["Noa and I are friends.", "noa and I are friends.", "Noa and i are friends."], "e": "שמות ו-I באות גדולה", "img": null, "tf": false, "a": 0, "les": "w1", "ctx": null},
+{"id": 3203, "w": "writing", "q": "Put the words in order: <i>has / Dana / a cat / white</i>", "o": ["Dana has a white cat.", "Dana has a cat white.", "A white cat has Dana."], "e": "שם התואר לפני שם העצם", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null},
+{"id": 3204, "w": "writing", "q": "Translate: <b>My sister sings all the time.</b>", "o": ["אחותי שרה כל הזמן.", "אחותי שרה לפעמים.", "אחותי לא אוהבת לשיר."], "e": "all the time = כל הזמן", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null},
+{"id": 3205, "w": "writing", "q": "Translate: <b>We get off the train in Haifa.</b>", "o": ["אנחנו יורדים מהרכבת בחיפה.", "אנחנו עולים על הרכבת בחיפה.", "אנחנו גרים בחיפה."], "e": "get off = לרדת", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null},
+{"id": 3206, "w": "writing", "q": "Choose the right answer: <b>Where are my keys?</b>", "o": ["They're on the table.", "Yes, they are.", "They are keys."], "e": "Where → מקום", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null},
+{"id": 3207, "w": "writing", "q": "How do you start a letter or an email?", "o": ["Dear Ken,", "Take care, Ken", "Bye Ken"], "e": "Dear … = פתיחת מכתב", "img": null, "tf": false, "a": 0, "les": "w2", "ctx": null},
+{"id": 3208, "w": "reading", "q": "Where does Noa live?", "o": ["In Eilat", "In Tel Aviv", "In Japan"], "e": "I live in Eilat", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "eilat"},
+{"id": 3209, "w": "reading", "q": "True or false? Ken lives in Eilat.", "o": ["false", "true"], "e": "Ken is the visitor", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "eilat"},
+{"id": 3210, "w": "reading", "q": "Which sentence is true?", "o": ["Penguins are birds, but they can't fly.", "Penguins can fly very high.", "Penguins are fish."], "e": "line 3", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "penguins"},
+{"id": 3211, "w": "reading", "q": "What team is Dan on?", "o": ["the basketball team", "the football team", "the swimming team"], "e": "line 1", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "flu"},
+{"id": 3212, "w": "reading", "q": "Did the team win?", "o": ["Yes, in the last minute", "No, they lost", "There was no game"], "e": "in the last minute they won", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "flu"},
+{"id": 3213, "w": "reading", "q": "When does Maya have piano lessons?", "o": ["On Sundays", "On Tuesdays", "On Saturdays"], "e": "On Sundays, I have piano lessons", "img": null, "tf": false, "a": 0, "les": "r1", "ctx": "blog"},
+{"id": 3214, "w": "reading", "q": "Why should Ken bring a hat?", "o": ["Because it's very hot in the summer", "Because it's cold", "Because he likes hats"], "e": "It's very hot here", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "eilat"},
+{"id": 3215, "w": "reading", "q": "Why do the penguins stand close together?", "o": ["To keep warm in the cold", "To play a game", "To catch fish"], "e": "the cold is terrible", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "penguins"},
+{"id": 3216, "w": "reading", "q": "Who keeps the egg?", "o": ["The father penguin", "The mother penguin", "Both"], "e": "The father penguin keeps the egg", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "penguins"},
+{"id": 3217, "w": "reading", "q": "Why was Dan sad?", "o": ["He couldn't play in the competition", "His team lost", "He lost his tablet"], "e": "I can't miss the competition", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "flu"},
+{"id": 3218, "w": "reading", "q": "How did the team feel about Dan?", "o": ["They missed him", "They were angry with him", "They forgot him"], "e": "We miss you, Dan!", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "flu"},
+{"id": 3219, "w": "reading", "q": "Why did Maya write the blog?", "o": ["She is looking for a pen pal", "She wants to sell shells", "She wants a dog"], "e": "I'm looking for a pen pal", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "blog"},
+{"id": 3220, "w": "reading", "q": "In the blog, which word starts with a capital letter because it's a day?", "o": ["Sundays", "piano", "shells"], "e": "ימי השבוע – אות גדולה", "img": null, "tf": false, "a": 0, "les": "r2", "ctx": "blog"}
+];
+Object.assign(ILL,{
+worldVocab:()=>TILES([["🔤","words"],["🚆","catch a train"],["🏝️","island"],["🏆","competition"],["🤒","get the flu"],["📸","take a picture"]],"#e9f2ff"),
+worldGrammar:()=>TILES([["👤","am / is / are"],["🎒","have / has"],["➕","s / es / ies"],["🏷️","noun · verb · adj"]],"#efe7ff"),
+worldReading:()=>TILES([["📧","email"],["🐧","article"],["🏀","story"],["💻","blog"]],"#fff3d6"),
+worldWriting:()=>TILES([["🔠","Capital Letters"],["🧩","word order"],["🔁","translate"]],"#e4f6e7")
+});
+const enList=list=>list.map(([en,he])=>`<b>${en}</b> – ${he}`);
+const WORLDS_EN=[
+{id:"vocab",name:"Words · מילים",tag:"עולם 1",art:"worldVocab",blurb:"כל 78 המילים והצירופים של Unit 1",
+ lessons:[
+ {id:"v1",title:"Words 1: about – million",img:"worldVocab",pts:enList(EN_WORDS.slice(0,20)),check:{q:"מה הפירוש של <b>arrive</b>?",o:["להגיע","לעזוב","להחליט","לעלות (מחיר)"],a:0}},
+ {id:"v2",title:"Words 2: mountain – welcome",img:"worldVocab",pts:enList(EN_WORDS.slice(20,40)),check:{q:"מה הפירוש של <b>take a picture</b>?",o:["לצלם","לנסוע ברכבת","להוריד","לקחת איתך"],a:0}},
+ {id:"v3",title:"Words 3: a while – invite",img:"worldVocab",pts:enList(EN_WORDS.slice(40,59)),check:{q:"מה הפירוש של <b>get the flu</b>?",o:["לחלות בשפעת","להחלים","להרגיש טוב","לחזור הביתה"],a:0}},
+ {id:"v4",title:"Words 4: keep – tell a story",img:"worldVocab",pts:enList(EN_WORDS.slice(59)),check:{q:"מה הפירוש של <b>make a mistake</b>?",o:["לטעות","לספר סיפור","להתגעגע","לשמור"],a:0}}
+ ]},
+{id:"grammar",name:"Grammar · דקדוק",tag:"עולם 2",art:"worldGrammar",blurb:"am/is/are, have/has, Present Simple, סוגי מילים",
+ lessons:[
+ {id:"g1",title:"to be: am / is / are",img:"worldGrammar",pts:["I am · he / she / it is · we / you / they are","שלילה:","I am not · he isn't · they aren't","שאלה ותשובה קצרה:","Is the shop open? – No, it isn't.","שני אנשים או יותר – are","Yoni and Tal are friends."],
+  check:{q:"My grandparents ___ in the garden.",o:["are","is","am","be"],a:0}},
+ {id:"g2",title:"have / has",img:"worldGrammar",pts:["I / we / you / they have","he / she / it has","The car has four doors. The students have a test."],
+  check:{q:"Shira ___ a good idea.",o:["has","have","is","are"],a:0}},
+ {id:"g3",title:"Present Simple: s / es / ies",img:"worldGrammar",pts:["עם he / she / it מוסיפים s לפועל","play → plays, read → reads","מוסיפים es אחרי s, ss, sh, ch, x, o","miss → misses, watch → watches, go → goes, do → does","y אחרי עיצור הופך ל-ies","study → studies, cry → cries","אבל אחרי תנועה – רק s","play → plays","עם I / we / you / they – בלי s","We buy bread."],
+  check:{q:"Mia ___ English every evening. (study)",o:["studies","studys","study","studyes"],a:0}},
+ {id:"g4",title:"Nouns, Verbs, Adjectives",img:"worldGrammar",pts:["Noun – שם עצם","island, competition, message, reason, date","Verb – פועל","believe, collect, hit, invite, miss, leave","Adjective – שם תואר","afraid, clever, excellent, perfect, tasty, glad"],
+  check:{q:"What is <b>believe</b>?",o:["verb – פועל","noun – שם עצם","adjective – שם תואר","number – מספר"],a:0}}
+ ]},
+{id:"reading",name:"Reading · הבנת הנקרא",tag:"עולם 3",art:"worldReading",blurb:"מייל, כתבה, סיפור ובלוג – באנגלית",
+ lessons:[
+ {id:"r1",title:"Finding information",img:"worldReading",pts:["מחפשים בטקסט מילה מהשאלה.","Who? – מי · Where? – איפה · When? – מתי","What? – מה · How many? / How much? – כמה","במייל, מי כותב? מופיע בסוף:","Your friend, Noa"],
+  check:{q:"\"Dear Ken, … Your friend, Noa.\" Who is writing?",o:["Noa","Ken","Noa and Ken","Nobody"],a:0}},
+ {id:"r2",title:"Why? True or false?",img:"worldReading",pts:["Why? – למה. מחפשים","because / so / to","True / False – בודקים כל מילה מול הטקסט.","מילה לא מוכרת? מנחשים מהמשפט."],
+  check:{q:"\"They stand close together to keep warm.\" Why do they stand close together?",o:["to keep warm","to play","to eat","to sleep"],a:0}}
+ ]},
+{id:"writing",name:"Writing · כתיבה",tag:"עולם 4",art:"worldWriting",blurb:"Capital Letters, סדר מילים, תרגום משפטים",
+ lessons:[
+ {id:"w1",title:"Capital Letters",img:"worldWriting",pts:["אות גדולה בתחילת כל משפט.","תמיד I באות גדולה.","שמות, מקומות, ימים וחודשים:","Ron, Ashdod, Wednesday, May"],
+  check:{q:"Which sentence is written correctly?",o:["I live in Haifa.","i live in Haifa.","I live in haifa.","i live in haifa."],a:0}},
+ {id:"w2",title:"Sentences",img:"worldWriting",pts:["סדר מילים: מי ← עושה מה ← איפה / מתי","I go to school by bus.","שם תואר לפני שם העצם:","a white cat","תרגום של צירוף שלם:","take pictures = לצלם · all the time = כל הזמן"],
+  check:{q:"Put the words in order: <i>Dana / a cat / has</i>",o:["Dana has a cat.","Has Dana a cat.","A cat Dana has.","Dana a cat has."],a:0}}
+ ]}
+];
+const CARDS_EN={
+vocab:EN_WORDS.map(([en,he])=>[en,he]),
+grammar:[["I ___ (to be)","am"],["he / she / it ___ (to be)","is"],["we / you / they ___ (to be)","are"],["he / she / it ___ (have)","has"],["miss → he …","misses"],["watch → she …","watches"],["go → it …","goes"],["study → he …","studies"],["play → she …","plays"],["Noun / Verb / Adjective","שם עצם / פועל / שם תואר"]],
+reading:[["Who?","מי"],["Where?","איפה"],["When?","מתי"],["Why?","למה"],["How many?","כמה (לספירה)"],["How much?","כמה (מחיר / כמות)"],["because","כי"],["True / False","נכון / לא נכון"]],
+writing:[["מתי אות גדולה?","תחילת משפט, I, שמות, מקומות, ימים, חודשים"],["Dear …","פתיחה של מכתב / מייל"],["Your friend, …","סיום של מכתב"],["Take care!","שמור/שמרי על עצמך!"],["all the time","כל הזמן"],["take pictures","לצלם"]]
+};
+const FILL_EN={
+ vocab:{bank:["team","a while","pockets","directly","arrives","should","takes a train","loves"],items:[
+  ["Our volleyball ","team"," has ten players."],["Wait here for ","a while",", I'm coming."],["It's raining, so you ","should"," take a coat."],["My jacket has two big ","pockets","."],["After the movie, go ","directly"," to bed."],["The train ","arrives"," at 9:30."],["Every morning, Grandpa ","takes a train"," to Tel Aviv."],["My little sister ","loves"," to draw horses."]]},
+ grammar:{bank:["am","is","are","has","have","goes","studies","watches"],items:[
+  ["I ","am"," in the sixth grade."],["It ","is"," hot today."],["Yoni and Tal ","are"," in the same class."],["The car ","has"," four doors."],["The students ","have"," a test tomorrow."],["My uncle ","goes"," to work by train."],["Mia ","studies"," English every evening."],["Lior ","watches"," cartoons after school."]]},
+ reading:{bank:["Eilat","60","hat","Antarctica","father","nurse"],items:[
+  ["Noa lives in ","Eilat","."],["The glass boat costs ","60"," shekels."],["Ken should bring a ","hat","."],["Emperor penguins live in ","Antarctica","."],["The ","father"," penguin keeps the egg."],["The school ","nurse"," said Dan has the flu."]]},
+ writing:{bank:["Capital","I","Monday","August","Dear"],items:[
+  ["A sentence starts with a ","Capital"," letter."],["We always write ","I"," with a capital letter."],["Days: ","Monday",", Tuesday …"],["Months: ","August",", September …"],["","Dear"," Ken, I'm so glad you are coming!"]]}
+};
+const MATCH_EN=[
+ {t:"🔗 Match A + B",pairs:[["get off","a bus"],["make","a mistake"],["tell","a story"],["invite","a friend"],["catch","a train"],["get","better"]]},
+ {t:"🔤 Word → מילה",pairs:[["island","אי"],["nurse","אחות"],["tasty","טעים"],["almost","כמעט"],["collect","לאסוף"]]},
+ {t:"🏷️ Noun / Verb / Adjective",pairs:[["competition","Noun"],["believe","Verb"],["clever","Adjective"],["message","Noun"],["invite","Verb"],["excellent","Adjective"]]}
+];
+const MISTAKES_EN=[
+ ["My grandparents is in the garden.",["is ← are (they)","אין טעות","is ← am"]],
+ ["The car have four doors.",["have ← has (it)","אין טעות","have ← are"]],
+ ["Gal often miss the first lesson.",["miss ← misses","אין טעות","miss ← missies"]],
+ ["Mia studys English every evening.",["studys ← studies","אין טעות","studys ← study"]],
+ ["i have a dance class on wednesdays.",["I ו-Wednesdays באות גדולה","אין טעות","רק Wednesdays באות גדולה"]],
+ ["We isn't late.",["isn't ← aren't","אין טעות","isn't ← am not"]]
+];
+
+/* ============================================================
    COURSES — what this device shows is chosen by the active profile's grade (and, later, the subject).
    Every course has the same shape, so a new grade or subject is one more entry here.
    ============================================================ */
@@ -1347,16 +1653,28 @@ const viewOf=id=>{try{const v=JSON.parse(localStorage.getItem("sci1:view")||"{}"
 const GRADE=(()=>{try{const ps=JSON.parse(localStorage.getItem("sci1:profiles")||"[]"),a=JSON.parse(localStorage.getItem("sci1:active")||'""');const pr=ps.find(x=>x.id===a);return viewOf(a)||gradeOf(pr&&pr.cls)}catch(e){return "ה"}})();
 function setView(id,g,own){let v={};try{v=JSON.parse(localStorage.getItem("sci1:view")||"{}")}catch(e){}if(!g||g===own)delete v[id];else v[id]=g;try{localStorage.setItem("sci1:view",JSON.stringify(v))}catch(e){}}
 const effGrade=pr=>viewOf(pr.id)||gradeOf(pr.cls);
+const effCourse=pr=>{const g=effGrade(pr);return g+":"+subjOf(pr.id,g)};
+const subjMap=()=>{try{return JSON.parse(localStorage.getItem("sci1:subj")||"{}")}catch(e){return {}}};
+function setSubj(id,subj){const m=subjMap();m[id]=subj;try{localStorage.setItem("sci1:subj",JSON.stringify(m))}catch(e){}}
 /* school year: from 1 September. A new year starts everyone from zero (progress, scores, duel wins in the tables) */
 const SEASON=(d=>d.getMonth()>=8?d.getFullYear():d.getFullYear()-1)(new Date());
 const SEASON_START=new Date(SEASON,8,1);
 const COURSES={
- "ה":{science:{subject:"מדעים",title:"מתכות, סלעים ומלחים",WORLDS:WORLDS_G5,LESSON_VER:LESSON_VER_G5,CARDS:CARDS_G5,QB:QB_G5,QB2:QB2_G5}},
- "ו":{science:{subject:"מדעים",title:"האנרגיה שסביבנו",WORLDS:WORLDS_G6,LESSON_VER:{},CARDS:CARDS_G6,QB:QB_G6,QB2:QB2_G6}},
- "ב":{gifted:{subject:"מחוננים",brand:"הכנה למבחן מחוננים",title:"הכנה למבחן מחוננים – שלב א׳",WORLDS:WORLDS_G2,LESSON_VER:{},CARDS:CARDS_G2,QB:[...QB_G2,...READ_P_G2,...GEN_P_G2],QB2:[...QB2_G2,...READ_E_G2,...GEN_E_G2],PASSAGES:PASSAGES_G2}}
+ "ה":{science:{subject:"מדעים",icon:"🔬",title:"מתכות, סלעים ומלחים",WORLDS:WORLDS_G5,LESSON_VER:LESSON_VER_G5,CARDS:CARDS_G5,QB:QB_G5,QB2:QB2_G5}},
+ "ו":{science:{subject:"מדעים",icon:"🔬",title:"האנרגיה שסביבנו",WORLDS:WORLDS_G6,LESSON_VER:{},CARDS:CARDS_G6,QB:QB_G6,QB2:QB2_G6},
+      english:{subject:"אנגלית",icon:"🇬🇧",brand:"מבחן באנגלית",title:"Unit 1 – מילים, דקדוק, הבנת הנקרא וכתיבה",WORLDS:WORLDS_EN,LESSON_VER:{},CARDS:CARDS_EN,QB:QB_EN,QB2:QB2_EN,PASSAGES:PASSAGES_EN}},
+ "ב":{gifted:{subject:"מחוננים",icon:"🧠",brand:"הכנה למבחן מחוננים",title:"הכנה למבחן מחוננים – שלב א׳",WORLDS:WORLDS_G2,LESSON_VER:{},CARDS:CARDS_G2,QB:[...QB_G2,...READ_P_G2,...GEN_P_G2],QB2:[...QB2_G2,...READ_E_G2,...GEN_E_G2],PASSAGES:PASSAGES_G2}}
 };
 const courseTitle=g=>Object.values(COURSES[g])[0].title;
-const SUBJECT=Object.keys(COURSES[GRADE])[0];   // one subject per grade so far; progress of any other subject is stored under its own key (see pkey)
+const firstSubj=g=>Object.keys(COURSES[g])[0];
+const subjOf=(id,g)=>{const s=subjMap()[id];return COURSES[g][s]?s:firstSubj(g)};
+const SUBJECT=(()=>{let a="";try{a=JSON.parse(localStorage.getItem("sci1:active")||'""')}catch(e){}return subjOf(a,GRADE)})();   // progress of each subject is stored under its own key (see pkey)
+const SUBJECTS=g=>Object.keys(COURSES[g]);
+/* the id this child has on the server for the subject being studied: the first subject of the grade keeps the plain id,
+   every other subject gets its own row ("<id>~english"), so each subject has its own tables, podium and duels */
+const SID=()=>me.id+(SUBJECT===firstSubj(gradeOf(me.cls))?"":"~"+SUBJECT);
+const rowSubj=r=>{const g=gradeOf(r.cls);return r.subject&&COURSES[g][r.subject]?r.subject:firstSubj(g)};
+const sameCourse=r=>gradeOf(r.cls)===GRADE&&rowSubj(r)===SUBJECT;
 const COURSE=COURSES[GRADE][SUBJECT];
 const {WORLDS,LESSON_VER,CARDS,QB,QB2}=COURSE;
 const PASSAGES=COURSE.PASSAGES||{};
@@ -1439,17 +1757,18 @@ let LIVE=null,liveLoading=false,syncT,lastSent="";
 const EXAM_Q=24;
 const covered=()=>P.exam.attempts?Math.max((P.exam.seen||[]).length,EXAM_Q):0;   // distinct bank questions this child was tested on
 const correctN=()=>P.exam.attempts?Math.max((P.exam.right||[]).length,Math.round((P.exam.best||0)*EXAM_Q/100)):0;   // distinct exam questions answered right
-function payload(){return {id:me.id,name:me.name,cls:me.cls,av:me.av,meter:meter(),lessons:lessonsDone(),best:P.exam.best,attempts:P.exam.attempts,covered:covered(),minutes:Math.round((P.time||0)/60),correct:correctN(),todayMin:P.today&&P.today.d===localDay()?Math.round(P.today.s/60):0,today:localDay()}}
+function payload(){return {id:SID(),name:me.name,cls:me.cls,av:me.av,meter:meter(),lessons:lessonsDone(),best:P.exam.best,attempts:P.exam.attempts,covered:covered(),minutes:Math.round((P.time||0)/60),correct:correctN(),todayMin:P.today&&P.today.d===localDay()?Math.round(P.today.s/60):0,today:localDay()}}
 /* parent or child: a parent profile never reaches the class table, and has everything open */
 const isParent=()=>!!me&&me.role==="parent";
-function setParentOnServer(pr,on){if(LIVE_ON)fetch(SUPA_URL+"/rest/v1/rpc/set_parent",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:pr.id,p_parent:on}),keepalive:true}).then(()=>{LIVE=null}).catch(()=>{})}
+function setParentOnServer(pr,on){if(LIVE_ON)[pr.id,...SUBJECTS(gradeOf(pr.cls)).slice(1).map(x=>pr.id+"~"+x)].forEach(pid=>fetch(SUPA_URL+"/rest/v1/rpc/set_parent",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:pid,p_parent:on}),keepalive:true}).then(()=>{LIVE=null}).catch(()=>{}))}
 function setRole(role){
   const was=me.role;me.role=role;me.roleSynced=true;ls.set("profiles",profiles);
   if(role==="parent")setParentOnServer(me,true);
   else{const pr=me;if(was==="parent")setParentOnServer(pr,false);lastSent="";queueSync();setTimeout(()=>setParentOnServer(pr,false),4000)}
   LIVE=null;
 }
-function queueSync(){if(!LIVE_ON||!me||isParent()||VISITING())return;clearTimeout(syncT);syncT=setTimeout(sendSync,2000)}
+const needPick=()=>!!me&&SUBJECTS(GRADE).length>1&&(()=>{try{return sessionStorage.getItem("subjPicked")!==me.id}catch(e){return false}})();
+function queueSync(){if(!LIVE_ON||!me||isParent()||VISITING()||needPick())return;clearTimeout(syncT);syncT=setTimeout(sendSync,2000)}
 function sendSync(){
   if(!LIVE_ON||!me||isParent()||VISITING())return;const d=payload(),body=JSON.stringify(d);if(body===lastSent)return;lastSent=body;
   const args={p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes,p_correct:d.correct,p_today_minutes:d.todayMin,p_today:d.today};
@@ -1462,11 +1781,11 @@ let lastAct=Date.now();
 const localDay=()=>{const t=new Date();return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")};
 /* ---------- "learning now": a heartbeat while the child is active, and the green dots refresh without redrawing ---------- */
 const activeNow=()=>!!me&&document.visibilityState==="visible"&&Date.now()-lastAct<60000;
-function ping(){if(LIVE_ON&&activeNow()&&!isParent())fetch(SUPA_URL+"/rest/v1/rpc/ping",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:me.id}),keepalive:true}).catch(()=>{})}
+function ping(){if(LIVE_ON&&activeNow()&&!isParent())fetch(SUPA_URL+"/rest/v1/rpc/ping",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:SID()}),keepalive:true}).catch(()=>{})}
 function refreshOnline(){
   if(!LIVE_ON||!me||document.visibilityState!=="visible")return;
   fetch(SUPA_URL+"/rest/v1/results_public?select=*&order=updated.desc&limit=1000",{headers:SUPA_H}).then(r=>r.ok?r.json():null).then(d=>{if(!Array.isArray(d))return;
-    d=d.filter(r=>gradeOf(r.cls)===GRADE);LIVE=d.map(liveRow);
+    d=d.filter(r=>sameCourse(r));LIVE=d.map(liveRow);
     const on=new Set(d.filter(r=>r.online===true).map(r=>(String(r.name||"").slice(0,40).trim()+"|"+String(r.cls||"").slice(0,10)).toLowerCase()));
     if(me&&activeNow())on.add((me.name.trim()+"|"+me.cls).toLowerCase());
     if(LIVE)LIVE.forEach(r=>r.online=on.has(r.key));
@@ -1503,10 +1822,10 @@ checkVersion();
 addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){lastCheck=0;checkVersion()}});
 setInterval(checkVersion,10*60000);
 const liveRow=r=>{const name=String(r.name||"").slice(0,40),cls=String(r.cls||"").slice(0,10);
-  return {online:r.online===true,name,cls,av:AVATARS.includes(r.av)?r.av:"🙂",meter:Math.max(0,Math.min(100,+r.meter||0)),best:r.best==null||r.best===""?null:Math.max(0,Math.min(100,+r.best)),attempts:+r.attempts||0,covered:Math.max(0,Math.min(EXAM_BANK.length,+r.covered||0)),minutes:Math.max(0,+r.minutes||0),correct:Math.max(0,Math.min(EXAM_BANK.length,+r.correct||0)),date:new Date(r.updated||0),wins:Math.max(0,+r.wins||0),handle:String(r.handle||"").slice(0,12),activeAt:new Date(r.active_at||r.updated||0),todayMin:Math.max(0,+r.today_minutes||0),key:(name.trim()+"|"+cls).toLowerCase()}};
+  return {online:r.online===true,name,cls,av:AVATARS.includes(r.av)?r.av:"🙂",meter:Math.max(0,Math.min(100,+r.meter||0)),best:r.best==null||r.best===""?null:Math.max(0,Math.min(100,+r.best)),attempts:+r.attempts||0,covered:Math.max(0,Math.min(EXAM_BANK.length,+r.covered||0)),minutes:Math.max(0,+r.minutes||0),correct:Math.max(0,Math.min(EXAM_BANK.length,+r.correct||0)),date:new Date(r.updated||0),wins:Math.max(0,+r.wins||0),handle:String(r.handle||"").slice(0,12),subject:String(r.subject||"").slice(0,20),activeAt:new Date(r.active_at||r.updated||0),todayMin:Math.max(0,+r.today_minutes||0),key:(name.trim()+"|"+cls).toLowerCase()}};
 function loadLive(){
   if(!LIVE_ON||LIVE||liveLoading)return;liveLoading=true;
-  fetch(SUPA_URL+"/rest/v1/results_public?select=*&order=updated.desc&limit=1000",{headers:SUPA_H}).then(r=>r.ok?r.json():null).then(d=>{if(Array.isArray(d)){LIVE=d.map(liveRow).filter(r=>gradeOf(r.cls)===GRADE);podiumCheck(false);if(SCREEN==="home"&&document.getElementById("share"))home();else if(SCREEN==="board"&&document.getElementById("bt"))board()}}).catch(()=>{}).finally(()=>{liveLoading=false});
+  fetch(SUPA_URL+"/rest/v1/results_public?select=*&order=updated.desc&limit=1000",{headers:SUPA_H}).then(r=>r.ok?r.json():null).then(d=>{if(Array.isArray(d)){LIVE=d.map(liveRow).filter(sameCourse);podiumCheck(false);if(SCREEN==="home"&&document.getElementById("share"))home();else if(SCREEN==="board"&&document.getElementById("bt"))board()}}).catch(()=>{}).finally(()=>{liveLoading=false});
 }
 function boardRows(tokens){
   if(!tokens&&LIVE)return LIVE.filter(r=>r.name).sort(byRank);
@@ -1639,7 +1958,7 @@ function onboarding(){
     if(me){Object.assign(me,{name,cls,av,clsOk:true});if(role!==me.role)setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av,role,clsOk:true,roleSynced:true};profiles.push(me);P=blank();{const pr=me;if(role==="parent")setParentOnServer(pr,true);else setTimeout(()=>setParentOnServer(pr,false),4000)}}
     ls.set("profiles",profiles);ls.set("active",me.id);if(gradeOf(cls)!==GRADE){save();setView(me.id,null);clearTimeout(syncT);return location.reload()}save();home();};
 }
-function switchTo(id){const to=profiles.find(p=>p.id===id);ls.set("active",id);if(effGrade(to)!==GRADE)return location.reload();me=to;P=loadP(id);if(NEW_YEAR)return location.reload();home()}
+function switchTo(id){const to=profiles.find(p=>p.id===id);ls.set("active",id);if(effCourse(to)!==GRADE+":"+SUBJECT)return location.reload();me=to;P=loadP(id);if(NEW_YEAR)return location.reload();home()}
 
 let SCREEN="";
 const ROLE_KID=`<span class="ic">🎒</span><span><b>אני תלמיד/ה</b>לומד/ת למבחן. ההתקדמות שלי נשמרת ומופיעה בטבלת ההישגים.</span>`;
@@ -1716,6 +2035,17 @@ function entryQuestion(){
 let ROLE_SYNC=null;   // profile whose earlier choice is being sent to the server (once)
 let FOLD={my:false,board:false,duel:false};
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.fold)FOLD[d.dataset.fold]=d.open},true);
+function pickSubject(){
+  if(document.querySelector(".role"))return;
+  const el=document.createElement("div");el.className="role";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");
+  el.innerHTML=`<div><div style="font-size:2.2rem;text-align:center">📚</div><h2>מה לומדים היום?</h2>
+    <p class="why" style="text-align:center">לכל מקצוע יש מבחן, טבלת הישגים ופודיום משלו.</p>
+    <div class="stack">${SUBJECTS(GRADE).map(x=>{const c=COURSES[GRADE][x];return `<button class="pick" data-subj="${x}" aria-pressed="${x===SUBJECT}"><span class="ic">${c.icon||"📘"}</span><span><b>${c.subject}</b>${c.title}</span></button>`}).join("")}</div></div>`;
+  document.body.appendChild(el);
+  el.querySelectorAll("[data-subj]").forEach(b=>b.onclick=()=>{try{sessionStorage.setItem("subjPicked",me.id)}catch(e){}
+    if(b.dataset.subj===SUBJECT){el.remove();ENTRY_DONE=false;home();return}
+    clearTimeout(syncT);setSubj(me.id,b.dataset.subj);location.reload()});
+}
 function home(){
   if(!me)return onboarding();
   if(newVersion)reloadOnce();
@@ -1725,14 +2055,16 @@ function home(){
     pr.roleSynced=true;ls.set("profiles",profiles)},5000)}
   if(!me.role)setTimeout(askRole,0);
   else if(me.role==="kid"&&!me.clsOk)setTimeout(confirmClass,0);
+  else if(SUBJECTS(GRADE).length>1&&(()=>{try{return sessionStorage.getItem("subjPicked")!==me.id}catch(e){return false}})()){ENTRY_DONE=true;setTimeout(pickSubject,0)}
   else if(!ENTRY_DONE){let t=0;try{t=+sessionStorage.getItem("entryQ")||0}catch(e){}
     if(Date.now()-t>30*60000)setTimeout(entryQuestion,700);else ENTRY_DONE=true}
   SCREEN="home";loadLive();queueSync();
   const m=meter(),best=P.exam.best,[st,stc]=statusOf(m,best),open=m>=EXAM_UNLOCK||isParent();
   const rows=boardRows();
   root.innerHTML=`${topbar()}
-  <div class="row" style="gap:8px;align-items:center;flex-wrap:nowrap"><label for="gradeSel" class="small" style="font-weight:800;white-space:nowrap">📚 חומר הלימוד:</label>
-    <select class="input" id="gradeSel" style="width:auto;min-width:0;padding:4px 10px;font-size:.95rem">${GRADES.map(g=>`<option value="${g}" ${g===GRADE?"selected":""}>כיתה ${g}׳${g===gradeOf(me.cls)?" 🎒":""}</option>`).join("")}</select></div>
+  <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap"><label for="gradeSel" class="small" style="font-weight:800;white-space:nowrap">📚 חומר הלימוד:</label>
+    <select class="input" id="gradeSel" style="width:auto;min-width:0;padding:4px 10px;font-size:.95rem">${GRADES.map(g=>`<option value="${g}" ${g===GRADE?"selected":""}>כיתה ${g}׳${g===gradeOf(me.cls)?" 🎒":""}</option>`).join("")}</select>
+    ${SUBJECTS(GRADE).length>1?`<select class="input" id="subjSel" style="width:auto;min-width:0;padding:4px 10px;font-size:.95rem">${SUBJECTS(GRADE).map(x=>`<option value="${x}" ${x===SUBJECT?"selected":""}>${COURSES[GRADE][x].icon||""} ${COURSES[GRADE][x].subject}</option>`).join("")}</select>`:""}</div>
   <details class="fold" data-fold="my" ${FOLD.my?"open":""}><summary><span>📈 ההישגים שלי <span class="small muted">· מד הלמידה ${m}%${best!=null?` · ציון ${best}`:""}</span></span></summary>
   <div class="hero" style="padding-bottom:20px">
     <div class="ring" style="--p:${m}"><div><div><b class="num">${m}%</b><small>מד הלמידה</small></div></div></div>
@@ -1788,6 +2120,7 @@ function home(){
   root.querySelectorAll("[data-redo]").forEach(b=>b.onclick=()=>{const [w,i]=b.dataset.redo.split(":");lesson(w,+i);scrollTo(0,0)});
   root.querySelectorAll("[data-pid]").forEach(b=>b.onclick=()=>switchTo(b.dataset.pid));
   document.getElementById("addp").onclick=()=>{me=null;P=blank();onboarding()};
+  const ss=document.getElementById("subjSel");if(ss)ss.onchange=()=>{clearTimeout(syncT);sendSync();setSubj(me.id,ss.value);try{sessionStorage.setItem("subjPicked",me.id)}catch(e){}location.reload()};
   const gs=document.getElementById("gradeSel");if(gs)gs.onchange=()=>{const g=gs.value,own=gradeOf(me.cls);if(g===GRADE)return;
     if(g!==own&&!confirm(`לעבור לחומר של כיתה ${g}׳?\nאפשר לקרוא, ללמוד ולתרגל – אבל זה לא נספר: אין ציונים, לא מופיעים בטבלאות ואין קרבות.\nההתקדמות שלך בכיתה ${own}׳ נשמרת.`)){gs.value=GRADE;return}
     clearTimeout(syncT);sendSync();setView(me.id,g,own);location.reload()};
@@ -1958,16 +2291,17 @@ function cards(wid,body){
 /* ---------- quiz engine (practice + exam) ---------- */
 /* exercises inside Hebrew text are shown left to right, as in a math book (47 + 28 = 75, not reversed) */
 const MATH_RE=/[0-9▢■▲◆●](?:[0-9▢■▲◆●]|\s*[+−×:=]\s*)*[0-9▢■▲◆●?]/g;
+const MIX_RE=new RegExp(MATH_RE.source+"|[A-Za-z][A-Za-z0-9 ,.'’!?;/()_…→·–=-]*[A-Za-z0-9.!?)_…]|[A-Za-z]","g");
 function fixMath(node){
   const w=document.createTreeWalker(node,NodeFilter.SHOW_TEXT),list=[];
-  while(w.nextNode()){const t=w.currentNode,el=t.parentElement;if(el&&!el.closest('[dir="ltr"],option,select,textarea,script,style,svg')&&/[+−×:=]/.test(t.nodeValue)&&/[0-9▢■▲◆●]/.test(t.nodeValue))list.push(t)}
+  while(w.nextNode()){const t=w.currentNode,el=t.parentElement;if(el&&!el.closest('[dir="ltr"],option,select,textarea,script,style,svg')&&(/[+−×:=]/.test(t.nodeValue)&&/[0-9▢■▲◆●]/.test(t.nodeValue)||/[A-Za-z]/.test(t.nodeValue)))list.push(t)}
   list.forEach(t=>{const s=t.nodeValue,frag=document.createDocumentFragment();let last=0,hit=false;
-    if(!/[\u05D0-\u05EA]/.test(s)){const sp=document.createElement("span");sp.dir="ltr";sp.style.unicodeBidi="isolate";sp.textContent=s;t.replaceWith(sp);return}   // only an exercise: the whole line left to right
-    s.replace(MATH_RE,(m,off)=>{if(/[+−×:=]/.test(m)){hit=true;frag.append(s.slice(last,off));const sp=document.createElement("span");sp.dir="ltr";sp.style.unicodeBidi="isolate";sp.textContent=m;frag.append(sp);last=off+m.length}return m});
+    if(!/[\u05D0-\u05EA]/.test(s)&&!/^\s*$/.test(s)){const sp=document.createElement("span");sp.dir="ltr";sp.style.unicodeBidi="isolate";sp.textContent=s;t.replaceWith(sp);return}   // only an exercise: the whole line left to right
+    s.replace(MIX_RE,(m,off)=>{if(/[+−×:=]/.test(m)&&/[0-9▢■▲◆●]/.test(m)||/[A-Za-z]/.test(m)){hit=true;frag.append(s.slice(last,off));const sp=document.createElement("span");sp.dir="ltr";sp.style.unicodeBidi="isolate";sp.textContent=m;frag.append(sp);last=off+m.length}return m});
     if(hit){frag.append(s.slice(last));t.replaceWith(frag)}});
 }
 fixMath(document.body);new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1)fixMath(n)}))).observe(document.body,{childList:true,subtree:true});
-function passageBox(k){const ps=PASSAGES[k];return `<details class="passage" open><summary>📖 ${ps.t}</summary><ol>${ps.lines.map(l=>`<li>${esc(l)}</li>`).join("")}</ol></details>`}
+function passageBox(k){const ps=PASSAGES[k];return `<details class="passage" open><summary>📖 ${ps.t}</summary><ol ${ps.ltr?'dir="ltr" style="text-align:left"':""}>${ps.lines.map(l=>`<li>${esc(l)}</li>`).join("")}</ol></details>`}
 function buildQ(q){return {...q,opts:q.tf?q.o.map((t,k)=>({t,ok:k===q.a})):shuffle(q.o.map((t,k)=>({t,ok:k===q.a})))}}
 function practiceIntro(wid,body){
   const all=worldQs(wid),n=all.length,m=masteredIn(wid),R=roundsOf(wid),size=roundSize(wid);
@@ -2236,9 +2570,9 @@ const MISTAKES_G6=[
  ["\"שריפת חומרי דלק לא מזהמת את הסביבה\"",["הבעירה פולטת חומרים מזהמים – זיהום הסביבה","אין טעות","חומרי דלק הם מקור מתחדש"]],
  ["\"אפשר לראות אנרגיה בעיניים\"",["אי אפשר לראות אנרגיה – מסיקים עליה מתופעות שמתרחשות","אין טעות","רואים אנרגיה רק בשמש"]]
 ];
-const [FILL,MATCH,MISTAKES]=GRADE==="ו"?[FILL_G6,MATCH_G6,MISTAKES_G6]:GRADE==="ב"?[FILL_G2,MATCH_G2,MISTAKES_G2]:[FILL_G5,MATCH_G5,MISTAKES_G5];
-const MISTAKES_INTRO=GRADE==="ב"?"בכל שורה יש טעות. מה הטעות?":GRADE==="ו"?"תלמידים כתבו את המשפטים האלה, ובכל אחד יש טעות. בחרו מה הטעות.":"בטבלה יש מוצרים שייצרו אותם ממתכת לא מתאימה. בחרו מה הטעות בכל שורה.";
-const MISTAKES_HINT=GRADE==="ב"?"לא בדיוק – פתרו שוב ובדקו.":GRADE==="ו"?"לא בדיוק – חשבו: סוג אנרגיה או מקור? עוברת או הופכת? ונסו שוב.":"לא בדיוק – חשבו על התכונה הייחודית של כל מתכת ונסו שוב.";
+const [FILL,MATCH,MISTAKES]=SUBJECT==="english"?[FILL_EN,MATCH_EN,MISTAKES_EN]:GRADE==="ו"?[FILL_G6,MATCH_G6,MISTAKES_G6]:GRADE==="ב"?[FILL_G2,MATCH_G2,MISTAKES_G2]:[FILL_G5,MATCH_G5,MISTAKES_G5];
+const MISTAKES_INTRO=SUBJECT==="english"?"בכל משפט יש טעות. מה הטעות?":GRADE==="ב"?"בכל שורה יש טעות. מה הטעות?":GRADE==="ו"?"תלמידים כתבו את המשפטים האלה, ובכל אחד יש טעות. בחרו מה הטעות.":"בטבלה יש מוצרים שייצרו אותם ממתכת לא מתאימה. בחרו מה הטעות בכל שורה.";
+const MISTAKES_HINT=SUBJECT==="english"?"לא בדיוק – בדקו: מי עושה? am/is/are? s/es/ies? אות גדולה?":GRADE==="ב"?"לא בדיוק – פתרו שוב ובדקו.":GRADE==="ו"?"לא בדיוק – חשבו: סוג אנרגיה או מקור? עוברת או הופכת? ונסו שוב.":"לא בדיוק – חשבו על התכונה הייחודית של כל מתכת ונסו שוב.";
 let CL={tab:"fill",w:WORLDS[0].id};
 function classLike(tab){
   SCREEN="classlike";if(tab)CL.tab=tab;
@@ -2311,15 +2645,15 @@ function drawDuelList(){
 }
 async function duelInvite(handle,btn){
   if(!canDuel())return;if(!duelOk())return duelLocked();if(btn){btn.disabled=true;btn.textContent="שולח…"}
-  const r=await rpc("duel_invite",{p_me:me.id,p_handle:handle});
+  const r=await rpc("duel_invite",{p_me:SID(),p_handle:handle});
   if(btn){btn.disabled=false;btn.textContent="⚔️ לקרב"}
   if(r&&r.ok)return duelScreen(r.id,handle);
-  toast(({offline:"הילד/ה כבר לא אונליין 😕",busy:"הילד/ה באמצע קרב אחר – נסו עוד מעט",not_found:"לא מצאנו את הילד/ה",other_grade:"אפשר להזמין לקרב רק תלמידים מאותה שכבה"})[r&&r.reason]||"ההזמנה לא נשלחה, נסו שוב");
+  toast(({offline:"הילד/ה כבר לא אונליין 😕",busy:"הילד/ה באמצע קרב אחר – נסו עוד מעט",not_found:"לא מצאנו את הילד/ה",other_grade:"אפשר להזמין לקרב רק תלמידים מאותה שכבה ומאותו מקצוע"})[r&&r.reason]||"ההזמנה לא נשלחה, נסו שוב");
 }
 /* my duels: wins, losses and draws, against whom (shown only on my own profile screen) */
 async function loadDuelHistory(){
   const box=document.getElementById("dHist");if(!box)return;
-  const list=await rpc("duel_history",{p_me:me.id});if(!document.getElementById("dHist"))return;
+  const list=await rpc("duel_history",{p_me:SID()});if(!document.getElementById("dHist"))return;
   if(Array.isArray(list))list=list.filter(x=>!x.at||new Date(x.at)>=SEASON_START);
   if(!Array.isArray(list)){box.innerHTML=`<h2>⚔️ היסטוריית הקרבות שלי</h2><p class="muted">לא הצלחנו לטעון כרגע. נסו שוב עוד מעט.</p>`;return}
   const n=k=>list.filter(x=>x.result===k).length,w=n("win"),l=n("loss"),d=n("draw");
@@ -2348,13 +2682,13 @@ function duelLocked(inviter){
 let DUEL_ID=null,DUEL_INVITE_SHOWN=null;
 async function duelInbox(){
   if(!canDuel()||SCREEN==="duel"||document.visibilityState!=="visible")return;
-  const r=await rpc("duel_inbox",{p_me:me.id});if(!r||SCREEN==="duel")return;
+  const r=await rpc("duel_inbox",{p_me:SID()});if(!r||SCREEN==="duel")return;
   if(r.active)return duelScreen(r.active);
   if(r.invite&&DUEL_INVITE_SHOWN!==r.invite.id&&!document.querySelector(".role"))showInvite(r.invite);
 }
 setInterval(duelInbox,4000);
 function showInvite(inv){
-  DUEL_INVITE_SHOWN=inv.id;if(!duelOk()){rpc("duel_respond",{p_me:me.id,p_duel:inv.id,p_accept:false});return duelLocked(inv.name)}document.querySelectorAll(".cheer").forEach(e=>e.remove());
+  DUEL_INVITE_SHOWN=inv.id;if(!duelOk()){rpc("duel_respond",{p_me:SID(),p_duel:inv.id,p_accept:false});return duelLocked(inv.name)}document.querySelectorAll(".cheer").forEach(e=>e.remove());
   const el=document.createElement("div");el.className="role";el.setAttribute("role","alertdialog");
   el.innerHTML=`<div style="text-align:center"><div style="font-size:2.6rem">⚔️</div><h2>הזמנה לקרב!</h2>
     <p style="font-size:1.15rem"><span class="av" style="display:inline-grid;vertical-align:middle">${inv.av}</span> <b>${esc(inv.name)}</b> (${esc(inv.cls)}) מזמין/ה אותך לקרב ידע</p>
@@ -2363,9 +2697,9 @@ function showInvite(inv){
     <p class="small muted" id="dLeft"></p></div>`;
   document.body.appendChild(el);
   let left=35;const tick=setInterval(()=>{left--;const t=el.querySelector("#dLeft");if(t)t.textContent=`ההזמנה פגה בעוד ${left} שניות`;if(left<=0){clearInterval(tick);el.remove()}},1000);
-  el.querySelector("#dAcc").onclick=async()=>{clearInterval(tick);el.remove();const r=await rpc("duel_respond",{p_me:me.id,p_duel:inv.id,p_accept:true});
+  el.querySelector("#dAcc").onclick=async()=>{clearInterval(tick);el.remove();const r=await rpc("duel_respond",{p_me:SID(),p_duel:inv.id,p_accept:true});
     if(r&&r.ok)duelScreen(inv.id);else toast("ההזמנה כבר לא בתוקף")};
-  el.querySelector("#dDec").onclick=()=>{clearInterval(tick);el.remove();rpc("duel_respond",{p_me:me.id,p_duel:inv.id,p_accept:false})};
+  el.querySelector("#dDec").onclick=()=>{clearInterval(tick);el.remove();rpc("duel_respond",{p_me:SID(),p_duel:inv.id,p_accept:false})};
 }
 /* the duel screen: polls the server about once a second */
 let duelTimer=null,duelView={};
@@ -2378,7 +2712,7 @@ function duelScreen(id,oppHandle){
 function duelExit(){clearInterval(duelTimer);duelTimer=null;DUEL_ID=null;LIVE=null;SCREEN="";home()}
 async function duelPoll(){
   if(SCREEN!=="duel"||!DUEL_ID)return;
-  const st=await rpc("duel_state",{p_me:me.id,p_duel:DUEL_ID});if(!st||SCREEN!=="duel")return;
+  const st=await rpc("duel_state",{p_me:SID(),p_duel:DUEL_ID});if(!st||SCREEN!=="duel")return;
   const box=document.getElementById("duelBox");if(!box)return;
   if(st.status==="gone"){box.innerHTML=`<p>הקרב לא נמצא.</p><button class="btn primary" id="dHome">לדף הבית</button>`;box.querySelector("#dHome").onclick=duelExit;clearInterval(duelTimer);return}
   const o=st.opp,m=st.me;
@@ -2386,7 +2720,7 @@ async function duelPoll(){
   if(st.status==="invited"){
     if(duelView.shownFor!=="wait"){duelView.shownFor="wait";box.innerHTML=`<div style="text-align:center;font-size:2.4rem">⏳</div><h2 style="text-align:center">מחכים ש${esc(o.name)} יאשר/תאשר…</h2>
       <p class="muted" style="text-align:center">ההזמנה נשלחה. אם לא יאשרו תוך כחצי דקה, היא תפוג.</p><div id="dWaitInfo"></div><button class="btn ghost block" id="dCancel">ביטול ההזמנה</button>`;
-      box.querySelector("#dCancel").onclick=()=>{rpc("duel_leave",{p_me:me.id,p_duel:DUEL_ID});duelExit()}}
+      box.querySelector("#dCancel").onclick=()=>{rpc("duel_leave",{p_me:SID(),p_duel:DUEL_ID});duelExit()}}
     const info=document.getElementById("dWaitInfo"),age=+st.invite_age||0;
     if(info)info.innerHTML=!st.invite_seen&&age>8?`<div class="fb bad">😕 ${esc(o.name)} לא זמין/ה כרגע – נראה שההזמנה לא מגיעה אליו/ה (אולי האתר אצלו/ה פתוח בגרסה ישנה וצריך לרענן).</div>`
       :st.invite_seen&&age>12?`<div class="fb good">👀 ${esc(o.name)} ראה/תה את ההזמנה ועוד לא ענה/תה…</div>`:"";
@@ -2412,7 +2746,7 @@ async function duelPoll(){
     if(win){confetti();setTimeout(fireworks,400)}
     box.querySelector("#dHome").onclick=duelExit;
     box.querySelector("#dAgain").onclick=async()=>{let h=duelView.oppHandle||findHandle(o);
-      if(!h){const d=await fetch(SUPA_URL+"/rest/v1/results_public?select=*&limit=1000",{headers:SUPA_H}).then(r=>r.ok?r.json():null).catch(()=>null);if(Array.isArray(d)){LIVE=d.map(liveRow).filter(r=>gradeOf(r.cls)===GRADE);h=findHandle(o)}}
+      if(!h){const d=await fetch(SUPA_URL+"/rest/v1/results_public?select=*&limit=1000",{headers:SUPA_H}).then(r=>r.ok?r.json():null).catch(()=>null);if(Array.isArray(d)){LIVE=d.map(liveRow).filter(sameCourse);h=findHandle(o)}}
       if(!h)return toast("לא מצאנו את "+o.name+" – נסו מחדר הקרבות");clearInterval(duelTimer);SCREEN="";duelInvite(h)};
     return;
   }
@@ -2432,14 +2766,14 @@ async function duelPoll(){
       <div id="dFb"></div><button class="linkbtn" id="dLeave">יציאה מהקרב</button>`;
     box.querySelectorAll("#dOpts .opt").forEach(b=>b.onclick=async()=>{
       if(duelView.answered)return;duelView.answered=true;box.querySelectorAll("#dOpts .opt").forEach(x=>x.disabled=true);
-      const r=await rpc("duel_answer",{p_me:me.id,p_duel:DUEL_ID,p_qid:duelView.qid,p_answer:duelView.opts[+b.dataset.k].t});
+      const r=await rpc("duel_answer",{p_me:SID(),p_duel:DUEL_ID,p_qid:duelView.qid,p_answer:duelView.opts[+b.dataset.k].t});
       const fb=document.getElementById("dFb");if(!fb)return;
       if(r&&r.result==="point"){b.classList.add("right");fb.innerHTML=`<div class="fb good">✓ נכון – הנקודה שלך!</div>`}
       else if(r&&r.result==="wrong"){b.classList.add("wrong");fb.innerHTML=`<div class="fb bad">✗ לא נכון – ננעלת בשאלה הזו. מחכים ל${esc(o.name)}…</div>`}
       else{fb.innerHTML=`<div class="fb bad">מאוחר מדי – ${esc(o.name)} כבר ענה/תה.</div>`}
       duelPoll();
     });
-    box.querySelector("#dLeave").onclick=()=>{if(confirm(m.score+o.score>0?"לצאת מהקרב? הניצחון יעבור ל"+o.name:"לצאת מהקרב? הוא יסתיים בלי תוצאה.")){rpc("duel_leave",{p_me:me.id,p_duel:DUEL_ID});duelExit()}};
+    box.querySelector("#dLeave").onclick=()=>{if(confirm(m.score+o.score>0?"לצאת מהקרב? הניצחון יעבור ל"+o.name:"לצאת מהקרב? הוא יסתיים בלי תוצאה.")){rpc("duel_leave",{p_me:SID(),p_duel:DUEL_ID});duelExit()}};
   }else{const sc=document.getElementById("dScore");if(sc)sc.innerHTML=score}
   const bar=document.getElementById("dBar");if(bar)bar.style.width=(age<0?100:Math.max(0,100-age/DUEL_Q_SECONDS*100))+"%";
   const wait=document.getElementById("dWait");

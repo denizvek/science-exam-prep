@@ -12,7 +12,9 @@ A copy is also published as a Claude artifact: https://claude.ai/artifact/DpNcqm
 ## Grades / courses
 - `COURSES[grade][subject]` in `index.html` holds each course (worlds, cards, question banks); the active profile's grade (first letter of `cls`) picks it at load, switching to a profile of another grade reloads the page.
 - Grade ב = preparation for the gifted screening test, stage A (`COURSES.ב.gifted`: reading comprehension with passages in `PASSAGES_G2`, math, word problems, sequences; original questions; never name any commercial prep course as a source). Grade ה = metals/rocks/salts; grade ו = chapter "האנרגיה שסביבנו". Progress for grade ה science stays under `p:<id>`; other courses use `p:<id>:<grade>:<subject>`.
-- Tables, "learning now" and the duel room show only the same grade; `duel_invite` refuses other grades.
+- Grade ו has two subjects: `science` and `english` (Unit 1: 78 words, to be, have/has, Present Simple s/es/ies, capital letters, reading; original sentences and passages). A grade with several subjects asks "מה לומדים היום?" once per visit (`sessionStorage.subjPicked`); the choice is kept per profile in `sci1:subj`, and a dropdown on the home page switches it.
+- Each subject has its own server row: `SID()` = `<id>` for the grade's first subject, `<id>~english` for others. `results_public.subject` tells them apart; tables, podium, "learning now" and duels show only the same grade and subject. English duel_key rows: course `ו:english`, qids 3000+.
+- Tables, "learning now" and the duel room show only the same grade (and subject); `duel_invite` refuses other grades or subjects.
 
 ## Rules the owner set
 - Final exam opens only at 100% learning meter.
