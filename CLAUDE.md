@@ -16,6 +16,11 @@ A copy is also published as a Claude artifact: https://claude.ai/artifact/DpNcqm
 - Each subject has its own server row: `SID()` = `<id>` for the grade's first subject, `<id>~english` for others. `results_public.subject` tells them apart; tables, podium, "learning now" and duels show only the same grade and subject. English duel_key rows: course `ו:english`, qids 3000+.
 - Tables, "learning now" and the duel room show only the same grade (and subject); `duel_invite` refuses other grades or subjects.
 
+## One child, several devices
+- Full progress `P` is saved on the server row (`results.state`, `save_state`) with every sync, and merged into the device at start (`get_state` + `mergeP`: union of lessons/cards/mastered, best score, max time).
+- Signing up as a student with a name that already exists in the grade asks "כבר נרשמת?"; the child confirms with the avatar chosen at sign-up (`find_users`, `login_user`, 5 tries per hour) and continues with the same id and progress.
+- Duplicates are merged on the server with `id_alias(old_id, new_id)` (old rows hidden, duels moved); a device with an old id moves itself at start (`resolve_ids`).
+
 ## Rules the owner set
 - Final exam opens only at 100% learning meter.
 - Practice: a topic is done only when every question was answered right on the first try (3 rounds per topic).

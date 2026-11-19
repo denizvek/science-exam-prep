@@ -355,3 +355,11 @@ create or replace view public.results_public as
    FROM public.results
   WHERE NOT hidden AND NOT is_parent
     AND GREATEST(updated, COALESCE(last_seen, updated)) >= public.season_start();
+
+-- One child, several devices: the full progress is kept on the row (state), merged on every device at start.
+-- Signing up with a name that already exists in the grade asks "is it you?" and logs in with the avatar (find_users / login_user).
+-- Duplicates merged into one child: id_alias(old_id -> new_id); devices with the old id move themselves (resolve_ids).
+alter table public.results add column if not exists state jsonb;
+create table if not exists public.id_alias (old_id text primary key, new_id text not null, created_at timestamptz not null default now());
+create table if not exists public.login_fail (h text not null, at timestamptz not null default now());
+-- functions: save_state, get_state, resolve_ids, norm_name, find_users, login_user (see migration login_and_state)

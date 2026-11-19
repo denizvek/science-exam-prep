@@ -1698,6 +1698,22 @@ let P=me?loadP(me.id):blank();
 const VISITING=()=>!!me&&GRADE!==gradeOf(me.cls);
 if(me&&NEW_YEAR&&me.role==="kid"){me.clsOk=false;setView(me.id,null);ls.set("profiles",profiles)}   // new school year: ask the class again (they moved up a grade)
 const save=()=>{if(me){ls.set(pkey(me.id),P);queueSync()}};
+const pkeyFor=(id,g,subj)=>g==="ה"&&subj==="science"?"p:"+id:"p:"+id+":"+g+":"+subj;
+/* progress from two devices of the same child: keep everything that was learned on either */
+function mergeP(a,b){
+  if(!b||typeof b!=="object")return a;if(!a)return b;
+  if(a.season!=null&&b.season!=null&&a.season!==b.season)return b.season>a.season?b:a;   // another school year
+  const out=JSON.parse(JSON.stringify(a)),max=(x,y)=>Math.max(+x||0,+y||0);
+  out.lessons={...b.lessons};for(const k in a.lessons||{})out.lessons[k]=max(a.lessons[k],out.lessons[k]);
+  out.cards={...(b.cards||{}),...(a.cards||{})};out.mastered={...(b.mastered||{}),...(a.mastered||{})};
+  const ea=a.exam||{},eb=b.exam||{},u=(x,y)=>[...new Set([...(x||[]),...(y||[])])];
+  out.exam={...eb,...ea,best:ea.best==null?eb.best??null:eb.best==null?ea.best:Math.max(ea.best,eb.best),attempts:max(ea.attempts,eb.attempts),
+    history:(ea.history||[]).length>=(eb.history||[]).length?ea.history||[]:eb.history,seen:u(ea.seen,eb.seen),right:u(ea.right,eb.right),wrong:u(ea.wrong,eb.wrong).filter(id=>!u(ea.right,eb.right).includes(id))};
+  out.time=max(a.time,b.time);if(b.today&&a.today&&b.today.d===a.today.d)out.today={d:a.today.d,s:max(a.today.s,b.today.s)};else if(!a.today)out.today=b.today;
+  if(b.duelTry&&!a.duelTry)out.duelTry=b.duelTry;
+  return out;
+}
+let STATE_READY=false;   // the first sync waits until the progress saved on the server was merged in
 
 /* practice: a question is mastered once it is answered right on the first try; a topic is done only when all are */
 const M=()=>P.mastered||(P.mastered={});
@@ -1768,9 +1784,10 @@ function setRole(role){
   LIVE=null;
 }
 const needPick=()=>!!me&&SUBJECTS(GRADE).length>1&&(()=>{try{return sessionStorage.getItem("subjPicked")!==me.id}catch(e){return false}})();
-function queueSync(){if(!LIVE_ON||!me||isParent()||VISITING()||needPick())return;clearTimeout(syncT);syncT=setTimeout(sendSync,2000)}
+function queueSync(){if(!LIVE_ON||!me||isParent()||VISITING()||needPick()||!STATE_READY)return;clearTimeout(syncT);syncT=setTimeout(sendSync,2000)}
 function sendSync(){
-  if(!LIVE_ON||!me||isParent()||VISITING())return;const d=payload(),body=JSON.stringify(d);if(body===lastSent)return;lastSent=body;
+  if(!LIVE_ON||!me||isParent()||VISITING()||!STATE_READY)return;const d=payload(),body=JSON.stringify(d);if(body===lastSent)return;lastSent=body;
+  fetch(SUPA_URL+"/rest/v1/rpc/save_state",{method:"POST",headers:SUPA_H,body:JSON.stringify({p_id:d.id,p_state:P}),keepalive:true}).catch(()=>{});
   const args={p_id:d.id,p_name:d.name,p_cls:d.cls,p_av:d.av,p_meter:d.meter,p_lessons:d.lessons,p_best:d.best,p_attempts:d.attempts,p_covered:d.covered,p_minutes:d.minutes,p_correct:d.correct,p_today_minutes:d.todayMin,p_today:d.today};
   try{fetch(SUPA_URL+"/rest/v1/rpc/save_result",{method:"POST",headers:SUPA_H,body:JSON.stringify(args),keepalive:true}).then(r=>{if(!r.ok)lastSent="";LIVE=null}).catch(()=>{lastSent=""})}catch(e){lastSent=""}
 }
@@ -1955,12 +1972,59 @@ function onboarding(){
     if(!document.getElementById("pg").value){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו שכבה.</div>`;document.getElementById("pg").focus();return}
     if(!document.getElementById("pc").value){document.getElementById("perr").innerHTML=`<div class="fb bad">בחרו את מספר הכיתה.</div>`;document.getElementById("pc").focus();return}
     const cls=document.getElementById("pg").value+"׳"+document.getElementById("pc").value;
+    if(!me&&role==="kid"&&LIVE_ON&&!e.skipLookup){const btn=document.querySelector("#pf button.primary");btn.disabled=true;
+      rpc("find_users",{p_name:name,p_cls:cls,p_me:null}).then(list=>{btn.disabled=false;
+        if(Array.isArray(list)&&list.length)return askExisting(name,cls,list,()=>{const ev=new Event("submit");ev.skipLookup=true;document.getElementById("pf").dispatchEvent(ev)});
+        const ev=new Event("submit");ev.skipLookup=true;document.getElementById("pf").dispatchEvent(ev)});return}
     if(me){Object.assign(me,{name,cls,av,clsOk:true});if(role!==me.role)setRole(role)}else{me={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,cls,av,role,clsOk:true,roleSynced:true};profiles.push(me);P=blank();{const pr=me;if(role==="parent")setParentOnServer(pr,true);else setTimeout(()=>setParentOnServer(pr,false),4000)}}
     ls.set("profiles",profiles);ls.set("active",me.id);if(gradeOf(cls)!==GRADE){save();setView(me.id,null);clearTimeout(syncT);return location.reload()}save();home();};
+}
+function askExisting(name,cls,list,asNew){
+  const el=document.createElement("div");el.className="role";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");
+  el.innerHTML="<div></div>";document.body.appendChild(el);const box=el.firstElementChild;let pick=list[0];
+  const ask=()=>{box.innerHTML=`<div style="font-size:2.2rem;text-align:center">👋</div><h2>${esc(name)}, כבר נרשמת?</h2>
+    <p class="why" style="text-align:center">יש כבר תלמיד/ה בשם <b>${esc(name)}</b> בשכבה הזו. אם זה את/ה (למשל מטלפון או ממחשב אחר) – אפשר להמשיך מאותו מקום, עם כל ההישגים.</p>
+    ${list.map((x,i)=>`<button class="pick" data-i="${i}"><span class="ic">🙋</span><span><b>כן, זה אני – ${esc(x.cls)}</b>מד למידה ${x.meter}%${x.seen?` · נכנס/ה לאחרונה ב-${fmtDay(x.seen)}`:""}</span></button>`).join("")}
+    <button class="btn ghost block" id="exNew">לא, אני תלמיד/ה אחר/ת עם אותו שם</button>`;
+    box.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{pick=list[+b.dataset.i];avatar()});
+    box.querySelector("#exNew").onclick=()=>{el.remove();asNew()}};
+  const avatar=(msg)=>{box.innerHTML=`<div style="font-size:2.2rem;text-align:center">🔐</div><h2>באיזו דמות בחרת?</h2>
+    <p class="why" style="text-align:center">כדי לוודא שזה באמת את/ה – בחרו את הדמות שבחרתם כשנרשמתם.</p>${msg||""}
+    <div class="avs">${AVATARS.map(a=>`<button type="button" data-a="${a}">${a}</button>`).join("")}</div>
+    <button class="btn ghost block" id="exBack">→ חזרה</button>`;
+    box.querySelector("#exBack").onclick=ask;
+    box.querySelectorAll("[data-a]").forEach(b=>b.onclick=async()=>{box.querySelectorAll("[data-a]").forEach(x=>x.disabled=true);
+      const r=await rpc("login_user",{p_h:pick.h,p_av:b.dataset.a});
+      if(!r||!r.ok)return avatar(`<div class="fb bad">${r&&r.reason==="locked"?"יותר מדי ניסיונות. נסו שוב בעוד שעה, או בקשו עזרה מהורה.":"זו לא הדמות. נסו שוב 🙂"}</div>`);
+      // log in: the same child, with all the progress saved on the server
+      const g=gradeOf(r.cls);let pr=profiles.find(x=>x.id===r.id);
+      if(!pr){pr={id:r.id,name:r.name,cls:r.cls,av:r.av,role:"kid",clsOk:true,roleSynced:true};profiles.push(pr)}
+      const subs=Object.keys(COURSES[g]);
+      for(const [k,st] of Object.entries(r.states||{})){const subj=k||subs[0];if(!COURSES[g][subj]||!st)continue;const key=pkeyFor(r.id,g,subj);ls.set(key,mergeP(ls.get(key,null),st))}
+      ls.set("profiles",profiles);ls.set("active",r.id);el.remove();toast("ברוך/ה השב/ה! ההישגים שלך כאן 🎉");setTimeout(()=>location.reload(),600)})};
+  ask();
 }
 function switchTo(id){const to=profiles.find(p=>p.id===id);ls.set("active",id);if(effCourse(to)!==GRADE+":"+SUBJECT)return location.reload();me=to;P=loadP(id);if(NEW_YEAR)return location.reload();home()}
 
 let SCREEN="";
+async function startSync(){
+  if(!LIVE_ON||!profiles.length){STATE_READY=true;return}
+  // 1) duplicates merged into one child: move this device to the kept id
+  const al=await rpc("resolve_ids",{p_ids:profiles.map(x=>x.id)});
+  if(al&&typeof al==="object"&&Object.keys(al).length){
+    for(const [o,n] of Object.entries(al)){const pr=profiles.find(x=>x.id===o);if(!pr)continue;
+      for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(!k||!k.startsWith(LS+"p:"+o))continue;
+        const nk=LS+"p:"+n+k.slice((LS+"p:"+o).length);let a=null,b=null;try{a=JSON.parse(localStorage.getItem(k));b=JSON.parse(localStorage.getItem(nk))}catch(e){}
+        try{localStorage.setItem(nk,JSON.stringify(mergeP(a,b)));localStorage.removeItem(k)}catch(e){}}
+      for(const mk of ["sci1:subj","sci1:view"]){try{const m=JSON.parse(localStorage.getItem(mk)||"{}");if(m[o]!=null){m[n]=m[o];delete m[o];localStorage.setItem(mk,JSON.stringify(m))}}catch(e){}}
+      if(profiles.some(x=>x.id===n))profiles=profiles.filter(x=>x.id!==o);else pr.id=n;
+      if(ls.get("active","")===o)ls.set("active",n)}
+    ls.set("profiles",profiles);return location.reload()}
+  // 2) what this child learned on other devices
+  if(me&&!isParent()&&!VISITING()){const st=await rpc("get_state",{p_id:SID()});if(st&&typeof st==="object"){P=mergeP(P,st);ls.set(pkey(me.id),P)}}
+  STATE_READY=true;queueSync();if(SCREEN==="home")home();
+}
+setTimeout(()=>{startSync();setTimeout(()=>{if(!STATE_READY){STATE_READY=true;queueSync()}},8000)},300);
 const ROLE_KID=`<span class="ic">🎒</span><span><b>אני תלמיד/ה</b>לומד/ת למבחן. ההתקדמות שלי נשמרת ומופיעה בטבלת ההישגים.</span>`;
 const ROLE_PARENT=`<span class="ic">👨‍👩‍👧</span><span><b>אני הורה</b>לא אופיע בטבלה. אוכל לראות את ההישגים של כולם ולעבור על כל השיעורים, הכרטיסיות והמבחן – בלי חובה להשלים קודם את הלמידה.</span>`;
 function askRole(){
